@@ -193,15 +193,15 @@ def workflow_builder_page():
     return render_template('workflow_builder.html')
 
 @app.route('/api/generate-workflow', methods=['POST'])
-async def generate_workflow():
+def generate_workflow():
     data = request.json
     goal = data.get('goal', '')
     
     if not goal:
         return jsonify({"success": False, "error": "No workflow goal provided"}), 400
     
-    # Generate the workflow
-    result = await workflow_builder.generate_workflow(goal)
+    # Generate the workflow using asyncio to handle the async call
+    result = asyncio.run(workflow_builder.generate_workflow(goal))
     
     if not result["success"]:
         return jsonify(result), 400
