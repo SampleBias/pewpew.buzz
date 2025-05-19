@@ -1,0 +1,16 @@
+{
+  "name": "Workflow for: I need an agent that I can add the workflow and it",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        100,
+        300
+      ]
+    }
+  ],
+  "connections": {}
+}
