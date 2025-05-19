@@ -55,18 +55,18 @@ Example structure:
   }
 }
 
-User's automation goal: {goal}
+User wants to build a workflow that does the following: {goal}
 
-Respond only with the JSON workflow, no explanations.
+Respond with ONLY the valid JSON workflow - no additional text, comments, or code blocks.
 """
 
         self.name_generation_template = """
 Create a concise, descriptive name for an n8n workflow based on the following description:
 
-"{goal}"
+Goal: {goal}
 
 The name should be brief (3-6 words), professional, and clearly indicate the workflow's purpose.
-Respond with ONLY the name, nothing else.
+Respond with ONLY the name text - no quotes, no additional explanations, comments, or formatting.
 """
 
     async def test_api_connection(self):
@@ -106,6 +106,9 @@ Respond with ONLY the name, nothing else.
     async def generate_workflow_name(self, goal):
         """Generate a descriptive name for the workflow based on the goal"""
         try:
+            # Default fallback name
+            default_name = f"Workflow for {goal[:40]}"
+            
             prompt = self.name_generation_template.format(goal=goal)
             response = await self.model.generate_content_async(prompt)
             
@@ -119,19 +122,28 @@ Respond with ONLY the name, nothing else.
                 # Add other extraction methods as needed
             except Exception as e:
                 print(f"Error extracting name: {e}")
+                return default_name
             
             # Clean up the name
             if name:
+                # Strip whitespace, quotes, and newlines
                 name = name.strip().strip('"\'').strip()
+                name = re.sub(r'[\n\r\t]+', ' ', name)
+                # Remove any non-alphanumeric characters that might cause issues
+                name = re.sub(r'[^\w\s\-:]', '', name)
                 # Limit length
                 if len(name) > 60:
                     name = name[:57] + "..."
+                # Final verification - if empty or just whitespace, use default
+                if not name or not name.strip():
+                    return default_name
                 return name
             
-            return f"Workflow: {goal[:40]}"
+            return default_name
         except Exception as e:
             print(f"Error generating workflow name: {e}")
-            return f"Workflow: {goal[:40]}"
+            traceback.print_exc()
+            return f"Workflow for {goal[:40]}"
 
     async def generate_workflow(self, goal):
         try:
@@ -153,8 +165,6 @@ Respond with ONLY the name, nothing else.
             
             try:
                 response = await self.model.generate_content_async(prompt)
-                print(f"Response type: {type(response)}")
-                print(f"Response attributes: {dir(response)}")
                 
                 # Extract text from response based on response structure
                 workflow_json_text = None
@@ -189,13 +199,6 @@ Respond with ONLY the name, nothing else.
                     
                 if workflow_json_text is None:
                     print(f"Could not extract text from response: {response}")
-                    # Try serializing the entire response
-                    try:
-                        if hasattr(response, '__dict__'):
-                            print(f"Response dict: {response.__dict__}")
-                    except:
-                        pass
-                        
                     return {
                         "success": True,
                         "workflow": self._create_fallback_workflow(goal, workflow_name),
@@ -204,17 +207,16 @@ Respond with ONLY the name, nothing else.
                     
                 # Clean up and process the response
                 workflow_json_text = workflow_json_text.strip()
-                workflow_json_text = re.sub(r'^```json\s*', '', workflow_json_text)
-                workflow_json_text = re.sub(r'^```\s*', '', workflow_json_text)
-                workflow_json_text = re.sub(r'\s*```$', '', workflow_json_text)
                 
-                print(f"Extracted text: {workflow_json_text[:200]}...")
+                # Remove any markdown code blocks
+                workflow_json_text = re.sub(r'^```(?:json)?\s*', '', workflow_json_text)
+                workflow_json_text = re.sub(r'\s*```$', '', workflow_json_text)
                 
                 # Find JSON object in the text
                 start_idx = workflow_json_text.find('{')
                 end_idx = workflow_json_text.rfind('}')
                 
-                if start_idx >= 0 and end_idx >= 0:
+                if start_idx >= 0 and end_idx >= 0 and start_idx < end_idx:
                     workflow_json_text = workflow_json_text[start_idx:end_idx+1]
                     
                     try:
@@ -224,10 +226,26 @@ Respond with ONLY the name, nothing else.
                         if "name" not in workflow_json or not workflow_json["name"]:
                             workflow_json["name"] = workflow_name
                             
+                        # Make sure we have required fields
+                        if "nodes" not in workflow_json:
+                            workflow_json["nodes"] = []
+                        if "connections" not in workflow_json:
+                            workflow_json["connections"] = {}
+                            
+                        # Ensure we have at least a manual trigger node
+                        if not workflow_json["nodes"]:
+                            workflow_json["nodes"].append({
+                                "parameters": {},
+                                "id": "1",
+                                "name": "Manual Trigger", 
+                                "type": "n8n-nodes-base.manualTrigger",
+                                "position": [100, 300]
+                            })
+                            
                         return {"success": True, "workflow": workflow_json}
                     except json.JSONDecodeError as e:
                         print(f"JSON parsing error: {e}")
-                        print(f"Raw text: {workflow_json_text}")
+                        print(f"Raw text: {workflow_json_text[:200]}...")
                         
                         # Try to do more aggressive cleanup
                         clean_text = re.sub(r'[\n\r\t]', ' ', workflow_json_text)
@@ -244,14 +262,13 @@ Respond with ONLY the name, nothing else.
                         except:
                             pass
                 else:
-                    print(f"No JSON object found in: {workflow_json_text}")
+                    print(f"No valid JSON object found in the response")
                 
                 # If we get here, use fallback workflow
                 return {
                     "success": True,
                     "workflow": self._create_fallback_workflow(goal, workflow_name),
-                    "warning": "Could not extract valid JSON from the API response",
-                    "raw_response": workflow_json_text[:500] if len(workflow_json_text) > 500 else workflow_json_text
+                    "warning": "Could not extract valid JSON from the API response"
                 }
                     
             except Exception as e:
@@ -266,7 +283,6 @@ Respond with ONLY the name, nothing else.
                 
         except Exception as e:
             print(f"Exception in generate_workflow: {str(e)}")
-            print(f"Exception type: {type(e)}")
             traceback.print_exc()
             return {
                 "success": True,
@@ -288,10 +304,55 @@ Respond with ONLY the name, nothing else.
                     "name": "Manual Trigger", 
                     "type": "n8n-nodes-base.manualTrigger",
                     "position": [100, 300]
+                },
+                {
+                    "parameters": {
+                        "mode": "manually",
+                        "text": {
+                            "value": f"# {name}\n\nThis is a starter workflow for: {goal}\n\nPlease customize it according to your needs."
+                        }
+                    },
+                    "id": "2",
+                    "name": "Set", 
+                    "type": "n8n-nodes-base.set",
+                    "position": [300, 300]
                 }
             ],
-            "connections": {}
+            "connections": {
+                "Manual Trigger": {
+                    "main": [[
+                        {"node": "Set", "type": "main", "index": 0}
+                    ]]
+                }
+            }
         }
+            
+    def extract_workflow_steps(self, goal):
+        """Extract individual steps from a workflow goal description"""
+        steps = []
+        
+        # Split by numbered items first (1., 2., etc.)
+        numbered_pattern = re.compile(r'\b(\d+)[.):]\s+([^\d][^\n]+)')
+        matches = numbered_pattern.findall(goal)
+        
+        if matches:
+            steps = [match[1].strip() for match in matches]
+        else:
+            # Try bullet points
+            bullet_pattern = re.compile(r'(?:•|-|\*)\s+([^\n]+)')
+            matches = bullet_pattern.findall(goal)
+            if matches:
+                steps = [match.strip() for match in matches]
+            else:
+                # Split by sentences as a last resort
+                sentences = re.split(r'(?<=[.!?])\s+', goal)
+                steps = [s.strip() for s in sentences if len(s.strip()) > 10]
+        
+        # If still no steps identified, treat the whole goal as one step
+        if not steps:
+            steps = [goal]
+            
+        return steps
             
     def save_workflow(self, workflow, folder_name):
         """Save a generated workflow to the automation directory"""
@@ -316,6 +377,15 @@ Respond with ONLY the name, nothing else.
         readme_content = f"# {workflow_name}\n\n"
         readme_content += f"## Purpose\n\n"
         readme_content += f"This workflow automates the following task: {goal}\n\n"
+        
+        # Extract and display steps if any
+        steps = self.extract_workflow_steps(goal)
+        if len(steps) > 1:
+            readme_content += "## Steps\n\n"
+            for i, step in enumerate(steps, 1):
+                readme_content += f"{i}. {step}\n"
+            readme_content += "\n"
+            
         readme_content += f"## Overview\n\n"
         
         # Count nodes by type to give an overview

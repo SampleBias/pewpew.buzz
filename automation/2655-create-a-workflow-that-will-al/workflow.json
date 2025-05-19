@@ -1,0 +1,16 @@
+{
+  "name": "Workflow for: Create a workflow that will allow me to enter a UR",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        100,
+        300
+      ]
+    }
+  ],
+  "connections": {}
+}
