@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex flex-col md:flex-row gap-8 container mx-auto py-8">
+    <!-- Sidebar -->
+    <aside class="w-full md:w-64 mb-8 md:mb-0">
+        <div class="bg-[#1a0025] border-2 border-pink-500 rounded-xl shadow-xl p-6">
+            <h2 class="text-xl neon-pink font-bold mb-4">Categories</h2>
+            <ul class="space-y-2">
+                <li>
+                    <a href="/dashboard" class="block px-2 py-1 rounded hover:bg-pink-500 hover:text-white transition {% if not selected_category %}bg-pink-500 text-white{% endif %}">All</a>
+                </li>
+                {% for cat, count in categories %}
+                <li>
+                    <a href="/dashboard?category={{ cat }}" class="flex justify-between items-center px-2 py-1 rounded hover:bg-pink-500 hover:text-white transition {% if selected_category == cat %}bg-pink-500 text-white{% endif %}">
+                        <span>{{ cat }}</span>
+                        <span class="text-xs bg-pink-200 text-pink-800 rounded-full px-2 py-0.5 ml-2">{{ count }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </aside>
+    <!-- Main Content -->
+    <section class="flex-1">
+        <form method="get" action="/dashboard" class="mb-8 flex gap-2">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search automations..." class="w-full px-4 py-2 rounded-lg border-2 border-pink-500 bg-[#1a0025] text-white focus:outline-none focus:border-pink-400" />
+            {% if selected_category %}
+                <input type="hidden" name="category" value="{{ selected_category }}" />
+            {% endif %}
+            <button type="submit" class="bg-pink-500 hover:bg-pink-400 text-white px-4 py-2 rounded-lg font-bold shadow-md transition">Search</button>
+        </form>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for automation in automations %}
+            <div class="bg-[#1a0025] border-2 border-pink-500 rounded-xl shadow-xl p-6 flex flex-col justify-between transform hover:scale-105 transition-transform duration-200">
+                <div>
+                    <h2 class="text-2xl font-bold neon mb-2">{{ automation.title }}</h2>
+                    <p class="mb-4 text-pink-200">{{ automation.description }}</p>
+                    {% if automation.categories %}
+                    <div class="flex flex-wrap gap-2 mb-2">
+                        {% for tag in automation.categories %}
+                        <span class="bg-pink-200 text-pink-800 text-xs font-semibold px-2 py-1 rounded-full">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="flex items-center justify-between mt-4">
+                    <span class="text-sm text-pink-400 font-semibold">By {{ automation.author }}</span>
+                    <a href="{{ automation.download_url }}" download class="bg-pink-500 hover:bg-pink-400 text-white px-4 py-2 rounded-lg font-bold shadow-md transition">Download</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% if not automations %}
+        <div class="text-center text-pink-300 mt-12 text-xl">No automations found.</div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %} 

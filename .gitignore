@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+
+# Environment variables
+.env
+
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/
+
+# PyCharm
+.idea/
+
+# Flask debug files
+instance/
+*.db
+
+# Node/npm (if any frontend assets)
+node_modules/
+
+# Supabase local config (if any)
+supabase/.temp/ 

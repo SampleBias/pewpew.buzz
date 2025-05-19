@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pewpew.buzz</title>
+    <link rel="icon" type="image/png" href="/static/images/pewpew.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a0025 0%, #2d006e 100%);
+            color: #fff;
+        }
+        .neon {
+            text-shadow: 0 0 8px #fff, 0 0 16px #39ff14, 0 0 32px #39ff14;
+        }
+        .neon-pink {
+            text-shadow: 0 0 8px #fff, 0 0 16px #ff00de, 0 0 32px #ff00de;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="flex items-center justify-between px-6 py-4 bg-transparent">
+        <div class="flex items-center gap-3">
+            <img src="/static/images/pewpew.png" alt="pewpew meme" class="w-12 h-12 rounded-full border-2 border-pink-500 shadow-lg">
+            <span class="text-3xl font-bold neon-pink">pewpew.buzz</span>
+        </div>
+        <nav class="flex gap-6 text-lg">
+            <a href="/" class="hover:text-pink-400 transition">Home</a>
+            <a href="/dashboard" class="hover:text-pink-400 transition">Automations</a>
+            <a href="/add" class="hover:text-pink-400 transition">Add</a>
+            <a href="/howto" class="hover:text-pink-400 transition">How to Use</a>
+            {% if session.user %}
+                <a href="/logout" class="hover:text-pink-400 transition">Logout</a>
+            {% else %}
+                <a href="/login" class="hover:text-pink-400 transition">Login</a>
+            {% endif %}
+        </nav>
+    </header>
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="text-center py-4 text-pink-300 text-sm">
+        &copy; {{ year }} pewpew.buzz &mdash; Powered by N8n, Supabase, Auth0, and memes.
+    </footer>
+</body>
+</html> 

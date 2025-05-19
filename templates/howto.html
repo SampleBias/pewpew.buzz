@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto py-12 max-w-2xl">
+    <h1 class="text-4xl neon-pink font-bold mb-8 text-center">How to Use pewpew.buzz</h1>
+    <ol class="list-decimal list-inside text-pink-200 text-lg space-y-4">
+        <li>Browse the <a href="/dashboard" class="text-pink-400 underline">Automations Gallery</a> to discover N8N workflows.</li>
+        <li>Click <b>Download</b> on any card to get the workflow JSON file.</li>
+        <li>Import the JSON file into your own N8N instance.</li>
+        <li>To add your own automation, use the <b>Add</b> page (coming soon!).</li>
+        <li>For help or questions, contact <span class="font-bold">James Utley PhD</span>.</li>
+    </ol>
+    <div class="mt-8 text-center">
+        <a href="/dashboard" class="bg-pink-500 hover:bg-pink-400 text-white px-6 py-3 rounded-lg font-bold shadow-md transition">Browse Automations</a>
+    </div>
+</div>
+{% endblock %} 

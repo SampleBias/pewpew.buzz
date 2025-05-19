@@ -1,0 +1,133 @@
+import os
+from flask import Flask, render_template, redirect, url_for, session, request, send_file
+from authlib.integrations.flask_client import OAuth
+from dotenv import load_dotenv
+from supabase import create_client, Client
+import glob
+import markdown
+import json
+
+load_dotenv()
+
+app = Flask(__name__)
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'supersecret')
+
+# Auth0 config
+app.config['AUTH0_CLIENT_ID'] = os.environ.get('AUTH0_CLIENT_ID')
+app.config['AUTH0_CLIENT_SECRET'] = os.environ.get('AUTH0_CLIENT_SECRET')
+app.config['AUTH0_DOMAIN'] = os.environ.get('AUTH0_DOMAIN')
+app.config['AUTH0_CALLBACK_URL'] = os.environ.get('AUTH0_CALLBACK_URL')
+
+# Supabase config
+SUPABASE_URL = os.environ.get('SUPABASE_URL')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+oauth = OAuth(app)
+auth0 = oauth.register(
+    'auth0',
+    client_id=app.config['AUTH0_CLIENT_ID'],
+    client_secret=app.config['AUTH0_CLIENT_SECRET'],
+    api_base_url=f'https://{app.config["AUTH0_DOMAIN"]}',
+    access_token_url=f'https://{app.config["AUTH0_DOMAIN"]}/oauth/token',
+    authorize_url=f'https://{app.config["AUTH0_DOMAIN"]}/authorize',
+    client_kwargs={
+        'scope': 'openid profile email',
+    },
+)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/dashboard')
+def dashboard():
+    automations = []
+    categories_count = {}
+    base_path = os.path.join(os.path.dirname(__file__), 'automation')
+    selected_category = request.args.get('category')
+    search_query = request.args.get('search', '').lower()
+    for folder in os.listdir(base_path):
+        folder_path = os.path.join(base_path, folder)
+        if os.path.isdir(folder_path):
+            readme_path = os.path.join(folder_path, 'README.md')
+            meta_path = os.path.join(folder_path, 'meta.json')
+            workflow_path = os.path.join(folder_path, 'workflow.json')
+            categories = []
+            if os.path.exists(meta_path):
+                with open(meta_path, 'r') as mf:
+                    meta = json.load(mf)
+                    categories = meta.get('categories', [])
+            elif os.path.exists(readme_path):
+                with open(readme_path, 'r') as f:
+                    lines = f.readlines()
+                    for line in lines:
+                        if line.lower().startswith('categories:'):
+                            categories = [c.strip() for c in line.split(':', 1)[1].split(',')]
+                            break
+            if os.path.exists(readme_path) and os.path.exists(workflow_path):
+                with open(readme_path, 'r') as f:
+                    lines = f.readlines()
+                    title = lines[0].replace('#', '').strip() if lines else folder
+                    description = next((l.strip() for l in lines[1:] if l.strip() and not l.startswith('#')), '')
+                download_url = f'/download_workflow/{folder}'
+                automation = {
+                    'title': title,
+                    'description': description,
+                    'download_url': download_url,
+                    'author': 'James Utley PhD',
+                    'categories': categories
+                }
+                # Filter by category
+                if selected_category and selected_category not in categories:
+                    continue
+                # Filter by search
+                if search_query and (search_query not in title.lower() and search_query not in description.lower()):
+                    continue
+                automations.append(automation)
+                for cat in categories:
+                    categories_count[cat] = categories_count.get(cat, 0) + 1
+    categories_list = sorted([(cat, count) for cat, count in categories_count.items()], key=lambda x: (-x[1], x[0]))
+    return render_template('dashboard.html', automations=automations, categories=categories_list, selected_category=selected_category, search_query=search_query)
+
+@app.route('/download_workflow/<workflow_folder>')
+def download_workflow(workflow_folder):
+    base_path = os.path.join(os.path.dirname(__file__), 'automation')
+    workflow_path = os.path.join(base_path, workflow_folder, 'workflow.json')
+    if os.path.exists(workflow_path):
+        return send_file(workflow_path, as_attachment=True)
+    return 'Workflow not found', 404
+
+@app.route('/add', methods=['GET', 'POST'])
+def add_automation():
+    if request.method == 'POST':
+        # Handle file upload and metadata
+        # TODO: Save to Supabase
+        pass
+    return render_template('add_automation.html')
+
+@app.route('/howto')
+def howto():
+    return render_template('howto.html')
+
+@app.route('/login')
+def login():
+    return auth0.authorize_redirect(redirect_uri=app.config['AUTH0_CALLBACK_URL'])
+
+@app.route('/callback')
+def callback():
+    token = auth0.authorize_access_token()
+    session['user'] = token['userinfo']
+    return redirect('/dashboard')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(
+        f'https://{app.config["AUTH0_DOMAIN"]}/v2/logout?returnTo={url_for("index", _external=True)}&client_id={app.config["AUTH0_CLIENT_ID"]}'
+    )
+
+# TODO: Add download route, meme animation, and user upload logic
+
+if __name__ == '__main__':
+    app.run(debug=True) 

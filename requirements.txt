@@ -1,0 +1,5 @@
+Flask
+dotenv
+requests
+supabase
+authlib 
