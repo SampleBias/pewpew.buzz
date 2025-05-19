@@ -6,20 +6,6 @@
         
         <p class="text-pink-200 mb-2">Describe your automation goal and our AI will generate a production-ready n8n workflow JSON. This workflow can be directly imported into n8n.</p>
         
-        <!-- API Status Section -->
-        <div class="mb-6">
-            <button id="testApiBtn" class="bg-[#1a0025] border-2 border-pink-500 hover:bg-[#2d006e] text-pink-300 px-4 py-2 rounded-lg font-semibold shadow-md transition flex items-center gap-2">
-                <span>Test Gemini API Connection</span>
-                <span id="apiSpinner" class="hidden">
-                    <svg class="animate-spin h-4 w-4 text-pink-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                </span>
-            </button>
-            <div id="apiStatus" class="mt-2 text-sm"></div>
-        </div>
-        
         <div class="bg-[#1a0025] border-2 border-pink-500 rounded-2xl shadow-xl p-6">
             <div class="mb-4">
                 <label for="goal" class="block text-lg font-bold text-pink-300 mb-2">Describe Your Automation Goal</label>
@@ -70,35 +56,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const jsonResult = document.getElementById('jsonResult');
     const downloadLink = document.getElementById('downloadLink');
     const viewDetails = document.getElementById('viewDetails');
-    
-    // API Test elements
-    const testApiBtn = document.getElementById('testApiBtn');
-    const apiSpinner = document.getElementById('apiSpinner');
-    const apiStatus = document.getElementById('apiStatus');
-    
-    // Test API connection
-    testApiBtn.addEventListener('click', async function() {
-        testApiBtn.disabled = true;
-        apiSpinner.classList.remove('hidden');
-        apiStatus.innerHTML = '';
-        
-        try {
-            const response = await fetch('/api/test-gemini');
-            const data = await response.json();
-            
-            if (data.success) {
-                apiStatus.innerHTML = `<div class="text-green-300">✓ API connected successfully!</div>
-                                       <div class="text-gray-300 mt-1">Sample response: ${data.response || 'OK'}</div>`;
-            } else {
-                apiStatus.innerHTML = `<div class="text-red-400">✗ API connection failed: ${data.error}</div>`;
-            }
-        } catch (error) {
-            apiStatus.innerHTML = `<div class="text-red-400">✗ Error testing API: ${error.message}</div>`;
-        } finally {
-            testApiBtn.disabled = false;
-            apiSpinner.classList.add('hidden');
-        }
-    });
     
     generateBtn.addEventListener('click', async function() {
         const goal = goalInput.value.trim();
