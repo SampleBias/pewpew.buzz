@@ -244,10 +244,11 @@ def generate_workflow():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/test-gemini', methods=['GET'])
-async def test_gemini_api():
+def test_gemini_api():
     """Test endpoint to verify Gemini API connection"""
     try:
-        result = await workflow_builder.test_api_connection()
+        # Run the async function in a synchronous context
+        result = asyncio.run(workflow_builder.test_api_connection())
         return jsonify(result)
     except Exception as e:
         return jsonify({
