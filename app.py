@@ -243,6 +243,19 @@ def generate_workflow():
         print(f"Error saving workflow: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/api/test-gemini', methods=['GET'])
+async def test_gemini_api():
+    """Test endpoint to verify Gemini API connection"""
+    try:
+        result = await workflow_builder.test_api_connection()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Error testing API: {str(e)}",
+            "error_type": str(type(e))
+        })
+
 # TODO: Add download route, meme animation, and user upload logic
 
 if __name__ == '__main__':
