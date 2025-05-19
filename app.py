@@ -6,6 +6,7 @@ from supabase import create_client, Client
 import glob
 import markdown
 import json
+import re
 
 load_dotenv()
 
@@ -36,6 +37,13 @@ auth0 = oauth.register(
     },
 )
 
+DEFAULT_CATEGORY = 'Uncategorized'
+COMMON_CATEGORIES = [
+    'AI', 'Analytics', 'Marketing', 'Data Management', 'Email', 'Content Creation', 'Customer Support',
+    'Dev Ops', 'Ecommerce', 'Education', 'Engineering', 'Finance', 'HR', 'IT', 'Project Management',
+    'Social Media', 'Webhooks', DEFAULT_CATEGORY
+]
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -54,10 +62,12 @@ def dashboard():
             meta_path = os.path.join(folder_path, 'meta.json')
             workflow_path = os.path.join(folder_path, 'workflow.json')
             categories = []
+            # 1. Try meta.json
             if os.path.exists(meta_path):
                 with open(meta_path, 'r') as mf:
                     meta = json.load(mf)
                     categories = meta.get('categories', [])
+            # 2. Try README.md 'Categories:' line
             elif os.path.exists(readme_path):
                 with open(readme_path, 'r') as f:
                     lines = f.readlines()
@@ -65,16 +75,32 @@ def dashboard():
                         if line.lower().startswith('categories:'):
                             categories = [c.strip() for c in line.split(':', 1)[1].split(',')]
                             break
+            # 3. If still no category, try to infer from README content
+            if not categories and os.path.exists(readme_path):
+                with open(readme_path, 'r') as f:
+                    readme_content = f.read().lower()
+                    found = False
+                    for cat in COMMON_CATEGORIES:
+                        if cat.lower() in readme_content:
+                            categories = [cat]
+                            found = True
+                            break
+                    if not found:
+                        categories = [DEFAULT_CATEGORY]
+            elif not categories:
+                categories = [DEFAULT_CATEGORY]
             if os.path.exists(readme_path) and os.path.exists(workflow_path):
                 with open(readme_path, 'r') as f:
                     lines = f.readlines()
                     title = lines[0].replace('#', '').strip() if lines else folder
                     description = next((l.strip() for l in lines[1:] if l.strip() and not l.startswith('#')), '')
                 download_url = f'/download_workflow/{folder}'
+                readme_url = f'/readme/{folder}'
                 automation = {
                     'title': title,
                     'description': description,
                     'download_url': download_url,
+                    'readme_url': readme_url,
                     'author': 'James Utley PhD',
                     'categories': categories
                 }
@@ -87,7 +113,8 @@ def dashboard():
                 automations.append(automation)
                 for cat in categories:
                     categories_count[cat] = categories_count.get(cat, 0) + 1
-    categories_list = sorted([(cat, count) for cat, count in categories_count.items()], key=lambda x: (-x[1], x[0]))
+    categories_list = [(cat, categories_count.get(cat, 0)) for cat in COMMON_CATEGORIES if categories_count.get(cat, 0) > 0]
+    categories_list = sorted(categories_list, key=lambda x: (-x[1], x[0]))
     return render_template('dashboard.html', automations=automations, categories=categories_list, selected_category=selected_category, search_query=search_query)
 
 @app.route('/download_workflow/<workflow_folder>')
@@ -126,6 +153,16 @@ def logout():
     return redirect(
         f'https://{app.config["AUTH0_DOMAIN"]}/v2/logout?returnTo={url_for("index", _external=True)}&client_id={app.config["AUTH0_CLIENT_ID"]}'
     )
+
+@app.route('/readme/<workflow_folder>')
+def readme(workflow_folder):
+    base_path = os.path.join(os.path.dirname(__file__), 'automation')
+    readme_path = os.path.join(base_path, workflow_folder, 'README.md')
+    if os.path.exists(readme_path):
+        with open(readme_path, 'r') as f:
+            content = f.read()
+        return content, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+    return 'README not found', 404
 
 # TODO: Add download route, meme animation, and user upload logic
 
