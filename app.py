@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, redirect, url_for, session, request, send_file
+from flask import Flask, render_template, redirect, url_for, session, request, send_file, jsonify
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from supabase import create_client, Client
@@ -7,6 +7,8 @@ import glob
 import markdown
 import json
 import re
+import asyncio
+from workflow_builder import N8nWorkflowBuilder
 
 load_dotenv()
 
@@ -43,6 +45,8 @@ COMMON_CATEGORIES = [
     'Dev Ops', 'Ecommerce', 'Education', 'Engineering', 'Finance', 'HR', 'IT', 'Project Management',
     'Social Media', 'Webhooks', DEFAULT_CATEGORY
 ]
+
+workflow_builder = N8nWorkflowBuilder()
 
 @app.route('/')
 def index():
@@ -183,6 +187,51 @@ def readme(workflow_folder):
             content = f.read()
         return content, 200, {'Content-Type': 'text/plain; charset=utf-8'}
     return 'README not found', 404
+
+@app.route('/builder', methods=['GET'])
+def workflow_builder_page():
+    return render_template('workflow_builder.html')
+
+@app.route('/api/generate-workflow', methods=['POST'])
+async def generate_workflow():
+    data = request.json
+    goal = data.get('goal', '')
+    
+    if not goal:
+        return jsonify({"success": False, "error": "No workflow goal provided"}), 400
+    
+    # Generate the workflow
+    result = await workflow_builder.generate_workflow(goal)
+    
+    if not result["success"]:
+        return jsonify(result), 400
+    
+    # Create a directory name for the workflow
+    # Find the highest number and increment by 1
+    base_path = os.path.join(os.path.dirname(__file__), 'automation')
+    try:
+        existing_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
+        highest_num = 0
+        for dir_name in existing_dirs:
+            match = re.match(r'^(\d+)', dir_name)
+            if match:
+                num = int(match.group(1))
+                highest_num = max(highest_num, num)
+        
+        new_num = highest_num + 1
+        dir_name = f"{new_num}-{goal[:30].lower().replace(' ', '-')}"
+        
+        # Save the workflow
+        workflow_path = workflow_builder.save_workflow(result["workflow"], dir_name)
+        
+        return jsonify({
+            "success": True, 
+            "message": "Workflow generated successfully", 
+            "workflow": result["workflow"],
+            "path": dir_name
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 # TODO: Add download route, meme animation, and user upload logic
 

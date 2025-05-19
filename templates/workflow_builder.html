@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto py-8 px-4">
+    <div class="flex flex-col gap-6">
+        <h1 class="text-3xl font-bold neon-pink mb-4">N8n Workflow Builder</h1>
+        
+        <p class="text-pink-200 mb-2">Describe your automation goal and our AI will generate a production-ready n8n workflow JSON. This workflow can be directly imported into n8n.</p>
+        
+        <div class="bg-[#1a0025] border-2 border-pink-500 rounded-2xl shadow-xl p-6">
+            <div class="mb-4">
+                <label for="goal" class="block text-lg font-bold text-pink-300 mb-2">Describe Your Automation Goal</label>
+                <textarea id="goal" rows="4" class="w-full bg-[#2d006e] text-white border-2 border-pink-400 rounded-lg p-3 focus:outline-none focus:border-pink-300" placeholder="e.g., Create a workflow that monitors Twitter for mentions of my brand and sends notifications to Slack"></textarea>
+            </div>
+            
+            <div class="flex justify-end">
+                <button id="generateBtn" class="bg-pink-500 hover:bg-pink-400 text-white px-6 py-3 rounded-lg font-bold shadow-md transition flex items-center gap-2">
+                    <span>Generate Workflow</span>
+                    <span id="spinner" class="hidden">
+                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Result Section -->
+        <div id="resultSection" class="hidden">
+            <div class="bg-[#1a0025] border-2 border-pink-500 rounded-2xl shadow-xl p-6">
+                <h2 class="text-2xl font-bold neon mb-4">Generated Workflow</h2>
+                
+                <div id="resultMessage" class="mb-4 text-pink-300 text-lg"></div>
+                
+                <div class="flex gap-4 mb-4">
+                    <a id="downloadLink" href="#" class="bg-pink-500 hover:bg-pink-400 text-white px-6 py-3 rounded-lg font-bold shadow-md transition text-center">Download Workflow</a>
+                    <a id="viewDetails" href="#" class="bg-pink-700 hover:bg-pink-600 text-white px-6 py-3 rounded-lg font-bold shadow-md transition text-center">View Details</a>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-lg font-bold text-pink-300 mb-2">Workflow JSON</label>
+                    <pre id="jsonResult" class="bg-[#2d006e] text-pink-100 rounded-lg p-4 overflow-x-auto whitespace-pre-wrap text-sm max-h-96 overflow-y-auto border-2 border-pink-700"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const generateBtn = document.getElementById('generateBtn');
+    const goalInput = document.getElementById('goal');
+    const spinner = document.getElementById('spinner');
+    const resultSection = document.getElementById('resultSection');
+    const resultMessage = document.getElementById('resultMessage');
+    const jsonResult = document.getElementById('jsonResult');
+    const downloadLink = document.getElementById('downloadLink');
+    const viewDetails = document.getElementById('viewDetails');
+    
+    generateBtn.addEventListener('click', async function() {
+        const goal = goalInput.value.trim();
+        
+        if (!goal) {
+            alert('Please describe your automation goal first');
+            return;
+        }
+        
+        // Show loading state
+        generateBtn.disabled = true;
+        spinner.classList.remove('hidden');
+        resultSection.classList.add('hidden');
+        
+        try {
+            const response = await fetch('/api/generate-workflow', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ goal: goal }),
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Show result
+                resultMessage.textContent = data.message;
+                jsonResult.textContent = JSON.stringify(data.workflow, null, 2);
+                
+                // Set up download link
+                downloadLink.href = `/download_workflow/${data.path}`;
+                viewDetails.href = `/dashboard?search=${data.path}`;
+                
+                resultSection.classList.remove('hidden');
+            } else {
+                // Show error
+                resultMessage.textContent = data.error || 'An error occurred';
+                resultSection.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            resultMessage.textContent = 'An unexpected error occurred';
+            resultSection.classList.remove('hidden');
+        } finally {
+            // Reset button state
+            generateBtn.disabled = false;
+            spinner.classList.add('hidden');
+        }
+    });
+});
+</script>
+{% endblock %} 

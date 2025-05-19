@@ -1,5 +1,7 @@
 Flask
-dotenv
+python-dotenv
 requests
 supabase
-authlib 
+authlib
+markdown
+google-generativeai 
