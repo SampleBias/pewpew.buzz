@@ -210,6 +210,9 @@ def generate_workflow():
     # Find the highest number and increment by 1
     base_path = os.path.join(os.path.dirname(__file__), 'automation')
     try:
+        # Ensure automation directory exists
+        os.makedirs(base_path, exist_ok=True)
+        
         existing_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
         highest_num = 0
         for dir_name in existing_dirs:
@@ -219,18 +222,25 @@ def generate_workflow():
                 highest_num = max(highest_num, num)
         
         new_num = highest_num + 1
-        dir_name = f"{new_num}-{goal[:30].lower().replace(' ', '-')}"
+        dir_name = f"{new_num}-{goal[:30].lower().replace(' ', '-').replace('/', '-')}"
         
         # Save the workflow
         workflow_path = workflow_builder.save_workflow(result["workflow"], dir_name)
         
-        return jsonify({
+        response_data = {
             "success": True, 
             "message": "Workflow generated successfully", 
             "workflow": result["workflow"],
             "path": dir_name
-        })
+        }
+        
+        # Add warning if present in the result
+        if "warning" in result:
+            response_data["warning"] = result["warning"]
+            
+        return jsonify(response_data)
     except Exception as e:
+        print(f"Error saving workflow: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 # TODO: Add download route, meme animation, and user upload logic

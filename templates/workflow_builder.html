@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
         generateBtn.disabled = true;
         spinner.classList.remove('hidden');
         resultSection.classList.add('hidden');
+        resultMessage.innerHTML = '';
         
         try {
             const response = await fetch('/api/generate-workflow', {
@@ -83,7 +84,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (data.success) {
                 // Show result
-                resultMessage.textContent = data.message;
+                if (data.warning) {
+                    resultMessage.innerHTML = `<div class="text-yellow-300 mb-2">${data.message || 'Workflow generated with a fallback template.'}</div>` +
+                                           `<div class="text-yellow-300 mb-2">Warning: ${data.warning}</div>`;
+                } else {
+                    resultMessage.innerHTML = `<div class="text-green-300">${data.message || 'Workflow generated successfully!'}</div>`;
+                }
+                
                 jsonResult.textContent = JSON.stringify(data.workflow, null, 2);
                 
                 // Set up download link
@@ -93,12 +100,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultSection.classList.remove('hidden');
             } else {
                 // Show error
-                resultMessage.textContent = data.error || 'An error occurred';
+                resultMessage.innerHTML = `<div class="text-red-400">${data.error || 'An error occurred'}</div>`;
+                if (data.raw_text) {
+                    jsonResult.textContent = data.raw_text;
+                }
                 resultSection.classList.remove('hidden');
             }
         } catch (error) {
             console.error('Error:', error);
-            resultMessage.textContent = 'An unexpected error occurred';
+            resultMessage.innerHTML = `<div class="text-red-400">An unexpected error occurred: ${error.message}</div>`;
             resultSection.classList.remove('hidden');
         } finally {
             // Reset button state

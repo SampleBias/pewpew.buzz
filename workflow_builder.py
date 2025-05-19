@@ -62,19 +62,57 @@ Respond only with the JSON workflow, no explanations.
             # Extract JSON from response
             workflow_json_text = response.text
             
-            # Clean up response - sometimes the API returns with markdown code blocks
+            # Clean up response - sometimes the API returns with markdown code blocks or has leading/trailing whitespace
+            workflow_json_text = workflow_json_text.strip()
             workflow_json_text = re.sub(r'^```json\s*', '', workflow_json_text)
             workflow_json_text = re.sub(r'^```\s*', '', workflow_json_text)
             workflow_json_text = re.sub(r'\s*```$', '', workflow_json_text)
             
-            # Validate JSON
+            # Additional cleanup for common issues
+            if workflow_json_text.startswith('"') and not workflow_json_text.startswith('{"'):
+                # Sometimes Gemini returns JSON with extraneous quotes or newlines at the beginning
+                workflow_json_text = '{' + workflow_json_text.split('{', 1)[1]
+            
+            # Handle extraneous text before/after the JSON
             try:
+                # Find the first { and last } to extract just the JSON object
+                start_idx = workflow_json_text.find('{')
+                end_idx = workflow_json_text.rfind('}')
+                
+                if start_idx >= 0 and end_idx >= 0:
+                    workflow_json_text = workflow_json_text[start_idx:end_idx+1]
+                
                 workflow_json = json.loads(workflow_json_text)
                 return {"success": True, "workflow": workflow_json}
             except json.JSONDecodeError as e:
-                return {"success": False, "error": f"Invalid JSON: {str(e)}", "text": workflow_json_text}
+                print(f"Raw text from API: {workflow_json_text}")
+                print(f"JSON error: {e}")
+                
+                # Attempt to create a basic valid workflow if parsing fails
+                fallback_workflow = {
+                    "name": f"Workflow for: {goal[:50]}",
+                    "nodes": [
+                        {
+                            "parameters": {},
+                            "id": "1",
+                            "name": "Manual Trigger", 
+                            "type": "n8n-nodes-base.manualTrigger",
+                            "position": [100, 300]
+                        }
+                    ],
+                    "connections": {}
+                }
+                
+                return {
+                    "success": True, 
+                    "workflow": fallback_workflow,
+                    "warning": "Used fallback workflow due to API response parsing issue",
+                    "raw_text": workflow_json_text
+                }
                 
         except Exception as e:
+            print(f"Exception in generate_workflow: {str(e)}")
+            print(f"Exception type: {type(e)}")
             return {"success": False, "error": f"Error generating workflow: {str(e)}"}
             
     def save_workflow(self, workflow, folder_name):
