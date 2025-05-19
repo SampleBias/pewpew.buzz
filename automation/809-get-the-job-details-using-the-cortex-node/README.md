@@ -1,5 +1,7 @@
 # 809 Get The Job Details Using The Cortex Node
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, HR, IT, Project Management, Webhooks
+
 This workflow analyzes a URL for potential abuse using the Cortex threat intelligence platform.
 
 Example: A security analyst might use this workflow to quickly check if a suspicious URL is associated with any known malicious activities or threats.

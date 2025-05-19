@@ -1,5 +1,7 @@
 # 1700 Very Quick Quickstart
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow generates sample customer data and prepares it for further processing.
 
 Example: A marketing team could use this workflow to quickly generate fake customer data to test a new marketing campaign or customer relationship management system.

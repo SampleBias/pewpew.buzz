@@ -1,5 +1,7 @@
 # 8 Handle Errors From A Different Workflow
 
+Categories: AI, Marketing, Data Management, Email, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow sends an email notification whenever an error occurs in the n8n workflow, providing details about the error and the workflow name.
 
 Example: A business might use this workflow to monitor their critical n8n workflows and receive immediate alerts when an error occurs, allowing them to quickly investigate and resolve the issue before it impacts their operations.

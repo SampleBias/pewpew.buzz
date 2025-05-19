@@ -1,5 +1,7 @@
 # 1605 Extend N8N With Additional Tools
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow is a Telegram bot that allows users to request weather information for several European capitals, with the data displayed in an image generated using the R programming language.
 
 Example: A user could interact with the bot by sending the "/getweather" command, which would trigger the workflow to fetch weather data from the OpenWeatherMap API, process the data in R, and send the resulting image back to the user via Telegram.

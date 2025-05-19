@@ -1,5 +1,7 @@
 # 1751 Preparing Data To Be Sent To A Service
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Ecommerce, Education, Engineering, IT, Project Management, Webhooks
+
 This workflow generates customer data, transforms it into the format required by Google Sheets, and then upserts (creates or updates) the records in a Google Sheet.
 
 Example: A marketing team could use this workflow to automatically sync customer data from an internal system to a Google Sheet, which could then be used for reporting or sharing with other stakeholders.

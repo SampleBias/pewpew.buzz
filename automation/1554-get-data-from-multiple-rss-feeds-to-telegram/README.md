@@ -1,5 +1,7 @@
 # 1554 Get Data From Multiple Rss Feeds To Telegram
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically retrieves and filters RSS feeds, then sends relevant updates to specific Telegram channels based on content.
 
 Example: A marketing team uses this workflow to monitor industry news and security updates, automatically sharing the most relevant information with their IT and security teams via Telegram.

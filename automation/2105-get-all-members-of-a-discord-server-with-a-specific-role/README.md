@@ -1,5 +1,7 @@
 # 2105 Get All Members Of A Discord Server With A Specific Role
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow retrieves members from a Discord server, filters them based on a specific role, and saves their IDs to a Google Sheet, allowing for efficient tracking and management of server members.
 
 Example: A community manager of a Discord server can use this workflow to automatically retrieve and store the IDs of members with a specific role, such as "Moderator" or "VIP". This can help the manager keep track of active members and easily identify those with special privileges or responsibilities.

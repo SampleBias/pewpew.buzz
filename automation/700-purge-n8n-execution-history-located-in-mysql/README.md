@@ -1,5 +1,7 @@
 # 700 Purge N8N Execution History Located In Mysql
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, Finance, IT, Project Management, Webhooks
+
 This workflow automatically deletes old execution records from a MySQL database on a daily schedule or when manually triggered.
 
 Example: A business might use this workflow to regularly clean up their database and free up storage space by removing old execution records that are no longer needed, such as records of completed tasks or transactions.

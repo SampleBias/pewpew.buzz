@@ -1,5 +1,7 @@
 # 527 Receive Updates For Github Events
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically triggers an action whenever an event occurs in a specified GitHub repository.
 
 Example: A developer could use this workflow to monitor their project's GitHub repository and automatically perform tasks like running tests, deploying updates, or sending notifications whenever a new commit is pushed or a pull request is opened.

@@ -1,5 +1,7 @@
 # 574 Encrypt Some Data Using The Crypto Node
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to encrypt a simple text message using a built-in cryptography tool.
 
 Example: A user might use this workflow to quickly encrypt a message they want to share securely, such as a sensitive piece of information or a password.

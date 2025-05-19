@@ -1,5 +1,7 @@
 # 806 Get Synonyms Of A German Word
 
+Categories: AI, Marketing, Data Management, Content Creation, Customer Support, Engineering, HR, IT, Project Management, Webhooks
+
 This workflow allows users to retrieve synonyms for a given word using the OpenThesaurus API.
 
 Example: A writer or content creator could use this workflow to quickly find alternative words or phrases to improve the diversity and richness of their writing.

@@ -1,5 +1,7 @@
 # 741 Extract Infromation From A Receipt And Store It In Airtable
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Ecommerce, Engineering, Finance, HR, IT, Project Management, Webhooks
+
 This workflow automates the process of capturing and storing expense information from receipts, providing a streamlined way to manage business finances.
 
 Example: A small business owner can use this workflow to easily track and categorize their expenses. Whenever a customer submits a receipt through a Typeform, the workflow automatically extracts the relevant information (amount, merchant, date, etc.) using Mindee's receipt processing API, and then stores the data in an Airtable database for easy reference and reporting.

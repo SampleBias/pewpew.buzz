@@ -1,5 +1,7 @@
 # 2417 Flux Ai Image Generator
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow generates unique, AI-powered images based on user-provided prompts and style preferences, and serves the generated images on a responsive web page.
 
 Example: A user could visit a website that hosts this workflow, enter a prompt like "An astronaut riding a horse in 35mm style" and select a style like "Neon Fauvism", then the workflow would generate a custom image based on those inputs and display it on the webpage.

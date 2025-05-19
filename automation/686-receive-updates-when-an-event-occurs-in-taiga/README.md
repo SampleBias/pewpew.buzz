@@ -1,5 +1,7 @@
 # 686 Receive Updates When An Event Occurs In Taiga
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically triggers an action in response to changes in a Taiga project, enabling efficient project management and task tracking.
 
 Example: A marketing team could use this workflow to monitor their Taiga project for new tasks or updates, and automatically notify the team or update a project management system whenever changes occur.

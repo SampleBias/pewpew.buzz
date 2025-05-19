@@ -1,5 +1,7 @@
 # 2201 Openai Assistant Workflow Upload File Create An Assistant Chat With It
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow automates the process of uploading a Google Drive document to OpenAI, creating a custom AI assistant based on the document, and enabling a chat interface to interact with the assistant.
 
 Example: A marketing team for a music festival wants to create an AI-powered chatbot to assist attendees with information about the event. They can use this workflow to upload the festival's information document to OpenAI, set up a custom assistant with the document's content, and then integrate the assistant into a chat interface (e.g., WhatsApp, Telegram) to provide attendees with quick and accurate answers to their questions.

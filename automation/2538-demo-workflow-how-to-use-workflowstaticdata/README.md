@@ -1,5 +1,7 @@
 # 2538 Demo Workflow How To Use Workflowstaticdata
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow manages the expiration and renewal of an access token, ensuring continuous access to a protected API.
 
 Example: This workflow could be used by a web application that needs to access a third-party API that requires an access token. The workflow automatically checks if the current access token is still valid, and if not, it retrieves a new token and stores it in the workflow's static data for future use.

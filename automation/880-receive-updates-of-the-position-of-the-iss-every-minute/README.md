@@ -1,5 +1,7 @@
 # 880 Receive Updates Of The Position Of The Iss Every Minute
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Ecommerce, Education, Engineering, IT, Project Management, Webhooks
+
 This workflow retrieves and stores the current location data of the International Space Station (ISS) on a regular schedule, filtering out any duplicate data.
 
 Example: A space enthusiast or educator could use this workflow to automatically track and monitor the real-time location of the ISS, which could be useful for educational purposes, space exploration updates, or personal interest.

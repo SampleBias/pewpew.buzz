@@ -1,5 +1,7 @@
 # 1749 Rate Limiting And Waiting For External Events
 
+Categories: AI, Marketing, Data Management, Content Creation, Customer Support, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow sends personalized messages to customers, waits for external approval, and then continues with the rest of the workflow.
 
 Example: This workflow could be used in a customer service or sales process where you need to send a message to a customer, wait for their approval or response, and then continue with the next steps in the process.

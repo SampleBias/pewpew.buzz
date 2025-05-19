@@ -1,5 +1,7 @@
 # 2192 Streamline Your Zoom Meetings With Secure Automated Stripe Payments
 
+Categories: AI, Marketing, Data Management, Email, Content Creation, Ecommerce, Engineering, Finance, IT, Project Management, Webhooks
+
 This workflow automates the creation of a Zoom meeting, a Stripe payment link, and a Google Sheet to manage event participants, streamlining the event setup process.
 
 Example: A teacher or event organizer can use this workflow to quickly create a new event, generate a Zoom meeting link and Stripe payment page, and automatically track participant registrations in a Google Sheet.

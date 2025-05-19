@@ -1,5 +1,7 @@
 # 556 Get A Board From Monday Com
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to manually trigger a connection to their Monday.com board, enabling them to retrieve data from their project management platform.
 
 Example: A project manager could use this workflow to quickly access and review the latest updates on their Monday.com board, such as task status, team progress, and upcoming deadlines, without having to navigate to the platform directly.

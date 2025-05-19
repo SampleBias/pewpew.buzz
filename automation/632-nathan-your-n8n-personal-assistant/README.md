@@ -1,5 +1,7 @@
 # 632 Nathan Your N8N Personal Assistant
 
+Categories: AI, Marketing, Data Management, Email, Content Creation, Engineering, HR, IT, Project Management, Webhooks
+
 This workflow automatically generates an excuse email and sends it to the original sender, while also notifying the recipient's colleague on Slack.
 
 Example: This workflow could be used by an employee who needs to send a last-minute excuse for missing a meeting or deadline. The workflow generates a random, plausible excuse, sends it to the original recipient, and notifies the recipient's colleague on Slack, all with minimal effort.

@@ -1,5 +1,7 @@
 # 1469 Post Rss Feed Items From Yesterday To Slack
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow automatically fetches the latest blog posts from the n8n.io RSS feed, filters them to include only those published since yesterday, and then posts a summary of the new posts to a Slack channel.
 
 Example: A marketing team could use this workflow to stay up-to-date on the latest content published by their company's blog, and share the most recent posts with their colleagues in a timely and organized manner.

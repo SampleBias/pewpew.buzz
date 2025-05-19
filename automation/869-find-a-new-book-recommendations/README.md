@@ -1,5 +1,7 @@
 # 869 Find A New Book Recommendations
 
+Categories: AI, Marketing, Data Management, Email, Content Creation, Education, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically retrieves a random book recommendation from the Open Library based on a specified subject, and sends the recommendation via email on a weekly basis.
 
 Example: A teacher or librarian could use this workflow to automatically send a weekly book recommendation email to their students or patrons, helping to promote reading and discovery of new books.

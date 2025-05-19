@@ -1,5 +1,7 @@
 # 695 Get Local Datetime Into Function Node Using Moment Js
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Dev Ops, Engineering, IT, Project Management, Webhooks
+
 This workflow provides the current local date and time, including detailed date and time components, when the "execute" button is manually triggered.
 
 Example: A user might use this workflow to quickly retrieve the current local date and time for their specific timezone, which could be useful for various purposes such as logging, scheduling, or reporting.

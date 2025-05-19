@@ -1,5 +1,7 @@
 # 479 Execute An Sql Query In Microsoft Sql
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Customer Support, Engineering, HR, IT, Project Management, Webhooks
+
 This workflow allows users to execute custom SQL queries against a Microsoft SQL Server database on-demand.
 
 Example: A marketing analyst could use this workflow to quickly pull sales data from a database and analyze it, without needing to write SQL queries directly or access the database through a separate tool.

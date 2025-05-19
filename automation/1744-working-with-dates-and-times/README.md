@@ -1,5 +1,7 @@
 # 1744 Working With Dates And Times
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow demonstrates different ways to work with dates and times in n8n, providing a practical tool for users to manage and format date-related data.
 
 Example: A user might use this workflow to generate and format various date and time values, such as the current time, tomorrow's date, or a time 12 hours from now. This could be useful for tasks like scheduling, reporting, or data processing that require accurate and flexible date and time handling.

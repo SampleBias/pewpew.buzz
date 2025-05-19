@@ -1,5 +1,7 @@
 # 528 Receive Updates For Gitlab Events
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically triggers a process when a change is made to a specific GitLab repository, enabling streamlined and efficient project management.
 
 Example: A software development team could use this workflow to automatically trigger a build, test, or deployment process whenever a new commit is pushed to their GitLab repository, ensuring that changes are quickly and reliably integrated into their codebase.

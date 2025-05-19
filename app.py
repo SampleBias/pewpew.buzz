@@ -55,7 +55,22 @@ def dashboard():
     base_path = os.path.join(os.path.dirname(__file__), 'automation')
     selected_category = request.args.get('category')
     search_query = request.args.get('search', '').lower()
-    for folder in os.listdir(base_path):
+    
+    # Get all folders and try to sort them numerically if possible
+    folders = os.listdir(base_path)
+    try:
+        # Extract numeric part from folder names (handles both '3-name' and '2653' formats)
+        def extract_numeric(folder_name):
+            match = re.match(r'^(\d+)', folder_name)
+            return int(match.group(1)) if match else float('inf')
+            
+        # Sort folders in ascending order (smallest to largest)
+        folders = sorted(folders, key=extract_numeric)
+    except (ValueError, TypeError):
+        # Fall back to normal sorting if conversion fails
+        folders = sorted(folders)
+        
+    for folder in folders:
         folder_path = os.path.join(base_path, folder)
         if os.path.isdir(folder_path):
             readme_path = os.path.join(folder_path, 'README.md')
@@ -114,6 +129,11 @@ def dashboard():
                 for cat in categories:
                     categories_count[cat] = categories_count.get(cat, 0) + 1
     categories_list = [(cat, categories_count.get(cat, 0)) for cat in COMMON_CATEGORIES if categories_count.get(cat, 0) > 0]
+    
+    # Ensure Uncategorized is always in the list
+    if DEFAULT_CATEGORY not in [cat for cat, _ in categories_list]:
+        categories_list.append((DEFAULT_CATEGORY, 0))
+        
     categories_list = sorted(categories_list, key=lambda x: (-x[1], x[0]))
     return render_template('dashboard.html', automations=automations, categories=categories_list, selected_category=selected_category, search_query=search_query)
 

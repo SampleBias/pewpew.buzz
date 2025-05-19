@@ -1,5 +1,7 @@
 # 482 Insert Data Into A New Row For A Table In Coda
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to easily add data to a Coda document by clicking a manual trigger.
 
 Example: A small business owner could use this workflow to quickly add new product information or customer data to their Coda document without having to manually enter the data.

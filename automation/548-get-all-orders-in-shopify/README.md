@@ -1,5 +1,7 @@
 # 548 Get All Orders In Shopify
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to retrieve a list of all products from their Shopify store with a single click.
 
 Example: A small business owner who sells products on Shopify could use this workflow to quickly access and review their entire product catalog without having to manually log in to their Shopify admin dashboard.

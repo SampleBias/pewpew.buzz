@@ -1,5 +1,7 @@
 # 1298 Get Top 5 Products On Product Hunt Every Hour
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow retrieves the top 5 Product Hunt projects posted in the last 24 hours, extracts key details, and sends a summary to a Discord channel on an hourly basis.
 
 Example: A Product Hunt community manager could use this workflow to automatically surface the latest trending projects and share them with their Discord audience, keeping them engaged and up-to-date with the latest product releases.

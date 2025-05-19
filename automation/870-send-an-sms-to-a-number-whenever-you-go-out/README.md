@@ -1,5 +1,7 @@
 # 870 Send An Sms To A Number Whenever You Go Out
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow sends a text message to a specified phone number whenever a "Leaving Home" Pushcut action is triggered.
 
 Example: A user could set up this workflow to automatically send a text message to their spouse or family member whenever they leave their home, providing a simple way to keep loved ones informed about their location and activities.

@@ -1,5 +1,7 @@
 # 597 Create A Table In Cratedb And Insert Data
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow creates a table in a CrateDB database, sets the values for the table columns, and then inserts the data into the table.
 
 Example: A user might use this workflow to quickly set up a simple database table and populate it with sample data, for example, to test an application or analyze data.

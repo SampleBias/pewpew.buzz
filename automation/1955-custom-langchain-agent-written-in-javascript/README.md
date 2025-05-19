@@ -1,5 +1,7 @@
 # 1955 Custom Langchain Agent Written In Javascript
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow leverages OpenAI's language models and custom LangChain tools to provide a conversational AI assistant that can answer questions and perform tasks.
 
 Example: A user could use this workflow to ask the AI assistant questions, such as "Tell me a joke" or "What year was Einstein born?", and the assistant would respond with relevant information or perform the requested task.

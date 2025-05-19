@@ -1,5 +1,7 @@
 # 1325 Transf Meeting Booking Into Notion S Task With Verified Information
 
+Categories: AI, Marketing, Data Management, Email, Content Creation, Dev Ops, Engineering, HR, IT, Project Management, Social Media, Webhooks
+
 This workflow automatically creates a new Notion database page for each new Calendly event, populating it with the event details and enriching the contact information using Dropcontact.
 
 Example: A sales team uses this workflow to streamline their lead management process. Whenever a new prospect books a meeting through Calendly, the workflow automatically creates a new Notion database page with the prospect's contact information, including their LinkedIn profile, website, and other relevant details. This helps the sales team stay organized and have a centralized view of their pipeline.

@@ -1,5 +1,7 @@
 # 583 Read An Rss Feed
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to manually trigger the retrieval and display of the latest articles from a specified RSS feed.
 
 Example: A blogger or content creator could use this workflow to quickly check for and share the latest updates from their favorite industry news sources or blog feeds.

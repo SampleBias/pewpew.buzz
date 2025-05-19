@@ -1,5 +1,7 @@
 # 965 Analyze Feedback Using Aws Comprehend And Send It To A Mattermost Channel
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, HR, IT, Project Management, Webhooks
+
 This workflow automatically analyzes feedback from a Typeform survey, detects the sentiment of the feedback, and sends a Mattermost message with the sentiment score and feedback text if the sentiment is negative.
 
 Example: A company running a customer event might use this workflow to automatically monitor feedback from attendees. When someone submits feedback through a Typeform survey, the workflow will analyze the sentiment of the feedback and send a Mattermost message to the event organizers if the sentiment is negative, allowing them to quickly address any issues.

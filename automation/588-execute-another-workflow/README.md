@@ -1,5 +1,7 @@
 # 588 Execute Another Workflow
 
+Categories: AI, Marketing, Data Management, Email, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to manually trigger the execution of another workflow, providing a simple way to run specific workflows on-demand.
 
 Example: A marketing team might use this workflow to quickly execute a campaign workflow that sends automated emails to a targeted list of customers, allowing them to easily run the campaign as needed without having to navigate to the full workflow.

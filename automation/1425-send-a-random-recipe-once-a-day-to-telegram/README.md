@@ -1,5 +1,7 @@
 # 1425 Send A Random Recipe Once A Day To Telegram
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically sends a random vegan recipe to Telegram users who have joined the bot, with the recipe's image and URL.
 
 Example: A user joins a Telegram bot, and the workflow automatically adds their chat ID to an Airtable database. Then, on a daily schedule, the workflow retrieves a random vegan recipe from an API, sends the recipe's image and URL to the user's Telegram chat, and updates the Airtable database with the user's information.

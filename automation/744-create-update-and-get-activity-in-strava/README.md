@@ -1,5 +1,7 @@
 # 744 Create Update And Get Activity In Strava
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to create, update, and retrieve Strava activities, providing a seamless way to manage their fitness data.
 
 Example: A runner can use this workflow to automatically log their morning run, update the activity description, and then retrieve the updated activity details, all without leaving the n8n platform.

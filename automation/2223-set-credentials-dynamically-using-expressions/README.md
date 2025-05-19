@@ -1,5 +1,7 @@
 # 2223 Set Credentials Dynamically Using Expressions
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, HR, IT, Project Management, Webhooks
+
 This workflow allows users to securely authenticate with the NASA API using a dynamic API key entered through a form, and then redirects them to the NASA picture of the day.
 
 Example: A user wants to access the NASA picture of the day, but needs to authenticate with an API key. This workflow provides a simple form where the user can enter their API key, which is then securely passed to the NASA node to fetch the picture of the day. The user is then redirected to the image.

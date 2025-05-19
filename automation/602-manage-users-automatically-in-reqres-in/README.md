@@ -1,5 +1,7 @@
 # 602 Manage Users Automatically In Reqres In
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow automates a series of HTTP requests to the Reqres.in API, allowing users to retrieve, create, and update user data.
 
 Example: A small business owner could use this workflow to quickly fetch a list of users from the Reqres.in API, create a new user with specific details, and then update the job title for an existing user, all without writing any code.

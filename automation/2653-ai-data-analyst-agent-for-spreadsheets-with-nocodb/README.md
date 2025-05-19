@@ -1,5 +1,7 @@
 # 2653 Ai Data Analyst Agent For Spreadsheets With Nocodb
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow uses a conversational AI agent to help a user understand the structure and contents of a database table, leveraging a NoCoDb integration and OpenAI language model.
 
 Example: A business analyst needs to explore and understand a database table that contains financial data for a company. They can use this workflow to initiate a conversation with the AI agent, which will provide information about the table's column structure and help the analyst formulate queries to extract relevant data.

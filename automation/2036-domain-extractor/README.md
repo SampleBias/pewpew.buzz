@@ -1,5 +1,7 @@
 # 2036 Domain Extractor
 
+Categories: AI, Marketing, Data Management, Email, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow extracts the domain name from a given URL or email address and checks if it is a free mail provider.
 
 Example: You can use this workflow to analyze the domain of a URL or email address, and determine if it is a free mail provider like Gmail, Outlook, or Yahoo.

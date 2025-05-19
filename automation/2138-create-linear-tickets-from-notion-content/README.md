@@ -1,5 +1,7 @@
 # 2138 Create Linear Tickets From Notion Content
 
+Categories: AI, Marketing, Data Management, Content Creation, Customer Support, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically creates Linear issues from Notion blocks, with the ability to customize the issue title, assignee, and description.
 
 Example: A product manager uses this workflow to streamline the process of creating Linear issues from their team's Notion design review page. The workflow fetches the relevant Notion content, extracts the necessary information, and creates the corresponding Linear issues with the appropriate details.

@@ -1,5 +1,7 @@
 # 1111 Create Transcription Jobs Using Aws Transcribe
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically transcribes audio files stored in an AWS S3 bucket using the AWS Transcribe service.
 
 Example: A content creator could use this workflow to quickly transcribe their podcast episodes or video recordings stored in an S3 bucket, making the content more accessible and searchable.

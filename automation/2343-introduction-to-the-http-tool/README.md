@@ -1,5 +1,7 @@
 # 2343 Introduction To The Http Tool
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Education, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to interact with an AI agent that can scrape web pages and suggest activities based on user input.
 
 Example: A user could use this workflow to get the latest 10 issues from the n8n GitHub repository, and then ask the AI agent to suggest an educational or recreational activity they could do based on their mood and preferences.

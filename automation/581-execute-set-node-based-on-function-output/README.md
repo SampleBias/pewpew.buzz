@@ -1,5 +1,7 @@
 # 581 Execute Set Node Based On Function Output
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow generates two JSON objects with different IDs, then uses an IF node to conditionally set the value of a "name" field based on the ID.
 
 Example: This workflow could be used to create a simple data transformation process, where the output of the workflow is a JSON object with a "name" field set to either "n8n" or "nodemation" based on the ID of the input data.

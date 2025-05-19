@@ -1,5 +1,7 @@
 # 1799 Rss Feed For Ard Audiothek Podcasts
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow generates an RSS feed for a podcast by extracting episode details from a website.
 
 Example: A podcast producer could use this workflow to automatically create an RSS feed for their podcast, which can then be submitted to podcast directories and platforms like Apple Podcasts and Spotify.

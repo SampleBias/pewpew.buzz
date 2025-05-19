@@ -1,5 +1,7 @@
 # 1243 Avoid Rate Limiting By Batching Http Requests
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow retrieves customer data from a datastore, splits it into batches, and sends each batch to a third-party API, with a delay between each batch to avoid rate limiting.
 
 Example: A business that needs to regularly send customer data to a third-party service for analysis or integration could use this workflow. By splitting the data into batches and adding a delay, the workflow ensures that the third-party API is not overwhelmed, reducing the risk of errors or rate limiting.

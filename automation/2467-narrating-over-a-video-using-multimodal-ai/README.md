@@ -1,5 +1,7 @@
 # 2467 Narrating Over A Video Using Multimodal Ai
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow takes a video, extracts frames from it, and uses a multimodal language model to generate a narration script, which is then used to create a voiceover clip that is uploaded to Google Drive.
 
 Example: A content creator wants to add a professional-sounding voiceover to a video they've created. They can use this workflow to automatically generate a narration script based on the video's visuals and then have the script converted into an audio file that can be added to the final video.

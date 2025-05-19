@@ -1,5 +1,7 @@
 # 837 Track Changes Of Product Prices
 
+Categories: AI, Marketing, Data Management, Email, Content Creation, Dev Ops, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow monitors product prices on various websites, updates a local JSON file with the latest prices, and sends email notifications when a better price is found.
 
 Example: A user could use this workflow to track the prices of sports equipment, such as soccer cleats, across multiple online retailers. The workflow would regularly check the prices, update a local file with the latest information, and send an email notification if a lower price is detected for a product the user is interested in.

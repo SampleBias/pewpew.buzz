@@ -1,5 +1,7 @@
 # 823 N8N Workflow Backup Management With Dropbox And Airtable
 
+Categories: AI, Marketing, Data Management, Content Creation, Customer Support, Dev Ops, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically retrieves and saves n8n workflow details to Airtable and Dropbox, with support for CRON-based execution.
 
 Example: A team managing multiple n8n workflows can use this workflow to automatically track and backup their workflow configurations, making it easier to monitor and maintain their automation processes.

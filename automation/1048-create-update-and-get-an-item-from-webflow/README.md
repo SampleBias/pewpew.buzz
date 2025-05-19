@@ -1,5 +1,7 @@
 # 1048 Create Update And Get An Item From Webflow
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow creates a new Webflow item, updates its details, and then retrieves the updated item.
 
 Example: A user could use this workflow to automatically create and update a product page on their Webflow website, ensuring the product details are always up-to-date.

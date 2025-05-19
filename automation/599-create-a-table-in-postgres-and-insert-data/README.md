@@ -1,5 +1,7 @@
 # 599 Create A Table In Postgres And Insert Data
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow creates a simple database table and inserts a record into it.
 
 Example: A user might use this workflow to quickly set up a database table and populate it with sample data, which could be useful for testing or prototyping purposes.

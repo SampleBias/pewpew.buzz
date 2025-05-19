@@ -1,5 +1,7 @@
 # 1957 Force Ai To Use A Specific Output Format
 
+Categories: AI, Marketing, Data Management, Content Creation, Education, Engineering, IT, Project Management, Webhooks
+
 This workflow uses natural language processing and language models to generate a response that provides the 5 largest states in the USA by area along with their 3 largest cities and their populations.
 
 Example: A user could use this workflow to quickly obtain information about the largest states in the USA and their major cities, which could be useful for research, planning, or educational purposes.

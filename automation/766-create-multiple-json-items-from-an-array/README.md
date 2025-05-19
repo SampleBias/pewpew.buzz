@@ -1,5 +1,7 @@
 # 766 Create Multiple Json Items From An Array
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow generates a list of mock data objects and transforms them into individual JSON items, providing a simple way to work with structured data in n8n.
 
 Example: A user might use this workflow to quickly generate sample customer data for testing or demonstration purposes, without the need to manually create or import the data.

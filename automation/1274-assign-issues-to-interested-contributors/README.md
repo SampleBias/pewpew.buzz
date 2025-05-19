@@ -1,5 +1,7 @@
 # 1274 Assign Issues To Interested Contributors
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically assigns GitHub issues to the issue creator or the commenter who requests to work on the issue, helping to streamline issue management and collaboration.
 
 Example: A software development team using GitHub for project management can set up this workflow to automatically assign new issues to the creator or a team member who volunteers to work on the issue, reducing manual task assignment and improving issue tracking.

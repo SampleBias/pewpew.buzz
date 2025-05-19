@@ -1,5 +1,7 @@
 # 434 Extract Post Titles From A Blog
 
+Categories: AI, Marketing, Data Management, Email, Content Creation, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow extracts article titles and URLs from the Hacker Noon homepage, providing a simple way to stay up-to-date with the latest tech news and trends.
 
 Example: A content curator or marketing professional could use this workflow to quickly gather the latest headlines and links from Hacker Noon, which they could then share on social media or incorporate into a newsletter.

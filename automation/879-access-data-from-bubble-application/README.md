@@ -1,5 +1,7 @@
 # 879 Access Data From Bubble Application
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to trigger an HTTP request to a specific API endpoint with a single click, providing a simple way to interact with external data sources.
 
 Example: A marketing team could use this workflow to quickly fetch user data from a customer database and incorporate it into their marketing campaigns, without the need for complex integration or programming.

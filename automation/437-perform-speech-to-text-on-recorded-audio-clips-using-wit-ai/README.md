@@ -1,5 +1,7 @@
 # 437 Perform Speech To Text On Recorded Audio Clips Using Wit Ai
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow converts a local audio file into a format suitable for processing by a speech recognition API, allowing users to transcribe audio content.
 
 Example: A marketing team could use this workflow to automatically transcribe audio recordings of customer interviews, enabling them to quickly identify key insights and feedback without manually listening to the full recordings.

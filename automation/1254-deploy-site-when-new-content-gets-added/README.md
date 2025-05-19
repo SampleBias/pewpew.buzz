@@ -1,5 +1,7 @@
 # 1254 Deploy Site When New Content Gets Added
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Engineering, HR, IT, Project Management, Social Media, Webhooks
+
 This workflow enables automatic deployment of content to a Netlify site triggered by a webhook.
 
 Example: A content creator can use this workflow to automatically publish new blog posts or website updates to their Netlify-hosted site whenever they submit content through a webhook.

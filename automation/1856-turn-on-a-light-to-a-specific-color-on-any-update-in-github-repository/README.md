@@ -1,5 +1,7 @@
 # 1856 Turn On A Light To A Specific Color On Any Update In Github Repository
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Engineering, IT, Project Management, Webhooks
+
 This workflow turns a light in a Home Assistant instance red whenever an update is made to a GitHub repository.
 
 Example: A developer could use this workflow to be notified whenever a change is made to their project's GitHub repository by having a light in their office turn red. This could help them stay aware of activity in their codebase and respond to issues or pull requests more quickly.

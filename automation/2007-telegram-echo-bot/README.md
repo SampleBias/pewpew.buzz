@@ -1,5 +1,7 @@
 # 2007 Telegram Echo Bot
 
+Categories: AI, Marketing, Data Management, Content Creation, Education, Engineering, IT, Project Management, Webhooks
+
 This workflow creates a Telegram bot that echoes back the JSON content of any message, file, or other input sent to it, making it useful for debugging and learning about the Telegram platform.
 
 Example: A developer or Telegram enthusiast could use this workflow to quickly test and understand the Telegram API by sending various types of messages and content to the bot and seeing the corresponding JSON response.

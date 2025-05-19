@@ -1,5 +1,7 @@
 # 1418 Create An Rss Feed Based On A Website S Content
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow generates an RSS feed of the latest blog posts from the "Release" category on the Baserow website, providing a convenient way for users to stay up-to-date with the latest product updates and changes.
 
 Example: A Baserow user or customer could use this workflow to automatically receive an RSS feed of the latest Baserow release blog posts, allowing them to easily track and stay informed about new features, bug fixes, and other updates to the Baserow platform.

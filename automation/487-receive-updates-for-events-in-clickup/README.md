@@ -1,5 +1,7 @@
 # 487 Receive Updates For Events In Clickup
 
+Categories: AI, Marketing, Data Management, Email, Content Creation, Engineering, IT, Project Management, Webhooks, FEATURED
+
 This workflow automatically triggers actions in response to events in ClickUp, a popular project management and collaboration platform.
 
 Example: A marketing team could use this workflow to monitor their ClickUp project for new tasks or updates, and automatically trigger notifications or updates in other tools like Slack or email.

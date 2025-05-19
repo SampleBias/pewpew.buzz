@@ -1,5 +1,7 @@
 # 1387 Send Automated Daily Reminders On Telegram
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow sends a daily reminder to a Telegram chat, prompting the user to record their activities from the previous day.
 
 Example: This workflow could be used by a remote worker or freelancer who wants to maintain a daily journal of their activities. The workflow will automatically send a message to the user's Telegram chat every morning, reminding them to record what they did the previous day.

@@ -1,5 +1,7 @@
 # 867 Create Add An Attachment And Send A Draft Using Microsoft Outlook
 
+Categories: AI, Marketing, Data Management, Email, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow automates the process of creating and sending an email with an attached image using Microsoft Outlook.
 
 Example: A marketing team could use this workflow to quickly create and send personalized emails to their mailing list, with a branded image attached, without having to manually compose and send each email.

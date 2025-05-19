@@ -1,5 +1,7 @@
 # 2408 User Verification And Login Using Auth0
 
+Categories: AI, Marketing, Data Management, Email, Content Creation, Customer Support, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow implements a secure user authentication process using the Auth0 platform, allowing users to log in with their existing accounts or create new ones.
 
 Example: A web application that requires user authentication can use this workflow to integrate a secure login process. Users can log in using their existing Google, Facebook, or other social media accounts, or create a new account directly within the application.

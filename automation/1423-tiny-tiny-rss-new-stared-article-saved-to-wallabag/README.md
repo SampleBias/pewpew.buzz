@@ -1,5 +1,7 @@
 # 1423 Tiny Tiny Rss New Stared Article Saved To Wallabag
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically saves starred articles from a RSS feed to a Wallabag read-it-later service.
 
 Example: A user who frequently reads news articles online and wants to save the ones they find most interesting to read later can use this workflow. The workflow will automatically fetch the user's starred articles from their RSS feed, authenticate with their Wallabag account, and save the articles to their Wallabag instance.

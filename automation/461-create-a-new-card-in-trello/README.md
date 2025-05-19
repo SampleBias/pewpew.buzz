@@ -1,5 +1,7 @@
 # 461 Create A New Card In Trello
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to create a new Trello card with a predefined title and description by manually triggering the workflow.
 
 Example: A marketing team member can use this workflow to quickly create a new Trello card to track a new marketing campaign idea, without having to navigate to the Trello website.

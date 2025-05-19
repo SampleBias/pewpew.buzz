@@ -1,5 +1,7 @@
 # 930 Create Update And Get A Post Via Discourse
 
+Categories: AI, Marketing, Data Management, Content Creation, Education, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow automates the process of creating, updating, and retrieving Discourse posts using the Discourse API.
 
 Example: A community manager could use this workflow to automatically post updates, respond to user comments, and retrieve post details, all without having to manually interact with the Discourse platform.

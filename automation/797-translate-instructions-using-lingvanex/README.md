@@ -1,5 +1,7 @@
 # 797 Translate Instructions Using Lingvanex
 
+Categories: AI, Marketing, Data Management, Content Creation, Education, Engineering, IT, Project Management, Webhooks
+
 This workflow generates a random cocktail recipe, translates the instructions to Italian, and presents the result to the user.
 
 Example: A user interested in discovering new cocktail recipes and learning how to make them in different languages could use this workflow to get a random cocktail suggestion with the instructions translated to Italian.

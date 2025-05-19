@@ -1,5 +1,7 @@
 # 557 Get The Value Of A Key From Redis
 
+Categories: AI, Marketing, Data Management, Content Creation, Customer Support, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow retrieves a value from a Redis database when a manual trigger is executed.
 
 Example: A user might use this workflow to quickly check the value of a key stored in a Redis database, for example, to monitor a system metric or retrieve a configuration value.

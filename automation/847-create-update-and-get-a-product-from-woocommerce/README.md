@@ -1,5 +1,7 @@
 # 847 Create Update And Get A Product From Woocommerce
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow automates the process of creating a new product, updating its stock quantity, and retrieving the updated product details in a WooCommerce store.
 
 Example: A small business owner can use this workflow to quickly add a new product, such as an n8n sweatshirt, to their WooCommerce store, set the initial stock quantity, and then retrieve the updated product details to ensure the changes were successful.

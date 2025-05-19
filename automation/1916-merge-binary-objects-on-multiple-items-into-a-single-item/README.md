@@ -1,5 +1,7 @@
 # 1916 Merge Binary Objects On Multiple Items Into A Single Item
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow downloads multiple image files from a predefined set of URLs and merges them into a single item with multiple binary objects.
 
 Example: A user might use this workflow to download a set of images from a website and then process them further, such as combining them into a single PDF document or uploading them to a content management system.

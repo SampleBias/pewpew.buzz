@@ -1,5 +1,7 @@
 # 1918 Load Data Into Snowflake
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow retrieves a CSV file, processes the data, and stores it in a Snowflake database.
 
 Example: A marketing team could use this workflow to automatically fetch a CSV file containing customer data, extract relevant information (such as first name, last name, and ID), and store it in a Snowflake database for further analysis and reporting.

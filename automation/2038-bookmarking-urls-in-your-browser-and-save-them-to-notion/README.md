@@ -1,5 +1,7 @@
 # 2038 Bookmarking Urls In Your Browser And Save Them To Notion
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to easily save bookmarks to a Notion database using a simple webhook trigger.
 
 Example: A user can create a bookmarklet in their browser that sends the current URL to the workflow's webhook. The workflow then automatically adds the bookmark to a designated Notion database, making it easy to organize and access their saved links.

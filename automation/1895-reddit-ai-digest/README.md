@@ -1,5 +1,7 @@
 # 1895 Reddit Ai Digest
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow automatically scans Reddit for posts related to the n8n workflow automation tool, analyzes the content using OpenAI, and generates a summary and categorization of the posts.
 
 Example: A marketing team at n8n could use this workflow to monitor online discussions about their product, identify relevant posts, and quickly summarize the key points to stay informed about customer sentiment and product usage.

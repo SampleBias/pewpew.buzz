@@ -1,5 +1,7 @@
 # 935 Check For Preview For A Link
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Engineering, IT, Project Management, Webhooks
+
 This workflow checks the availability of a website and provides different actions based on the result.
 
 Example: A user could use this workflow to monitor the availability of their company's website and receive notifications or take specific actions based on whether the site is up or down.

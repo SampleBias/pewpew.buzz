@@ -1,5 +1,7 @@
 # 1073 Scrape And Store Data From Multiple Website Pages
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, Finance, HR, IT, Project Management, Webhooks
+
 This workflow scrapes SWIFT code data from a website, normalizes the country names, and stores the data in a MongoDB database.
 
 Example: A financial institution or payment processing company might use this workflow to automatically gather and maintain a comprehensive database of SWIFT codes, which are essential for international wire transfers and other financial transactions.

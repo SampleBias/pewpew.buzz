@@ -1,5 +1,7 @@
 # 688 Execute Set Node Based On Function Output
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Engineering, IT, Project Management, Webhooks
+
 This workflow generates a set of JSON objects with unique IDs and sets their names based on the ID value using a switch statement.
 
 Example: A user might use this workflow to dynamically generate and manipulate data for a web application or a data processing pipeline.

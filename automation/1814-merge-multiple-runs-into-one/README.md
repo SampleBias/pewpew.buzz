@@ -1,5 +1,7 @@
 # 1814 Merge Multiple Runs Into One
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Customer Support, Ecommerce, Education, Engineering, IT, Project Management, Webhooks
+
 This workflow retrieves customer data from a datastore, processes it in batches, and merges the results.
 
 Example: A customer service team might use this workflow to efficiently retrieve and process customer data from a database, allowing them to quickly access and analyze customer information.

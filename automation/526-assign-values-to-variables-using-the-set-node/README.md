@@ -1,5 +1,7 @@
 # 526 Assign Values To Variables Using The Set Node
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This simple workflow allows users to manually trigger the execution of a set of predefined data values.
 
 Example: A user might use this workflow to quickly set and test different data values, such as a number, a string, and a boolean, without having to manually input them each time.

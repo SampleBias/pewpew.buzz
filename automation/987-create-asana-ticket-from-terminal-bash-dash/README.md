@@ -1,5 +1,7 @@
 # 987 Create Asana Ticket From Terminal Bash Dash
 
+Categories: AI, Marketing, Data Management, Content Creation, Customer Support, Engineering, HR, IT, Project Management, Webhooks
+
 This workflow automates the creation of Asana tasks based on incoming webhook requests, providing a simple way to integrate external systems with Asana.
 
 Example: A sales team could use this workflow to automatically create Asana tasks for new customer inquiries received through a web form or other external system, ensuring that each lead is properly tracked and followed up on.

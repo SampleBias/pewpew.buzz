@@ -1,5 +1,7 @@
 # 2295 Export N8N Cloud Execution Data To Csv
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to easily retrieve and export all n8n workflow executions as a CSV file, providing a convenient way to analyze and monitor workflow performance.
 
 Example: A marketing team using n8n to automate various marketing tasks might use this workflow to regularly export and review the execution history of their workflows. This could help them identify any issues, optimize workflow performance, and generate reports for stakeholders.

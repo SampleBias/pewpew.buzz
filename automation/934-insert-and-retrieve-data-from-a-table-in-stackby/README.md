@@ -1,5 +1,7 @@
 # 934 Insert And Retrieve Data From A Table In Stackby
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to create and retrieve data from a Stackby table.
 
 Example: A small business owner could use this workflow to quickly add new customer records to their Stackby database and then retrieve a list of all their customers.

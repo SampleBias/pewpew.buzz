@@ -1,5 +1,7 @@
 # 559 Create A New Folder In Box
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to create a new folder in their Box account with a single click.
 
 Example: A marketing team member could use this workflow to quickly create a new folder in their Box account to store campaign assets, without having to navigate the Box web interface.

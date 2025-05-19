@@ -1,5 +1,7 @@
 # 2276 Send Http Requests To A List Of Urls
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow periodically fetches data from a list of URLs and processes the responses.
 
 Example: A marketing team could use this workflow to regularly check the status of their website and other important online assets, ensuring they are up and running as expected.

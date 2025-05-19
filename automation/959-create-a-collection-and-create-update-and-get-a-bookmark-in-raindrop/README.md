@@ -1,5 +1,7 @@
 # 959 Create A Collection And Create Update And Get A Bookmark In Raindrop
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow automates the process of creating, updating, and retrieving bookmarks in the Raindrop.io service, providing a convenient way to manage online resources.
 
 Example: A user who frequently reads and references technical documentation could use this workflow to automatically save the documentation URL as a bookmark, update the bookmark's title, and retrieve the bookmark details for further reference.

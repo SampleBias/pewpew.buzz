@@ -1,5 +1,7 @@
 # 702 Extract Information From An Image Of A Receipt
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to extract information from an image using the Mindee API, triggered by a manual action.
 
 Example: A user might use this workflow to analyze a receipt image and extract key details like the total amount, date, and merchant information.

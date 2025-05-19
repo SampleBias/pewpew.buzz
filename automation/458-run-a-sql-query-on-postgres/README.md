@@ -1,5 +1,7 @@
 # 458 Run A Sql Query On Postgres
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow allows users to execute a SQL query on a Postgres database and retrieve the results with a single click.
 
 Example: A business analyst could use this workflow to quickly pull data from a Postgres database and analyze it, without needing to write SQL queries or interact with the database directly.

@@ -1,5 +1,7 @@
 # 1160 Merge Data For Multiple Executions
 
+Categories: AI, Marketing, Data Management, Content Creation, Customer Support, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow aggregates content from multiple RSS feeds, splitting the data into batches and merging the results to provide a comprehensive view of the latest content.
 
 Example: A marketing team could use this workflow to monitor and curate content from industry-leading blogs and news sources, automatically collecting and consolidating the latest articles to inform their content strategy and social media activities.

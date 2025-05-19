@@ -1,5 +1,7 @@
 # 1474 Standup Bot 3 4 Override Config
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to save a JSON configuration file to a local file system.
 
 Example: A developer might use this workflow to save a configuration file for a Slack bot that generates daily standup reports.

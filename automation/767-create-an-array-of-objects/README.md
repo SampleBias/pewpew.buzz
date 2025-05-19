@@ -1,5 +1,7 @@
 # 767 Create An Array Of Objects
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow generates a set of mock data objects and then transforms them into a single array of objects, providing a simple way to create sample data for testing or demonstration purposes.
 
 Example: A developer might use this workflow to quickly generate sample customer data for testing a new feature in their application, without the need to manually create or import the data.

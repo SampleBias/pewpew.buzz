@@ -1,5 +1,7 @@
 # 518 Get Entries From A Cockpit Collection
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to manually trigger a Cockpit API call to interact with a sample data collection.
 
 Example: A user might use this workflow to quickly access and manage data in a Cockpit-powered application, without the need for complex programming or API integration.

@@ -1,5 +1,7 @@
 # 1746 Filtering And Branching Data
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow filters and routes customer data based on various conditions, providing a flexible way to manage customer information.
 
 Example: A sales team could use this workflow to segment their customer base and tailor their outreach efforts. For instance, they could send targeted promotions to US-based customers, follow up with customers from Colorado, and handle UK-based customers differently.

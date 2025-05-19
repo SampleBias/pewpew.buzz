@@ -1,5 +1,7 @@
 # 825 Create Update And Get A Post In Ghost
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow automates the process of creating, updating, and retrieving blog posts on a Ghost CMS site.
 
 Example: A content creator or marketing team can use this workflow to quickly publish new blog posts, update the status of existing posts, and retrieve post details, all without having to manually interact with the Ghost admin interface.

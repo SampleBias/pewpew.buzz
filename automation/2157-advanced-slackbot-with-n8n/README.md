@@ -1,5 +1,7 @@
 # 2157 Advanced Slackbot With N8N
 
+Categories: AI, Marketing, Data Management, Content Creation, Customer Support, Engineering, HR, IT, Project Management, Webhooks
+
 This workflow handles Slack commands, validates the request, executes the appropriate workflow, and provides debugging information to the user.
 
 Example: A user could use this workflow to create a Slack bot that responds to various commands, such as "/info" or "/delete-user". The workflow would validate the request, execute the appropriate workflow, and provide the user with debugging information to help troubleshoot any issues.

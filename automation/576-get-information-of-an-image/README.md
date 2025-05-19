@@ -1,5 +1,7 @@
 # 576 Get Information Of An Image
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow allows users to retrieve an image from a random image API, edit the image, and potentially perform further actions with the edited image.
 
 Example: A marketing team could use this workflow to quickly generate and edit images for social media posts or website content without having to manually download and edit images.

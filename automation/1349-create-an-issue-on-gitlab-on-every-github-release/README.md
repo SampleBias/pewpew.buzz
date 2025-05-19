@@ -1,5 +1,7 @@
 # 1349 Create An Issue On Gitlab On Every Github Release
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically checks for new releases in a GitHub repository, compares them to existing issues in a GitLab repository, and creates a new issue if a release is found without a corresponding issue.
 
 Example: A software development team using this workflow can ensure that new releases of their software are properly tracked and documented in their issue tracking system. This helps maintain visibility and accountability around the release process.

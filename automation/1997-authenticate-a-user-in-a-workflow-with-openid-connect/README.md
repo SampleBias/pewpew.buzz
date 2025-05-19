@@ -1,5 +1,7 @@
 # 1997 Authenticate A User In A Workflow With Openid Connect
 
+Categories: AI, Marketing, Data Management, Content Creation, Customer Support, Engineering, IT, Project Management, Webhooks
+
 This workflow implements a secure OAuth 2.0 authentication flow, allowing users to log in to your application using an external identity provider.
 
 Example: A web application that needs to authenticate users can use this workflow to integrate with an identity provider like Keycloak or Azure AD. Users can log in to the application using their existing credentials, and the workflow handles the necessary OAuth 2.0 handshake to obtain an access token for the user's profile information.

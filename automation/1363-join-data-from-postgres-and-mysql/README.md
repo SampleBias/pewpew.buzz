@@ -1,5 +1,7 @@
 # 1363 Join Data From Postgres And Mysql
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Social Media, Webhooks
+
 This workflow retrieves product details, including product grade, fabric, and composition, based on a webhook trigger and generates a product label.
 
 Example: A clothing manufacturer uses this workflow to automatically generate product labels when a new product is received. The workflow retrieves the necessary product information from the database and generates a detailed label that can be printed and attached to the product.

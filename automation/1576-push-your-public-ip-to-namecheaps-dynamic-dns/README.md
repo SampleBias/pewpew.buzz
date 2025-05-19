@@ -1,5 +1,7 @@
 # 1576 Push Your Public Ip To Namecheaps Dynamic Dns
 
+Categories: AI, Marketing, Data Management, Content Creation, Customer Support, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically updates the IP address for a set of subdomains on Namecheap's Dynamic DNS service, ensuring that your website or application remains accessible even with a changing IP address.
 
 Example: A small business owner with a website hosted on a home internet connection could use this workflow to automatically update their Namecheap Dynamic DNS settings whenever their public IP address changes, ensuring their website remains accessible to customers.

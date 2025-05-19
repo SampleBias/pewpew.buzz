@@ -1,5 +1,7 @@
 # 2559 Visualize Your Sql Agent Queries With Openai And Quickchart Io
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow combines an AI-powered SQL agent with dynamic chart generation capabilities to provide users with data-driven insights and visualizations.
 
 Example: A sales team could use this workflow to quickly query a database of coffee sales data, get a textual summary of the key insights, and automatically generate relevant charts to better understand sales trends, customer behavior, and other important metrics.

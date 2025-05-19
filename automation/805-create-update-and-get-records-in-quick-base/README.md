@@ -1,5 +1,7 @@
 # 805 Create Update And Get Records In Quick Base
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to create, update, and retrieve records in a Quick Base application.
 
 Example: A sales manager could use this workflow to quickly update customer information in their Quick Base database, such as changing a customer's age, and then retrieve all updated records for review.

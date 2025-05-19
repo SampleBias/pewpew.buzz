@@ -1,5 +1,7 @@
 # 824 Create A Table And Insert And Update Data In The Table In Snowflake
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow creates a Snowflake table, inserts data into it, and then updates the data in the table.
 
 Example: A user might use this workflow to set up a simple database management system for their business. They can trigger the workflow manually, which will create a table in their Snowflake database, insert some initial data, and then update that data as needed.

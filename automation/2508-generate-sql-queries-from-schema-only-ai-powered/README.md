@@ -1,5 +1,7 @@
 # 2508 Generate Sql Queries From Schema Only Ai Powered
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow enables users to interact with a MySQL database using natural language conversations powered by an AI agent, providing dynamic SQL queries and formatted results.
 
 Example: A user could ask the AI agent "Can you show me the list of all German customers?" The agent would then generate the appropriate SQL query, execute it against the database, and return the results in a formatted, easy-to-read format.

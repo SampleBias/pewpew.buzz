@@ -1,5 +1,7 @@
 # 2150 Report N8N Workflow Errors To Slack
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow is designed to automatically send a Slack notification when an error occurs in a production workflow, providing valuable information to the team for troubleshooting and monitoring purposes.
 
 Example: Imagine you have a critical workflow that runs in your production environment, processing important data or triggering key business processes. If this workflow encounters an error, this error handling workflow would automatically send a Slack message to a designated channel, alerting the team to the issue and providing details about the error, the workflow name, and a link to the execution details. This allows the team to quickly identify and address the problem, minimizing downtime and ensuring the smooth operation of your business.

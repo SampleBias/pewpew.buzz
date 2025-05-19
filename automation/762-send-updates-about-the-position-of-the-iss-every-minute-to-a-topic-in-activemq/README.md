@@ -1,5 +1,7 @@
 # 762 Send Updates About The Position Of The Iss Every Minute To A Topic In Activemq
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow periodically retrieves the current position of the International Space Station (ISS) and sends the data to an AMQP queue.
 
 Example: A developer or data analyst could use this workflow to monitor the real-time location of the ISS and feed that data into a larger system or application, such as a dashboard or geospatial visualization.

@@ -1,5 +1,7 @@
 # 1328 Use Regex To Select Date
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to set a "Close Date" field and automatically update it based on certain conditions.
 
 Example: A sales team could use this workflow to set a default "Close Date" for new opportunities, and then automatically adjust the date if the opportunity is still open after a certain period of time.

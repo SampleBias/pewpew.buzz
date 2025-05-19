@@ -1,5 +1,7 @@
 # 454 Get A Pipeline In Circleci
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to trigger a CircleCI build on-demand, providing a simple way to initiate CI/CD processes.
 
 Example: A developer could use this workflow to quickly trigger a new build and deployment of their application, without needing to navigate the CircleCI web interface directly.

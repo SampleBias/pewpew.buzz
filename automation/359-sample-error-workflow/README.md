@@ -1,5 +1,7 @@
 # 359 Sample Error Workflow
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow sends notifications to Mattermost and Twilio when an error occurs in a workflow, providing details about the error and the workflow that encountered it.
 
 Example: A team using n8n to automate various business processes might use this workflow to quickly become aware of any errors that occur in their workflows, allowing them to investigate and resolve issues promptly. This can help ensure the reliability and smooth operation of their automated processes.

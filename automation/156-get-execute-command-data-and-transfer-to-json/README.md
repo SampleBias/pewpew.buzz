@@ -1,5 +1,7 @@
 # 156 Get Execute Command Data And Transfer To Json
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow executes a command that returns a JSON object, parses the output, and then uses an if-statement to conditionally process the data.
 
 Example: This workflow could be used to process the output of a command that checks the status of a system or service. If the output indicates a specific condition is met (e.g., a value is true), the workflow can then perform additional actions based on that condition.

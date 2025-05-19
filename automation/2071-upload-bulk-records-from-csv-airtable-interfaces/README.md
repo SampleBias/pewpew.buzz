@@ -1,5 +1,7 @@
 # 2071 Upload Bulk Records From Csv Airtable Interfaces
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow automates the process of uploading CSV files to Airtable, creating new lead records, and updating the status of the uploaded files.
 
 Example: A marketing team can use this workflow to streamline their lead generation process. They can upload a CSV file containing prospect information, and the workflow will automatically create new lead records in Airtable and update the status of the uploaded file.

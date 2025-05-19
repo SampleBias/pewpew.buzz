@@ -1,5 +1,7 @@
 # 2604 Time Logging On Clockify Using Slack
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Engineering, HR, IT, Project Management, Webhooks
+
 This workflow is a Slack-integrated time tracking assistant that helps users manage their time entries on the Clockify platform, providing features like creating, updating, and deleting time entries, as well as retrieving client and project information.
 
 Example: A team of engineers at an agency called Blockia Labs uses this workflow to streamline their time tracking process. They can simply mention the Slack bot in a channel, and the bot will guide them through various time-related tasks, such as creating a new time entry, updating an existing one, or deleting a time entry. The bot also helps the engineers find relevant client and project information to ensure accurate time logging.

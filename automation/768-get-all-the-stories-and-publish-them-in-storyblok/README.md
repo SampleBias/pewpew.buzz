@@ -1,5 +1,7 @@
 # 768 Get All The Stories And Publish Them In Storyblok
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to publish Storyblok content with a single click, streamlining the content publishing process.
 
 Example: A marketing team member can use this workflow to quickly publish updates to a company's blog or website content on Storyblok, without needing to navigate the Storyblok management interface directly.

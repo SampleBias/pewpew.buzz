@@ -1,5 +1,7 @@
 # 2490 Build An Endpoint To Perform Crud Operations With Multiple Http Methods
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, HR, IT, Project Management, Webhooks
+
 This workflow provides a comprehensive customer management system, allowing users to create, retrieve, update, and delete customer records in an Airtable database through a set of webhooks.
 
 Example: A small business owner could use this workflow to manage their customer database. They can create new customer records, retrieve all existing customers, update customer information, and even delete records as needed, all through a simple webhook interface.

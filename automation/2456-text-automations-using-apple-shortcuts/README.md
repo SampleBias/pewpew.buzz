@@ -1,5 +1,7 @@
 # 2456 Text Automations Using Apple Shortcuts
 
+Categories: AI, Marketing, Data Management, Content Creation, Customer Support, Engineering, IT, Project Management, Webhooks
+
 This workflow enables users to automate common text editing tasks, such as translation, grammar correction, and content length adjustment, using Apple Shortcuts and OpenAI's language models.
 
 Example: A user can select text in their writing app, launch a custom shortcut, and have the text automatically translated, corrected, or modified to be shorter or longer, all without leaving their writing environment.

@@ -1,5 +1,7 @@
 # 525 Get Articles From Hacker News
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks, FEATURED
+
 This workflow retrieves the latest news from Hacker News, a popular technology news aggregator, upon manual execution.
 
 Example: A software developer or tech enthusiast could use this workflow to stay up-to-date with the latest news and trends in the technology industry, helping them to be informed about the latest developments and innovations.

@@ -1,5 +1,7 @@
 # 582 Rename A Key In N8N
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to set a key-value pair and then rename the key, providing a simple way to transform data.
 
 Example: A user might use this workflow to quickly rename a field in a data set, for example, changing "key" to "newkey" with a predefined value of "somevalue".

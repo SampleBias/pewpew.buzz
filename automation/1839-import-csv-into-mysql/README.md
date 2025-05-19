@@ -1,5 +1,7 @@
 # 1839 Import Csv Into Mysql
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow automates the process of importing a CSV file containing concert data into a MySQL database.
 
 Example: A concert promoter could use this workflow to easily upload their latest concert schedule CSV file to a MySQL database, allowing them to quickly access and analyze the data.

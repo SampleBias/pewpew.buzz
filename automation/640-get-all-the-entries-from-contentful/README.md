@@ -1,5 +1,7 @@
 # 640 Get All The Entries From Contentful
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to retrieve all content from a Contentful space with a single click.
 
 Example: A content manager can use this workflow to quickly fetch and review all the content in their Contentful space, making it easier to manage and update their website or application.

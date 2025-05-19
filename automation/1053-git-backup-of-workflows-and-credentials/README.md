@@ -1,5 +1,7 @@
 # 1053 Git Backup Of Workflows And Credentials
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically backs up your n8n workflows and credentials to a Git repository on a scheduled basis.
 
 Example: A developer or DevOps engineer using n8n to automate various business processes might use this workflow to ensure their n8n configuration is regularly backed up and version-controlled, making it easy to restore or roll back changes if needed.

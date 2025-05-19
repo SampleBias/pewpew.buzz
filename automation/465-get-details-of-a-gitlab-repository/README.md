@@ -1,5 +1,7 @@
 # 465 Get Details Of A Gitlab Repository
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Engineering, IT, Project Management, Webhooks
+
 This workflow allows users to retrieve information about a specific GitLab repository with a single click.
 
 Example: A software developer could use this workflow to quickly check the details of a project repository they are working on, such as the repository name, owner, and other metadata, without having to manually navigate to the GitLab website.

@@ -1,5 +1,7 @@
 # 2070 Airtable Automate Recurring Tasks
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow automates the creation of recurring tasks in Airtable, ensuring timely task assignments and updates for improved team productivity.
 
 Example: A marketing team uses this workflow to automatically create and assign recurring tasks, such as monthly content planning or quarterly client reviews. The workflow retrieves task templates, calculates due dates, and assigns tasks to the appropriate team members, while also updating the task history in Airtable.

@@ -1,5 +1,7 @@
 # 1093 Build A Self Hosted Url Shortener With A Dashboard
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Ecommerce, Engineering, IT, Project Management, Webhooks
+
 This workflow generates short URLs, tracks their usage, and provides a dashboard with analytics.
 
 Example: A marketing team could use this workflow to create short URLs for their campaigns and track the number of clicks, total links, and unique hosts to measure the effectiveness of their marketing efforts.

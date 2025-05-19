@@ -1,5 +1,7 @@
 # 2073 Monday Com Useful Utilities
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow retrieves information from a Monday.com board, extracts and processes related data, and uploads files to the board.
 
 Example: A marketing team could use this workflow to manage a campaign project on Monday.com. The workflow would automatically pull relevant information about the campaign, such as the Zoom meeting date and additional contacts, as well as any related sub-items. The team could then upload files, such as presentation slides or campaign assets, directly to the Monday.com board.

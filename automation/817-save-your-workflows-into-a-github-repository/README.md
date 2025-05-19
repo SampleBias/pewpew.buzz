@@ -1,5 +1,7 @@
 # 817 Save Your Workflows Into A Github Repository
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Ecommerce, Engineering, HR, IT, Project Management, Webhooks
+
 This workflow automatically backs up and synchronizes n8n workflows to a GitHub repository, detecting and handling changes to ensure consistency.
 
 Example: A team using n8n for their workflow automation needs can use this workflow to regularly (e.g., daily) backup their n8n workflows to a GitHub repository. This ensures that their workflows are version-controlled and can be easily shared, restored, or updated across the team.

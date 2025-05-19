@@ -1,5 +1,7 @@
 # 2504 Wordpress Ai Chatbot To Enhance User Experience With Supabase And Openai
 
+Categories: AI, Marketing, Data Management, Content Creation, Customer Support, Ecommerce, Engineering, HR, IT, Project Management, Social Media, Webhooks
+
 This workflow is designed to create and manage embeddings for a WordPress website's content, enabling a conversational AI agent to provide relevant information to website visitors based on their questions.
 
 Example: A website owner can use this workflow to automatically generate embeddings for their WordPress content, including blog posts and pages. The workflow can be set to run on a regular schedule to update the embeddings as new content is added or existing content is modified. When a website visitor asks a question, the workflow retrieves the relevant content from the Supabase vector store, generates an AI-powered response using the OpenAI language model, and sends the response back to the visitor through a webhook.

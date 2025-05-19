@@ -1,5 +1,7 @@
 # 565 Create A Folder In Onedrive
 
+Categories: AI, Marketing, Data Management, Content Creation, Ecommerce, Engineering, Finance, IT, Project Management, Webhooks
+
 This workflow creates a new folder in the user's Microsoft OneDrive storage when the manual trigger is executed.
 
 Example: A small business owner could use this workflow to quickly create a new folder in their OneDrive to store important documents, invoices, or other files related to a specific project or client.

@@ -1,5 +1,7 @@
 # 1374 Create A New Team For A Project In Notion
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow creates a new project and user in Notion, and updates the user's associated semesters and projects.
 
 Example: A team leader at a university wants to create a new project for their team and add the team members to the project. They can use this workflow to easily create the project, add the team members, and associate the project with the current semester.

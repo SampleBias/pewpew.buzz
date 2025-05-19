@@ -1,5 +1,7 @@
 # 853 Weekly Coffee Chat Mattermost Version
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow automates the process of organizing virtual coffee breaks for a team, creating random groups, sending announcements, and scheduling calendar invites.
 
 Example: A team manager can use this workflow to facilitate regular virtual coffee breaks for their distributed team. The workflow will automatically create random groups of 3 people, announce the groups in a Mattermost channel, and schedule calendar invites for the coffee breaks.

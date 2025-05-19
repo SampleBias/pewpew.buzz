@@ -1,5 +1,7 @@
 # 818 Insert And Update Data In Airtable
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, HR, IT, Project Management, Webhooks
+
 This workflow allows users to create, retrieve, and update records in an Airtable database with a simple manual trigger.
 
 Example: A small business owner could use this workflow to quickly add new customer information to their Airtable database, retrieve existing customer records, and update customer details as needed, all through a user-friendly interface.

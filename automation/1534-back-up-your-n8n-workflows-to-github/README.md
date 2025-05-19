@@ -1,5 +1,7 @@
 # 1534 Back Up Your N8N Workflows To Github
 
+Categories: AI, Marketing, Data Management, Content Creation, Dev Ops, Engineering, IT, Project Management, Webhooks
+
 This workflow automatically backs up all n8n workflows to a GitHub repository on a daily schedule, with the ability to detect and handle new, modified, or unchanged workflows.
 
 Example: A team using n8n to automate various business processes wants to ensure their workflows are regularly backed up to a central GitHub repository. This workflow can be set up to run on a daily schedule, automatically detecting any changes to the workflows and updating the corresponding files in the GitHub repository.

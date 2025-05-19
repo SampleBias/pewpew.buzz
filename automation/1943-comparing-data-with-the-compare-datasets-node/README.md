@@ -1,5 +1,7 @@
 # 1943 Comparing Data With The Compare Datasets Node
 
+Categories: AI, Analytics, Marketing, Data Management, Content Creation, Engineering, HR, IT, Project Management, Webhooks
+
 This workflow compares two datasets and identifies differences between them, providing a valuable tool for data analysis and reconciliation.
 
 Example: A marketing team might use this workflow to compare customer data from two different sources, such as a CRM system and a marketing automation platform. By identifying discrepancies between the datasets, the team can ensure data accuracy and consistency, leading to more effective marketing campaigns and better decision-making.

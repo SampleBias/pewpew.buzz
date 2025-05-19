@@ -1,5 +1,7 @@
 # 101 Write Json To Disk Binary
 
+Categories: AI, Marketing, Data Management, Content Creation, Engineering, IT, Project Management, Webhooks
+
 This workflow creates a binary file containing a JSON object with example data.
 
 Example: This workflow could be used to generate a test file for an application that expects a binary file with a specific JSON structure. The generated file could be used for testing or as a template for creating similar files.
