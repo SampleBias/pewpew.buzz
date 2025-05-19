@@ -15,17 +15,11 @@ else:
 
 class N8nWorkflowBuilder:
     def __init__(self):
-        self.model = genai.GenerativeModel('gemini-1.5-pro')
+        # Use the specified model requested by user
+        self.model = genai.GenerativeModel('gemini-2.5-pro-preview-03-25')
+        print(f"Using Gemini model: gemini-2.5-pro-preview-03-25")
         
-        # Print model availability for debugging
-        print(f"Available Gemini models:")
-        try:
-            models = genai.list_models()
-            for model in models:
-                print(f"- {model.name}")
-        except Exception as e:
-            print(f"Error listing models: {e}")
-            
+        # Remove model listing to keep logs cleaner
         self.prompt_template = """
 You are an expert n8n workflow builder. Generate complete, valid n8n workflow JSON files.
 

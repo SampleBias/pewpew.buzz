@@ -31,28 +31,39 @@ async def test_api():
     # Test the API with a simple prompt
     print("\nTesting model generation:")
     try:
-        # Try different model versions
-        model_versions = [
-            "gemini-1.5-pro", 
-            "gemini-1.5-flash",
-            "gemini-pro", 
-            "gemini-pro-vision"
-        ]
+        # Try the requested model
+        model_name = "gemini-2.5-pro-preview-03-25"
         
-        for model_name in model_versions:
-            try:
-                print(f"\nTesting model: {model_name}")
-                model = genai.GenerativeModel(model_name)
-                response = await model.generate_content_async("Say hello world")
+        try:
+            print(f"\nTesting model: {model_name}")
+            model = genai.GenerativeModel(model_name)
+            response = await model.generate_content_async("Say hello world")
+            
+            if hasattr(response, 'text'):
+                print(f"✅ Response: {response.text[:100]}...")
+            elif hasattr(response, 'parts') and len(response.parts) > 0:
+                print(f"✅ Response (via parts): {response.parts[0].text[:100]}...")
+            else:
+                print(f"❓ Unexpected response format: {response}")
                 
-                if hasattr(response, 'text'):
-                    print(f"✅ Response: {response.text[:100]}...")
-                elif hasattr(response, 'parts') and len(response.parts) > 0:
-                    print(f"✅ Response (via parts): {response.parts[0].text[:100]}...")
-                else:
-                    print(f"❓ Unexpected response format: {response}")
-            except Exception as e:
-                print(f"❌ Error with {model_name}: {e}")
+            # Test generating a workflow
+            print("\nTesting workflow generation:")
+            workflow_prompt = """
+Generate an n8n workflow JSON that sends a daily email with weather updates.
+The workflow should include proper node structure, connections, and parameters.
+Respond with just the valid JSON workflow.
+"""
+            workflow_response = await model.generate_content_async(workflow_prompt)
+            
+            if hasattr(workflow_response, 'text'):
+                print(f"✅ Workflow response received (first 200 chars):\n{workflow_response.text[:200]}...")
+            elif hasattr(workflow_response, 'parts') and len(workflow_response.parts) > 0:
+                print(f"✅ Workflow response received (via parts, first 200 chars):\n{workflow_response.parts[0].text[:200]}...")
+            else:
+                print(f"❓ Unexpected workflow response format")
+                
+        except Exception as e:
+            print(f"❌ Error with {model_name}: {e}")
     
     except Exception as e:
         print(f"❌ General error: {e}")
