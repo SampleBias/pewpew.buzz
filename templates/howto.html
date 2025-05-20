@@ -1,16 +1,250 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mx-auto py-12 max-w-2xl">
-    <h1 class="text-4xl neon-pink font-bold mb-8 text-center">How to Use pewpew.buzz</h1>
-    <ol class="list-decimal list-inside text-pink-200 text-lg space-y-4">
-        <li>Browse the <a href="/dashboard" class="text-pink-400 underline">Automations Gallery</a> to discover N8N workflows.</li>
-        <li>Click <b>Download</b> on any card to get the workflow JSON file.</li>
-        <li>Import the JSON file into your own N8N instance.</li>
-        <li>To add your own automation, use the <b>Add</b> page (coming soon!).</li>
-        <li>For help or questions, contact <span class="font-bold">James Utley PhD</span>.</li>
-    </ol>
-    <div class="mt-8 text-center">
-        <a href="/dashboard" class="bg-pink-500 hover:bg-pink-400 text-white px-6 py-3 rounded-lg font-bold shadow-md transition">Browse Automations</a>
+<div class="container mx-auto py-8 px-4">
+    <h1 class="text-4xl neon-pink font-bold mb-6 text-center">How to Use pewpew.buzz</h1>
+    
+    <!-- Interactive Guide Sections -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        <!-- Browse Automations Section -->
+        <div class="bg-[#1a0025] border-2 border-pink-500 rounded-2xl shadow-xl p-6 hover:shadow-pink-500/30 hover:scale-[1.02] transition-all duration-300">
+            <h2 class="text-2xl font-bold text-pink-300 mb-4 flex items-center">
+                <span class="inline-block bg-pink-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">1</span>
+                Browse Automations
+            </h2>
+            <div class="prose prose-pink prose-invert max-w-none mb-4">
+                <p>Explore our gallery of automation workflows designed for N8N. Filter by category or search for specific use cases.</p>
+            </div>
+            <div class="flex justify-center">
+                <div class="relative w-full max-w-sm">
+                    <img src="{{ url_for('static', filename='images/browse.gif') }}" alt="Browse Automations" class="rounded-lg border border-pink-400 shadow-md w-full">
+                    <div class="absolute -right-4 -bottom-4 animate-bounce">
+                        <svg class="w-10 h-10 text-pink-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 text-center">
+                <a href="/dashboard" class="bg-pink-500 hover:bg-pink-400 text-white px-6 py-2 rounded-lg font-bold shadow-md transition inline-flex items-center">
+                    <span>Go to Gallery</span>
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- Download & Import Section -->
+        <div class="bg-[#1a0025] border-2 border-pink-500 rounded-2xl shadow-xl p-6 hover:shadow-pink-500/30 hover:scale-[1.02] transition-all duration-300">
+            <h2 class="text-2xl font-bold text-pink-300 mb-4 flex items-center">
+                <span class="inline-block bg-pink-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">2</span>
+                Download & Import
+            </h2>
+            <div class="prose prose-pink prose-invert max-w-none mb-4">
+                <p>Click the Download button on any workflow card to get the JSON file, then import it directly into your N8N instance.</p>
+            </div>
+            <div class="flex flex-col items-center">
+                <div class="relative w-full max-w-sm">
+                    <div class="flex flex-col items-center">
+                        <svg class="w-16 h-16 text-pink-400 mb-2 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div class="text-pink-200 mb-2">workflow.json</div>
+                        <svg class="w-8 h-8 text-pink-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 10.293a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div class="mt-2 border-2 border-dashed border-pink-400 rounded-lg p-3 text-center">
+                            <p class="text-pink-200">Import to N8N</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workflow Builder Section -->
+        <div class="bg-[#1a0025] border-2 border-pink-500 rounded-2xl shadow-xl p-6 hover:shadow-pink-500/30 hover:scale-[1.02] transition-all duration-300">
+            <h2 class="text-2xl font-bold text-pink-300 mb-4 flex items-center">
+                <span class="inline-block bg-pink-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">3</span>
+                Create with AI
+            </h2>
+            <div class="prose prose-pink prose-invert max-w-none mb-4">
+                <p>Use our <strong>AI-powered Workflow Builder</strong> to generate custom N8N workflows by simply describing what you want to automate!</p>
+            </div>
+            <div class="relative w-full p-4 border border-pink-400 rounded-lg bg-[#2d006e] mb-4">
+                <div class="typing-animation text-white">Describe your automation goal...</div>
+                <div class="absolute -right-3 top-1/2 transform -translate-y-1/2">
+                    <svg class="w-8 h-8 text-pink-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="flex justify-between items-center">
+                <div class="animate-bounce">
+                    <svg class="w-8 h-8 text-pink-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="text-center">
+                    <a href="/builder" class="bg-pink-500 hover:bg-pink-400 text-white px-6 py-2 rounded-lg font-bold shadow-md transition inline-flex items-center">
+                        <span>Try Builder</span>
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </a>
+                </div>
+                <div class="animate-bounce">
+                    <svg class="w-8 h-8 text-pink-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- PewPew Coin Section -->
+        <div class="bg-[#1a0025] border-2 border-pink-500 rounded-2xl shadow-xl p-6 hover:shadow-pink-500/30 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-28 h-28 bg-pink-500 rounded-full opacity-30 animate-pulse"></div>
+            <h2 class="text-2xl font-bold text-pink-300 mb-4 flex items-center">
+                <span class="inline-block bg-pink-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">4</span>
+                Support with PewPew
+            </h2>
+            <div class="prose prose-pink prose-invert max-w-none mb-4 relative z-10">
+                <p>Support the pewpew.buzz ecosystem by purchasing PewPew tokens. Every purchase helps us build more cool automations and features!</p>
+            </div>
+            <div class="flex justify-center mb-4 relative z-10">
+                <div class="w-24 h-24 rounded-full bg-gradient-to-r from-pink-400 to-purple-500 flex items-center justify-center shadow-lg animate-spin-slow">
+                    <div class="w-20 h-20 rounded-full bg-[#1a0025] flex items-center justify-center text-2xl font-bold text-pink-300">
+                        PEW
+                    </div>
+                </div>
+            </div>
+            <div class="text-center relative z-10">
+                <a href="https://raydium.io/swap/?inputCurrency=sol&outputCurrency=pewpewHq2sPV9J2DdEgJ9mPmQK5X8TgKQ8sVpetpxEpm&outputSymbol=PEWPEW&fixed=out" target="_blank" rel="noopener noreferrer" class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white px-6 py-2 rounded-lg font-bold shadow-md transition inline-flex items-center">
+                    <span>Buy PEWPEW</span>
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Steps Section -->
+    <div class="bg-gradient-to-r from-[#2d006e] to-[#1a0025] rounded-2xl p-8 mb-8">
+        <h2 class="text-3xl font-bold text-pink-300 mb-6 text-center">Advanced Workflow Tips</h2>
+        
+        <div class="relative">
+            <!-- Connection Lines -->
+            <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-pink-500"></div>
+            
+            <!-- Step 1 -->
+            <div class="relative z-10 md:flex items-center mb-12">
+                <div class="md:w-1/2 p-4">
+                    <div class="mb-4 bg-[#1a0025] border-2 border-pink-500 rounded-xl p-4 md:mr-8 hover:shadow-pink-500/30 transition-all duration-300">
+                        <h3 class="text-xl font-bold text-pink-300 mb-2">Customize Workflows</h3>
+                        <p class="text-pink-100">After importing a workflow, customize it to fit your specific needs. Most workflows can be easily adapted to your use case.</p>
+                    </div>
+                </div>
+                <div class="md:w-1/2 md:pl-8 p-4 flex justify-center">
+                    <div class="bg-[#1a0025] border-2 border-pink-500 rounded-xl w-full max-w-sm p-2 hover:shadow-pink-500/30 transition-all duration-300">
+                        <div class="flex space-x-2">
+                            <div class="w-4 h-4 rounded-full bg-pink-500"></div>
+                            <div class="w-4 h-4 rounded-full bg-purple-500"></div>
+                        </div>
+                        <div class="flex justify-center items-center py-4">
+                            <div class="w-20 h-12 border border-dashed border-pink-400 rounded flex items-center justify-center">
+                                <span class="text-pink-300 text-xs">Node 1</span>
+                            </div>
+                            <svg class="w-8 h-8 text-pink-400 mx-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div class="w-20 h-12 border border-dashed border-pink-400 rounded flex items-center justify-center">
+                                <span class="text-pink-300 text-xs">Node 2</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 2 -->
+            <div class="relative z-10 md:flex items-center flex-row-reverse mb-12">
+                <div class="md:w-1/2 p-4">
+                    <div class="mb-4 bg-[#1a0025] border-2 border-pink-500 rounded-xl p-4 md:ml-8 hover:shadow-pink-500/30 transition-all duration-300">
+                        <h3 class="text-xl font-bold text-pink-300 mb-2">Share Your Creations</h3>
+                        <p class="text-pink-100">Created something cool? Share it with the community through our upcoming submission feature!</p>
+                    </div>
+                </div>
+                <div class="md:w-1/2 md:pr-8 p-4 flex justify-center">
+                    <div class="animate-float">
+                        <svg class="w-24 h-24 text-pink-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 3 -->
+            <div class="relative z-10 md:flex items-center">
+                <div class="md:w-1/2 p-4">
+                    <div class="mb-4 bg-[#1a0025] border-2 border-pink-500 rounded-xl p-4 md:mr-8 hover:shadow-pink-500/30 transition-all duration-300">
+                        <h3 class="text-xl font-bold text-pink-300 mb-2">Get Support</h3>
+                        <p class="text-pink-100">Need help with a workflow? Contact <span class="font-bold">James Utley PhD</span> for assistance or custom automation development.</p>
+                    </div>
+                </div>
+                <div class="md:w-1/2 md:pl-8 p-4 flex justify-center">
+                    <div class="rounded-full bg-[#1a0025] border-2 border-pink-500 p-4 hover:shadow-pink-500/30 transition-all duration-300">
+                        <svg class="w-16 h-16 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Get Started Button -->
+    <div class="text-center mb-12">
+        <a href="/dashboard" class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white px-8 py-4 rounded-lg text-xl font-bold shadow-lg transition transform hover:scale-105">
+            Get Started Now
+        </a>
     </div>
 </div>
+
+<style>
+    @keyframes typing {
+        from { width: 0 }
+        to { width: 100% }
+    }
+
+    .typing-animation {
+        overflow: hidden;
+        white-space: nowrap;
+        border-right: 2px solid #ec4899;
+        width: 0;
+        animation: typing 3s steps(40, end) forwards, blink-caret 0.75s step-end infinite alternate;
+    }
+
+    @keyframes blink-caret {
+        from, to { border-color: transparent }
+        50% { border-color: #ec4899 }
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    .animate-float {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .animate-spin-slow {
+        animation: spin 8s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+</style>
 {% endblock %} 
