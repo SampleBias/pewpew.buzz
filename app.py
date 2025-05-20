@@ -18,11 +18,28 @@ from PIL import Image
 import google.generativeai as genai
 # Import the workflow sync function for immediate synchronization
 from workflow_sync import get_workflow_from_filesystem, sync_workflow_to_database, get_supabase_client
+from functools import wraps
 
 load_dotenv()
 
 # Get API keys from environment
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+
+# Create automation directory if it doesn't exist
+automation_dir = os.path.join(os.path.dirname(__file__), 'automation')
+os.makedirs(automation_dir, exist_ok=True)
+
+# Authentication decorator
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'user' not in session:
+            # Save the URL the user was trying to access
+            session['next_url'] = request.url
+            # Redirect to login
+            return redirect('/login')
+        return f(*args, **kwargs)
+    return decorated
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'supersecret')
@@ -84,7 +101,9 @@ auth0 = oauth.register(
     authorize_url=f'https://{app.config["AUTH0_DOMAIN"]}/authorize',
     client_kwargs={
         'scope': 'openid profile email',
+        'response_type': 'code',
     },
+    server_metadata_url=f'https://{app.config["AUTH0_DOMAIN"]}/.well-known/openid-configuration'
 )
 
 DEFAULT_CATEGORY = 'Uncategorized'
@@ -390,6 +409,7 @@ def download_workflow(workflow_folder):
     return 'Workflow not found', 404
 
 @app.route('/add', methods=['GET', 'POST'])
+@requires_auth
 def add_automation():
     if request.method == 'POST':
         # This is now handled by the API endpoint
@@ -402,13 +422,26 @@ def howto():
 
 @app.route('/login')
 def login():
-    return auth0.authorize_redirect(redirect_uri=app.config['AUTH0_CALLBACK_URL'])
+    return auth0.authorize_redirect(
+        redirect_uri=app.config['AUTH0_CALLBACK_URL'],
+        audience=f'https://{app.config["AUTH0_DOMAIN"]}/userinfo',
+        scope='openid profile email'
+    )
 
 @app.route('/callback')
 def callback():
-    token = auth0.authorize_access_token()
-    session['user'] = token['userinfo']
-    return redirect('/dashboard')
+    try:
+        token = auth0.authorize_access_token()
+        session['user'] = token['userinfo']
+        
+        # If this is a first login, you could add them to your database here
+        print(f"User logged in: {session['user'].get('email')}")
+        
+        # Redirect to profile page on first login, or to the page they were trying to access
+        return redirect(session.pop('next_url', '/profile'))
+    except Exception as e:
+        print(f"Error during Auth0 callback: {str(e)}")
+        return redirect('/')
 
 @app.route('/logout')
 def logout():
@@ -456,6 +489,7 @@ def readme(workflow_folder):
     return 'README not found', 404
 
 @app.route('/builder', methods=['GET'])
+@requires_auth
 def workflow_builder_page():
     return render_template('workflow_builder.html')
 
@@ -1324,5 +1358,20 @@ def sync_workflow_immediately(workflow_dir):
 
 # TODO: Add download route, meme animation, and user upload logic
 
+# Create Heroku-compatible app
 if __name__ == '__main__':
-    app.run(debug=True) 
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
+
+# Add a context processor to make user info available in all templates
+@app.context_processor
+def inject_user():
+    return dict(
+        user=session.get('user', None),
+        year=datetime.datetime.now().year
+    )
+
+@app.route('/profile')
+@requires_auth
+def profile():
+    return render_template('profile.html') 
