@@ -16,6 +16,8 @@ import base64
 import io
 from PIL import Image
 import google.generativeai as genai
+# Import the workflow sync function for immediate synchronization
+from workflow_sync import get_workflow_from_filesystem, sync_workflow_to_database, get_supabase_client
 
 load_dotenv()
 
@@ -34,7 +36,16 @@ app.config['AUTH0_CALLBACK_URL'] = os.environ.get('AUTH0_CALLBACK_URL')
 # Supabase config
 SUPABASE_URL = os.environ.get('SUPABASE_URL')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+SUPABASE_SECRET_KEY = os.environ.get('SUPABASE_SECRET_KEY')
+
+# Use service role key if available, otherwise use anon key
+supabase_key_to_use = SUPABASE_SECRET_KEY if SUPABASE_SECRET_KEY else SUPABASE_KEY
+supabase: Client = create_client(SUPABASE_URL, supabase_key_to_use)
+
+if SUPABASE_SECRET_KEY:
+    print("Using service role key for Supabase connection in app.py")
+else:
+    print("Using anon key for Supabase connection in app.py")
 
 # Create the workflow_ratings table if it doesn't exist
 try:
@@ -512,7 +523,10 @@ def generate_workflow():
         # Add warning if present in the result
         if "warning" in result:
             response_data["warning"] = result["warning"]
-            
+        
+        # Sync the workflow to the database
+        sync_workflow_immediately(dir_name)
+        
         return jsonify(response_data)
     except Exception as e:
         print(f"Error saving workflow: {str(e)}")
@@ -664,6 +678,9 @@ def publish_workflow():
                 # Write updated README
                 with open(readme_path, 'w') as f:
                     f.write('\n'.join(lines))
+        
+        # Sync the workflow to the database
+        sync_workflow_immediately(workflow_path)
         
         return jsonify({
             "success": True,
@@ -1002,6 +1019,9 @@ def extract_workflow_from_image():
                 with open(meta_path, 'w') as f:
                     json.dump(meta_data, f, indent=2)
                 
+                # Sync the workflow to the database
+                sync_workflow_immediately(dir_name)
+                
                 return jsonify({
                     "success": True,
                     "message": "Workflow successfully extracted from image",
@@ -1163,6 +1183,9 @@ def add_workflow():
         except Exception as e:
             print(f"Warning: Unable to create initial ratings: {str(e)}")
         
+        # Sync the workflow to the database
+        sync_workflow_immediately(dir_name)
+        
         return jsonify({
             "success": True,
             "message": "Workflow successfully added to the gallery!",
@@ -1180,6 +1203,124 @@ def add_workflow():
             "success": False,
             "error": f"An unexpected error occurred: {str(e)}"
         }), 500
+
+# Function to sync a workflow to the database immediately
+def sync_workflow_immediately(workflow_dir):
+    """Synchronize a workflow to the database immediately after creation or update"""
+    try:
+        # Check if we have Supabase configured
+        if not supabase:
+            print("Supabase not configured, skipping immediate sync")
+            return
+        
+        # Ensure the workflow directory exists
+        base_path = os.path.join(os.path.dirname(__file__), 'automation')
+        workflow_path = os.path.join(base_path, workflow_dir)
+        
+        if not os.path.exists(workflow_path):
+            print(f"Workflow directory not found: {workflow_path}")
+            return
+            
+        # Check for workflow.json and README.md
+        workflow_json_path = os.path.join(workflow_path, 'workflow.json')
+        readme_path = os.path.join(workflow_path, 'README.md')
+        meta_path = os.path.join(workflow_path, 'meta.json')
+        
+        if not os.path.exists(workflow_json_path) or not os.path.exists(readme_path):
+            print(f"Workflow files not found in: {workflow_path}")
+            return
+            
+        # Load workflow data
+        with open(workflow_json_path, 'r') as f:
+            workflow_data = json.load(f)
+            
+        # Load README content
+        with open(readme_path, 'r') as f:
+            readme_content = f.read()
+            
+        # Parse name from path (remove number prefix if exists)
+        name_parts = workflow_dir.split('-', 1)
+        workflow_name = name_parts[1] if len(name_parts) > 1 else name_parts[0]
+        
+        # Replace hyphens with spaces and capitalize
+        workflow_name = workflow_name.replace('-', ' ').strip()
+        workflow_name = ' '.join(word.capitalize() for word in workflow_name.split())
+        
+        # Load meta data if exists
+        categories = ["AI", "Engineering"]  # Default categories
+        is_published = False
+        is_generated = True
+        
+        if os.path.exists(meta_path):
+            try:
+                with open(meta_path, 'r') as f:
+                    meta_data = json.load(f)
+                    categories = meta_data.get('categories', categories)
+                    is_published = meta_data.get('published', False)
+                    is_generated = meta_data.get('generated', True)
+            except:
+                print(f"Error loading meta data from: {meta_path}")
+        
+        # Try to extract the first paragraph from README as description
+        description = ""
+        readme_lines = readme_content.strip().split('\n')
+        for line in readme_lines:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                description = line
+                break
+                
+        if not description and len(readme_lines) > 1:
+            # Fallback to the first line after the title
+            for i in range(1, len(readme_lines)):
+                if readme_lines[i].strip():
+                    description = readme_lines[i].strip()
+                    break
+        
+        # Trim description to max 150 chars
+        if len(description) > 150:
+            description = description[:147] + "..."
+            
+        # Get current user as author (if authenticated)
+        author_name = session.get('user', {}).get('email', 'anonymous')
+        
+        # Sync to database using the sync_workflow_to_database function
+        try:
+            response = supabase.rpc('sync_workflow_to_database', {
+                'p_slug': workflow_dir,
+                'p_title': workflow_name,
+                'p_description': description,
+                'p_author_name': author_name,
+                'p_json_content': workflow_data,
+                'p_readme_content': readme_content,
+                'p_categories': categories,
+                'p_is_generated': is_generated,
+                'p_is_submitted': is_published,
+                'p_is_extracted': False
+            }).execute()
+            
+            print(f"Synchronized workflow to database: {workflow_dir}, published: {is_published}")
+            
+            # Ensure meta file is updated with the correct published status
+            if os.path.exists(meta_path):
+                try:
+                    with open(meta_path, 'r') as f:
+                        meta_data = json.load(f)
+                    
+                    # Update is_published status to match what was sent to database
+                    meta_data['published'] = is_published
+                    
+                    with open(meta_path, 'w') as f:
+                        json.dump(meta_data, f, indent=2)
+                except Exception as e:
+                    print(f"Error updating meta file: {str(e)}")
+                    
+        except Exception as e:
+            print(f"Error syncing workflow to database: {str(e)}")
+            # Still proceed with the flow even if database sync fails
+            
+    except Exception as e:
+        print(f"Error in immediate workflow sync: {str(e)}")
 
 # TODO: Add download route, meme animation, and user upload logic
 

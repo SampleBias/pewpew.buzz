@@ -1,0 +1,98 @@
+{
+  "name": "Image OCR to Google Drive Text File",
+  "nodes": [
+    {
+      "parameters": {
+        "fields": {
+          "field": [
+            {
+              "name": "imageFile",
+              "type": "file",
+              "displayName": "Upload Image",
+              "default": ""
+            }
+          ]
+        }
+      },
+      "id": "9db0a1c2-3e5f-4b7a-8c1d-6f0e9a2b4c8d",
+      "name": "Upload Image",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "source": "binary",
+        "binaryPropertyName": "imageFile",
+        "options": {
+          "language": "eng"
+        }
+      },
+      "id": "a4c7f8e1-0d9b-5a2c-7f6e-1b3d0a9c5e4f",
+      "name": "Extract Text from Image",
+      "type": "n8n-nodes-base.ocr",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "upload",
+        "resource": "file",
+        "fileName": "extracted_text_{{$now.toFormat(\"yyyyMMddHHmmssSSS\")}}.txt",
+        "fileContent": "={{ $('Extract Text from Image').item.json.text }}",
+        "mimeType": "text/plain",
+        "destination": {
+          "type": "id",
+          "id": "root"
+        },
+        "binaryData": false,
+        "options": {}
+      },
+      "id": "b8d3e0f5-1a6c-6b8d-9e2f-5c7a4b1e3d09",
+      "name": "Write Text to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        850,
+        300
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_GOOGLE_DRIVE_OAUTH2_CREDENTIAL_ID",
+          "name": "Your Google Drive OAuth2 API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Upload Image": {
+      "main": [
+        [
+          {
+            "node": "Extract Text from Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Text from Image": {
+      "main": [
+        [
+          {
+            "node": "Write Text to Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -355,6 +355,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 publishBtn.classList.remove('bg-green-600');
                 publishBtn.classList.add('bg-gradient-to-r', 'from-pink-500', 'to-purple-500', 'hover:from-pink-400', 'hover:to-purple-400');
                 
+                // Make sure the publish section is visible
+                document.querySelector('.mb-6.p-4.border-2.border-pink-400.border-dashed').classList.remove('hidden');
+
+                // Enable publish radios
+                publishRadios.forEach(radio => {
+                    radio.disabled = false;
+                });
+                
                 resultSection.classList.remove('hidden');
             } else {
                 // Show error
@@ -561,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({ 
                     goal: goal,
-                    publish_to_gallery: false // Always default to not publishing
+                    publish_to_gallery: false // Always default to not publishing initially
                 }),
             });
             
@@ -589,6 +597,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.readme) {
                     currentReadmeHtml = data.readme;
                 }
+                
+                // Make sure the publish section is visible
+                document.querySelector('.mb-6.p-4.border-2.border-pink-400.border-dashed').classList.remove('hidden');
+
+                // Enable publish radios
+                publishRadios.forEach(radio => {
+                    radio.disabled = false;
+                });
                 
                 resultSection.classList.remove('hidden');
             } else {

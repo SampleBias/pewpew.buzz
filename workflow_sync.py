@@ -26,11 +26,24 @@ SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
 # Initialize Supabase client
 def get_supabase_client():
     """Get a configured Supabase client"""
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        print("Error: SUPABASE_URL and SUPABASE_KEY must be set in .env file")
+    if not SUPABASE_URL:
+        print("Error: SUPABASE_URL must be set in .env file")
         sys.exit(1)
     
-    return create_client(SUPABASE_URL, SUPABASE_KEY)
+    # First try to use the service role key if available
+    service_key = os.environ.get('SUPABASE_SECRET_KEY')
+    if service_key:
+        print("Using service role key for Supabase connection")
+        return create_client(SUPABASE_URL, service_key)
+        
+    # Fall back to regular key
+    regular_key = os.environ.get('SUPABASE_KEY')
+    if not regular_key:
+        print("Error: Neither SUPABASE_KEY nor SUPABASE_SECRET_KEY is set in .env file")
+        sys.exit(1)
+        
+    print("Using regular key for Supabase connection")
+    return create_client(SUPABASE_URL, regular_key)
 
 # Functions for reading workflow information from files
 def read_markdown_value(content, key):

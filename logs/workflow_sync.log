@@ -1,0 +1,4 @@
+Starting workflow synchronization at 2025-05-20T13:00:01.262404
+Using regular key for Supabase connection
+Error fetching workflows from database: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+Workflow synchronization completed with errors.
