@@ -34,12 +34,23 @@
                 
                 <div class="flex gap-4 mb-4">
                     <a id="downloadLink" href="#" class="bg-pink-500 hover:bg-pink-400 text-white px-6 py-3 rounded-lg font-bold shadow-md transition text-center">Download Workflow</a>
-                    <a id="viewDetails" href="#" class="bg-pink-700 hover:bg-pink-600 text-white px-6 py-3 rounded-lg font-bold shadow-md transition text-center">View Details</a>
+                    <button id="viewDetails" class="bg-pink-700 hover:bg-pink-600 text-white px-6 py-3 rounded-lg font-bold shadow-md transition text-center">View Details</button>
                 </div>
                 
                 <div class="mb-4">
                     <label class="block text-lg font-bold text-pink-300 mb-2">Workflow JSON</label>
                     <pre id="jsonResult" class="bg-[#2d006e] text-pink-100 rounded-lg p-4 overflow-x-auto whitespace-pre-wrap text-sm max-h-96 overflow-y-auto border-2 border-pink-700"></pre>
+                </div>
+            </div>
+        </div>
+        
+        <!-- README Modal -->
+        <div id="readmeModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+            <div class="bg-[#1a0025] border-2 border-pink-500 rounded-2xl shadow-xl p-6 max-w-4xl max-h-[90vh] overflow-y-auto w-11/12 relative">
+                <button id="closeModal" class="absolute top-4 right-4 text-pink-300 hover:text-pink-100 text-xl font-bold">×</button>
+                <h2 class="text-2xl font-bold neon-pink mb-4">Workflow Details</h2>
+                <div id="readmeContent" class="prose prose-pink prose-invert max-w-none">
+                    <!-- README content will be inserted here -->
                 </div>
             </div>
         </div>
@@ -56,6 +67,77 @@ document.addEventListener('DOMContentLoaded', function() {
     const jsonResult = document.getElementById('jsonResult');
     const downloadLink = document.getElementById('downloadLink');
     const viewDetails = document.getElementById('viewDetails');
+    const readmeModal = document.getElementById('readmeModal');
+    const closeModal = document.getElementById('closeModal');
+    const readmeContent = document.getElementById('readmeContent');
+    
+    let currentWorkflowPath = '';
+    let currentReadmeHtml = '';
+    
+    // Show/hide modal
+    viewDetails.addEventListener('click', function() {
+        if (currentReadmeHtml) {
+            readmeContent.innerHTML = formatReadme(currentReadmeHtml);
+            readmeModal.classList.remove('hidden');
+        } else if (currentWorkflowPath) {
+            fetchReadme(currentWorkflowPath);
+        }
+    });
+    
+    closeModal.addEventListener('click', function() {
+        readmeModal.classList.add('hidden');
+    });
+    
+    // Close modal when clicking outside content
+    readmeModal.addEventListener('click', function(e) {
+        if (e.target === readmeModal) {
+            readmeModal.classList.add('hidden');
+        }
+    });
+    
+    // Format README markdown as HTML
+    function formatReadme(markdown) {
+        // Very simple markdown to HTML converter
+        const formatted = markdown
+            // Headers
+            .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold text-pink-300 my-4">$1</h1>')
+            .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold text-pink-200 my-3">$1</h2>')
+            .replace(/^### (.+)$/gm, '<h3 class="text-xl font-bold text-pink-100 my-2">$1</h3>')
+            // Lists
+            .replace(/^- (.+)$/gm, '<li class="text-white ml-6 my-1">$1</li>')
+            .replace(/^(\d+)\. (.+)$/gm, '<li class="text-white ml-6 my-1">$2</li>')
+            // Convert consecutive list items to lists
+            .replace(/(<li[^>]*>.*<\/li>\n)+/g, '<ul class="list-disc my-4">$&</ul>')
+            // Paragraphs
+            .replace(/^(?!<[uh]).+$/gm, '<p class="text-white my-2">$&</p>')
+            // Fix blank lines in paragraphs
+            .replace(/<\/p>\n<p>/g, '<br>')
+            // Fix list wrapping
+            .replace(/<ul class="list-disc my-4">(<li[^>]*>.*<\/li>\n)+/g, match => {
+                return match.replace(/\n(?!<\/ul>)/g, '');
+            });
+
+        return formatted;
+    }
+    
+    // Fetch README from server
+    function fetchReadme(workflowPath) {
+        fetch(`/api/workflow-readme/${workflowPath}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentReadmeHtml = data.readme;
+                    readmeContent.innerHTML = formatReadme(data.readme);
+                    readmeModal.classList.remove('hidden');
+                } else {
+                    alert('Could not load workflow details: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching README:', error);
+                alert('Error loading workflow details');
+            });
+    }
     
     generateBtn.addEventListener('click', async function() {
         const goal = goalInput.value.trim();
@@ -95,7 +177,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Set up download link
                 downloadLink.href = `/download_workflow/${data.path}`;
-                viewDetails.href = `/dashboard?search=${data.path}`;
+                currentWorkflowPath = data.path;
+                
+                // Store README if available
+                if (data.readme) {
+                    currentReadmeHtml = data.readme;
+                }
                 
                 resultSection.classList.remove('hidden');
             } else {

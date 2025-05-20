@@ -1,0 +1,43 @@
+{
+  "name": "Workflow for: build a workflow for input a url and scrape the da",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manually",
+        "text": {
+          "value": "# Workflow for: build a workflow for input a url and scrape the da\n\nThis is a starter workflow for: build a workflow for input a url and scrape the data from the website\n\nPlease customize it according to your needs."
+        }
+      },
+      "id": "2",
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        300,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

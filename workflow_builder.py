@@ -37,23 +37,23 @@ Requirements:
 - Set the "name" field to a concise, descriptive title based on the automation's purpose
 
 Example structure:
-{
+{{
   "name": "Workflow Name",
   "nodes": [
-    {
-      "parameters": {},
+    {{
+      "parameters": {{}},
       "id": "unique-id",
       "name": "Node Name", 
       "type": "n8n-nodes-base.manualTrigger",
       "position": [x, y]
-    }
+    }}
   ],
-  "connections": {
-    "Node Name": {
-      "main": [["Next Node"]]
-    }
-  }
-}
+  "connections": {{
+    "Node Name": {{
+      "main": [[["Next Node"]]]
+    }}
+  }}
+}}
 
 User wants to build a workflow that does the following: {goal}
 
