@@ -1,0 +1,43 @@
+{
+  "name": "Workflow for: can you build me a workflow that takes in a URL an",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manually",
+        "text": {
+          "value": "# Workflow for: can you build me a workflow that takes in a URL an\n\nThis is a starter workflow for: can you build me a workflow that takes in a URL and then scrapes the data and adds it to a google spreadsheet please\n\nPlease customize it according to your needs."
+        }
+      },
+      "id": "2",
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        300,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

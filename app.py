@@ -227,11 +227,15 @@ def generate_workflow():
         # Save the workflow
         workflow_path = workflow_builder.save_workflow(result["workflow"], dir_name)
         
+        # Generate README content
+        readme_content = workflow_builder.generate_readme(result["workflow"], goal, dir_name)
+        
         response_data = {
             "success": True, 
             "message": "Workflow generated successfully", 
             "workflow": result["workflow"],
-            "path": dir_name
+            "path": dir_name,
+            "readme": readme_content
         }
         
         # Add warning if present in the result
@@ -242,6 +246,19 @@ def generate_workflow():
     except Exception as e:
         print(f"Error saving workflow: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/workflow-readme/<workflow_folder>', methods=['GET'])
+def get_workflow_readme(workflow_folder):
+    """Get README content for a workflow"""
+    base_path = os.path.join(os.path.dirname(__file__), 'automation')
+    readme_path = os.path.join(base_path, workflow_folder, 'README.md')
+    
+    if os.path.exists(readme_path):
+        with open(readme_path, 'r') as f:
+            content = f.read()
+        return jsonify({"success": True, "readme": content})
+    
+    return jsonify({"success": False, "error": "README not found"}), 404
 
 @app.route('/api/test-gemini', methods=['GET'])
 def test_gemini_api():
