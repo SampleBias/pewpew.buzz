@@ -1,0 +1,10 @@
+/test_*.py
+*.md
+!README.md
+!HEROKU_DEPLOYMENT.md
+/check_*.py
+/apply_rls_policy.py
+/setup_workflow_*.sh
+/remove_promo_text.py
+/migrate_to_database.py
+/categorize_automations.py 

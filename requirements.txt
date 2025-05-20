@@ -4,4 +4,7 @@ requests
 supabase
 authlib
 markdown
-google-generativeai 
+google-generativeai
+gunicorn
+pillow
+werkzeug 
