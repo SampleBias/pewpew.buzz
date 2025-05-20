@@ -1,11 +1,255 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="flex flex-col items-center justify-center min-h-[60vh]">
-    <h1 class="text-4xl neon-pink font-bold mb-6">Add New Automation</h1>
-    <p class="text-pink-200 mb-8">This feature is coming soon. You will be able to upload and share your own n8n workflows here!</p>
-    <form class="w-full max-w-md bg-[#1a0025] border-2 border-pink-500 rounded-xl shadow-xl p-6">
-        <!-- Form fields will go here in the future -->
-        <button type="submit" class="bg-pink-500 text-white px-4 py-2 rounded-lg font-bold shadow-md cursor-not-allowed opacity-50" disabled>Submit</button>
-    </form>
+<div class="container mx-auto py-8 px-4">
+    <h1 class="text-3xl neon-pink font-bold mb-6">Add New Automation</h1>
+    
+    <div class="mb-8 bg-[#1a0025] border-2 border-pink-500 rounded-xl shadow-xl p-6">
+        <p class="text-pink-200">Share your n8n automation workflow with the community! You can upload your workflow JSON and it will be added to the public gallery.</p>
+    </div>
+    
+    <div class="bg-[#1a0025] border-2 border-pink-500 rounded-xl shadow-xl p-6">
+        <form id="workflowForm" class="space-y-6">
+            <!-- Author Information -->
+            <div>
+                <label for="author_name" class="block text-lg font-bold text-pink-300 mb-2">Your Name</label>
+                <input type="text" id="author_name" name="author_name" class="w-full bg-[#2d006e] text-white border-2 border-pink-400 rounded-lg p-2 focus:outline-none focus:border-pink-300" placeholder="Your name (will be credited as the author)" required>
+            </div>
+            
+            <!-- Workflow Title -->
+            <div>
+                <label for="workflow_title" class="block text-lg font-bold text-pink-300 mb-2">Workflow Title</label>
+                <input type="text" id="workflow_title" name="workflow_title" class="w-full bg-[#2d006e] text-white border-2 border-pink-400 rounded-lg p-2 focus:outline-none focus:border-pink-300" placeholder="A descriptive title for your workflow" required>
+            </div>
+            
+            <!-- Workflow Description -->
+            <div>
+                <label for="workflow_description" class="block text-lg font-bold text-pink-300 mb-2">Description</label>
+                <textarea id="workflow_description" name="workflow_description" rows="3" class="w-full bg-[#2d006e] text-white border-2 border-pink-400 rounded-lg p-2 focus:outline-none focus:border-pink-300" placeholder="Describe what your workflow does and how it can be used" required></textarea>
+            </div>
+            
+            <!-- Categories -->
+            <div>
+                <label for="workflow_categories" class="block text-lg font-bold text-pink-300 mb-2">Categories (select up to 3)</label>
+                <select id="workflow_categories" name="workflow_categories" multiple class="w-full bg-[#2d006e] text-white border-2 border-pink-400 rounded-lg p-2 focus:outline-none focus:border-pink-300" size="5" required>
+                    <option value="AI">AI</option>
+                    <option value="Analytics">Analytics</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Data Management">Data Management</option>
+                    <option value="Email">Email</option>
+                    <option value="Content Creation">Content Creation</option>
+                    <option value="Customer Support">Customer Support</option>
+                    <option value="Dev Ops">Dev Ops</option>
+                    <option value="Ecommerce">Ecommerce</option>
+                    <option value="Education">Education</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Finance">Finance</option>
+                    <option value="HR">HR</option>
+                    <option value="IT">IT</option>
+                    <option value="Project Management">Project Management</option>
+                    <option value="Social Media">Social Media</option>
+                    <option value="Webhooks">Webhooks</option>
+                    <option value="Uncategorized">Uncategorized</option>
+                </select>
+                <p class="text-xs text-pink-300 mt-1">Hold Ctrl/Cmd to select multiple categories</p>
+            </div>
+            
+            <!-- Workflow JSON -->
+            <div>
+                <label for="workflow_json" class="block text-lg font-bold text-pink-300 mb-2">Workflow JSON</label>
+                <textarea id="workflow_json" name="workflow_json" rows="8" class="w-full bg-[#2d006e] text-white border-2 border-pink-400 rounded-lg p-2 focus:outline-none focus:border-pink-300 font-mono text-sm" placeholder="Paste your n8n workflow JSON here" required></textarea>
+                <p class="text-xs text-pink-300 mt-1">Export this from n8n by selecting your workflow, clicking on "..." and choosing "Export Workflow"</p>
+            </div>
+            
+            <!-- JSON file upload alternative -->
+            <div>
+                <label class="block text-lg font-bold text-pink-300 mb-2">Or Upload JSON File</label>
+                <div class="flex items-center justify-center w-full">
+                    <label for="workflow_file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-pink-400 border-dashed rounded-lg cursor-pointer bg-[#2d006e]/50 hover:bg-[#2d006e]">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg class="w-8 h-8 mb-3 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <p class="mb-2 text-sm text-pink-300"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p class="text-xs text-pink-400">JSON file exported from n8n</p>
+                        </div>
+                        <input id="workflow_file" type="file" class="hidden" accept=".json" />
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Result messages -->
+            <div id="result" class="hidden p-4 rounded-lg"></div>
+            
+            <!-- Submit Button -->
+            <div class="flex justify-end">
+                <button type="submit" id="submitBtn" class="bg-pink-500 hover:bg-pink-400 text-white px-6 py-3 rounded-lg font-bold shadow-md transition flex items-center gap-2">
+                    <span>Submit Workflow</span>
+                    <span id="submitSpinner" class="hidden">
+                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </span>
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const workflowForm = document.getElementById('workflowForm');
+    const workflowJsonInput = document.getElementById('workflow_json');
+    const workflowFileInput = document.getElementById('workflow_file');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitSpinner = document.getElementById('submitSpinner');
+    const resultDiv = document.getElementById('result');
+    const categoriesSelect = document.getElementById('workflow_categories');
+    
+    // Handle file input
+    workflowFileInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            
+            // Check file type
+            if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+                alert('Please upload a JSON file');
+                this.value = '';
+                return;
+            }
+            
+            // Read file contents
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    // Validate JSON
+                    const json = JSON.parse(e.target.result);
+                    
+                    // Validate if it looks like an n8n workflow
+                    if (!json.nodes || !Array.isArray(json.nodes)) {
+                        alert('This does not appear to be a valid n8n workflow JSON');
+                        return;
+                    }
+                    
+                    // Set the JSON in the textarea
+                    workflowJsonInput.value = JSON.stringify(json, null, 2);
+                    
+                    // If the workflow has a name, use it as title
+                    if (json.name && document.getElementById('workflow_title').value === '') {
+                        document.getElementById('workflow_title').value = json.name;
+                    }
+                } catch (error) {
+                    alert('Invalid JSON file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+    });
+    
+    // Handle form submission
+    workflowForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Get selected categories
+        const selectedCategories = Array.from(categoriesSelect.selectedOptions).map(option => option.value);
+        
+        // Validate categories
+        if (selectedCategories.length === 0) {
+            alert('Please select at least one category');
+            return;
+        }
+        
+        if (selectedCategories.length > 3) {
+            alert('Please select no more than 3 categories');
+            return;
+        }
+        
+        // Validate JSON
+        try {
+            // Make sure we have JSON
+            if (!workflowJsonInput.value.trim()) {
+                alert('Please provide workflow JSON');
+                return;
+            }
+            
+            // Validate JSON structure
+            const workflowJson = JSON.parse(workflowJsonInput.value);
+            
+            // Basic validation for n8n workflow format
+            if (!workflowJson.nodes || !Array.isArray(workflowJson.nodes)) {
+                alert('This does not appear to be a valid n8n workflow JSON');
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitSpinner.classList.remove('hidden');
+            resultDiv.classList.add('hidden');
+            
+            // Prepare form data
+            const formData = {
+                author_name: document.getElementById('author_name').value,
+                workflow_title: document.getElementById('workflow_title').value,
+                workflow_description: document.getElementById('workflow_description').value,
+                categories: selectedCategories,
+                workflow_json: workflowJson
+            };
+            
+            // Submit to API
+            const response = await fetch('/api/add-workflow', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const data = await response.json();
+            
+            // Reset loading state
+            submitBtn.disabled = false;
+            submitSpinner.classList.add('hidden');
+            
+            // Show result
+            resultDiv.classList.remove('hidden');
+            
+            if (data.success) {
+                resultDiv.classList.add('bg-green-900', 'text-green-200', 'border', 'border-green-400');
+                resultDiv.innerHTML = `
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 mr-2 mt-0.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <div>
+                            <p class="font-bold text-lg">Success!</p>
+                            <p>${data.message || 'Your workflow has been added to the gallery.'}</p>
+                            <a href="/dashboard" class="text-pink-300 underline mt-2 inline-block">View in Gallery</a>
+                        </div>
+                    </div>
+                `;
+                
+                // Reset form
+                workflowForm.reset();
+                workflowJsonInput.value = '';
+            } else {
+                resultDiv.classList.add('bg-red-900', 'text-red-200', 'border', 'border-red-400');
+                resultDiv.innerHTML = `
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 mr-2 mt-0.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        <div>
+                            <p class="font-bold text-lg">Error</p>
+                            <p>${data.error || 'There was an error adding your workflow. Please try again.'}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+        } catch (error) {
+            alert('Invalid JSON: ' + error.message);
+        }
+    });
+});
+</script>
 {% endblock %} 

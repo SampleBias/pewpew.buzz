@@ -44,7 +44,7 @@
                                 <span id="upvotes-{{ automation.id }}" class="text-green-400 font-bold mr-1">{{ automation.upvotes }}</span>
                                 <button 
                                     onclick="rateWorkflow('{{ automation.id }}', 'upvote')" 
-                                    class="text-green-400 hover:text-green-300 ml-1" 
+                                    class="text-green-400 hover:text-green-300 hover:scale-110 transition-transform ml-1" 
                                     title="Upvote this workflow"
                                 >
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -54,7 +54,7 @@
                                 <span class="mx-1">|</span>
                                 <button 
                                     onclick="rateWorkflow('{{ automation.id }}', 'downvote')" 
-                                    class="text-red-400 hover:text-red-300 mr-1" 
+                                    class="text-red-400 hover:text-red-300 hover:scale-110 transition-transform mr-1" 
                                     title="Downvote this workflow"
                                 >
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -123,6 +123,10 @@ function rateWorkflow(workflowId, voteType) {
     const element = document.getElementById(voteType === 'upvote' ? `upvotes-${workflowId}` : `downvotes-${workflowId}`);
     element.classList.add('rating-pulse');
     
+    // Add a loading indicator
+    const button = element.nextElementSibling || element.previousElementSibling;
+    button.classList.add('opacity-50');
+    
     // Send rating to API
     fetch(`/api/workflow/rating/${workflowId}`, {
         method: 'POST',
@@ -137,18 +141,32 @@ function rateWorkflow(workflowId, voteType) {
             // Update the vote counts
             document.getElementById(`upvotes-${workflowId}`).textContent = data.upvotes;
             document.getElementById(`downvotes-${workflowId}`).textContent = data.downvotes;
+            
+            // Show a brief success message
+            const originalColor = button.style.color;
+            button.style.color = 'white';
+            button.classList.add('scale-125');
+            
+            setTimeout(() => {
+                button.style.color = originalColor;
+                button.classList.remove('scale-125');
+            }, 500);
         } else {
             console.error('Error rating workflow:', data.error);
+            alert('Error rating workflow: ' + (data.error || 'Unknown error'));
         }
         
         // Remove animation class after a delay
         setTimeout(() => {
             element.classList.remove('rating-pulse');
+            button.classList.remove('opacity-50');
         }, 1000);
     })
     .catch(error => {
         console.error('Error:', error);
         element.classList.remove('rating-pulse');
+        button.classList.remove('opacity-50');
+        alert('Error submitting your rating. Please try again.');
     });
 }
 </script>
@@ -161,6 +179,15 @@ function rateWorkflow(workflowId, voteType) {
     
     .rating-pulse {
         animation: rating-pulse 0.5s ease-in-out;
+    }
+    
+    /* Add glow effects for better visibility */
+    button.text-green-400:hover svg {
+        filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.7));
+    }
+    
+    button.text-red-400:hover svg {
+        filter: drop-shadow(0 0 3px rgba(248, 113, 113, 0.7));
     }
 </style>
 {% endblock %} 

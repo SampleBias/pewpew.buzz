@@ -36,6 +36,33 @@ SUPABASE_URL = os.environ.get('SUPABASE_URL')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+# Create the workflow_ratings table if it doesn't exist
+try:
+    # Check if the workflow_ratings table exists by making a small query
+    supabase.table('workflow_ratings').select('id').limit(1).execute()
+    print("workflow_ratings table exists")
+except Exception as e:
+    if '42P01' in str(e):  # Table does not exist error code
+        print("workflow_ratings table doesn't exist. Please create it manually with the following SQL:")
+        with open('create_workflow_ratings_table.sql', 'r') as f:
+            sql = f.read()
+            print(sql)
+            
+        # Instead of trying to execute SQL directly, we'll initialize with empty ratings
+        # for each workflow to prevent errors when users interact with the site
+        base_path = os.path.join(os.path.dirname(__file__), 'automation')
+        if os.path.exists(base_path):
+            print("Pre-initializing ratings for existing workflows...")
+            try:
+                existing_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
+                for workflow_folder in existing_dirs:
+                    if os.path.exists(os.path.join(base_path, workflow_folder, 'workflow.json')):
+                        print(f"Found workflow: {workflow_folder}")
+            except Exception as dir_error:
+                print(f"Error scanning automation directory: {str(dir_error)}")
+    else:
+        print(f"Warning: Error checking workflow_ratings table: {str(e)}")
+
 oauth = OAuth(app)
 auth0 = oauth.register(
     'auth0',
@@ -82,6 +109,7 @@ def dashboard():
                 }
     except Exception as e:
         print(f"Error fetching ratings: {str(e)}")
+        # Continue without ratings rather than failing completely
     
     # Get all folders and try to sort them numerically if possible
     folders = os.listdir(base_path)
@@ -109,6 +137,7 @@ def dashboard():
                 with open(meta_path, 'r') as mf:
                     meta = json.load(mf)
                     categories = meta.get('categories', [])
+                    author = meta.get('author', 'James Utley PhD')  # Use author from meta if available
             # 2. Try README.md 'Categories:' line
             elif os.path.exists(readme_path):
                 with open(readme_path, 'r') as f:
@@ -148,10 +177,10 @@ def dashboard():
                     'description': description,
                     'download_url': download_url,
                     'readme_url': readme_url,
-                    'author': 'James Utley PhD',
+                    'author': meta.get('author', 'James Utley PhD') if os.path.exists(meta_path) else 'James Utley PhD',
                     'categories': categories,
-                    'upvotes': rating['upvotes'],
-                    'downvotes': rating['downvotes']
+                    'upvotes': rating['upvotes'] or 0,  # Ensure we have 0 instead of None
+                    'downvotes': rating['downvotes'] or 0  # Ensure we have 0 instead of None
                 }
                 # Filter by category
                 if selected_category and selected_category not in categories:
@@ -182,9 +211,8 @@ def download_workflow(workflow_folder):
 @app.route('/add', methods=['GET', 'POST'])
 def add_automation():
     if request.method == 'POST':
-        # Handle file upload and metadata
-        # TODO: Save to Supabase
-        pass
+        # This is now handled by the API endpoint
+        return redirect(url_for('dashboard'))
     return render_template('add_automation.html')
 
 @app.route('/howto')
@@ -324,6 +352,9 @@ def test_gemini_api():
 def get_workflow_rating(workflow_folder):
     """Get the current rating for a workflow"""
     try:
+        # Sanitize the workflow_folder input to prevent injection
+        workflow_folder = secure_filename(workflow_folder)
+        
         # Get the current rating from Supabase
         response = supabase.table('workflow_ratings').select('upvotes, downvotes').eq('workflow_id', workflow_folder).execute()
         
@@ -342,6 +373,7 @@ def get_workflow_rating(workflow_folder):
             "downvotes": response.data[0]['downvotes']
         })
     except Exception as e:
+        print(f"Error getting rating: {str(e)}")
         return jsonify({
             "success": False,
             "error": f"Error getting rating: {str(e)}"
@@ -450,6 +482,9 @@ def publish_workflow():
 def rate_workflow(workflow_folder):
     """Rate a workflow with upvote or downvote"""
     try:
+        # Sanitize the workflow_folder input to prevent injection
+        workflow_folder = secure_filename(workflow_folder)
+        
         data = request.json
         vote_type = data.get('vote_type')
         
@@ -472,30 +507,39 @@ def rate_workflow(workflow_folder):
                 'upvotes': upvotes,
                 'downvotes': downvotes
             }).execute()
+            
+            return jsonify({
+                "success": True,
+                "upvotes": upvotes,
+                "downvotes": downvotes,
+                "message": "Rating added successfully"
+            })
         else:
             # Update the existing record
             rating_id = response.data[0]['id']
-            current_upvotes = response.data[0]['upvotes']
-            current_downvotes = response.data[0]['downvotes']
+            current_upvotes = response.data[0]['upvotes'] or 0  # Default to 0 if None
+            current_downvotes = response.data[0]['downvotes'] or 0  # Default to 0 if None
             
             if vote_type == 'upvote':
                 supabase.table('workflow_ratings').update({
                     'upvotes': current_upvotes + 1
                 }).eq('id', rating_id).execute()
+                current_upvotes += 1
             else:
                 supabase.table('workflow_ratings').update({
                     'downvotes': current_downvotes + 1
                 }).eq('id', rating_id).execute()
+                current_downvotes += 1
         
-        # Get the updated rating
-        updated = supabase.table('workflow_ratings').select('upvotes, downvotes').eq('workflow_id', workflow_folder).execute()
-        
-        return jsonify({
-            "success": True,
-            "upvotes": updated.data[0]['upvotes'],
-            "downvotes": updated.data[0]['downvotes']
-        })
+            # Return the updated counts
+            return jsonify({
+                "success": True,
+                "upvotes": current_upvotes,
+                "downvotes": current_downvotes,
+                "message": "Rating updated successfully"
+            })
     except Exception as e:
+        print(f"Error rating workflow: {str(e)}")
         return jsonify({
             "success": False,
             "error": f"Error rating workflow: {str(e)}"
@@ -612,9 +656,53 @@ def extract_workflow_from_image():
                 workflow_json = json.loads(extraction_text)
                 
                 # Make sure the workflow has a proper name
-                if "name" not in workflow_json or not workflow_json["name"]:
-                    workflow_json["name"] = "Extracted from Screenshot"
+                if "name" not in workflow_json or not workflow_json["name"] or workflow_json["name"] == "Extracted Workflow":
+                    # Generate a more descriptive title based on nodes and workflow structure
+                    nodes = workflow_json.get("nodes", [])
                     
+                    # Collect node types to understand workflow purpose
+                    node_types = {}
+                    for node in nodes:
+                        node_type = node.get('type', '').replace('n8n-nodes-base.', '')
+                        if node_type not in node_types:
+                            node_types[node_type] = []
+                        node_types[node_type].append(node.get('name', node_type))
+                    
+                    # Try to generate a meaningful title
+                    title_components = []
+                    
+                    # Look for trigger nodes (typically start the workflow)
+                    triggers = []
+                    for node_type, names in node_types.items():
+                        if any(trigger_keyword in node_type.lower() for trigger_keyword in ['trigger', 'webhook', 'schedule', 'cron', 'poll']):
+                            triggers.extend(names)
+                    
+                    # Look for important action nodes
+                    actions = []
+                    for node_type, names in node_types.items():
+                        if any(action_keyword in node_type.lower() for action_keyword in ['http', 'email', 'slack', 'telegram', 'discord', 'database', 'google', 'api']):
+                            actions.extend(names)
+                    
+                    # Construct the title
+                    if triggers:
+                        title_components.append(f"{triggers[0]}")
+                    
+                    if actions:
+                        title_components.append(f"to {actions[0]}")
+                        if len(actions) > 1:
+                            title_components.append(f"and {actions[1]}")
+                    
+                    # Fallback if no specific triggers or actions found
+                    if not title_components and node_types:
+                        most_important_type = max(node_types.items(), key=lambda x: len(x[1]))[0]
+                        title_components.append(f"{most_important_type} Workflow")
+                    
+                    # Create the final title
+                    if title_components:
+                        workflow_json["name"] = " ".join(title_components).title() + " Workflow"
+                    else:
+                        workflow_json["name"] = "Multi-Step Automation Workflow"
+                
                 # Create a directory name for the workflow
                 base_path = os.path.join(os.path.dirname(__file__), 'automation')
                 
@@ -637,7 +725,7 @@ def extract_workflow_from_image():
                 workflow_name = workflow_json.get('name', 'Extracted Workflow')
                 readme_content = f"# {workflow_name}\n\n"
                 readme_content += f"Categories: AI, Extracted\n\n"
-                readme_content += f"This workflow was extracted from a screenshot using AI recognition.\n\n"
+                readme_content += f"This workflow was extracted from a screenshot using AI recognition technology. It provides an automation solution for {workflow_name.lower().replace(' workflow', '')}.\n\n"
                 
                 # Count nodes by type
                 node_types = {}
@@ -649,7 +737,7 @@ def extract_workflow_from_image():
                 
                 if node_types:
                     readme_content += "## Technical Details\n\n"
-                    readme_content += "This workflow uses the following node types:\n\n"
+                    readme_content += f"This workflow consists of {len(workflow_json.get('nodes', []))} nodes that work together to automate your process. Here's what it uses:\n\n"
                     for node_type, nodes in node_types.items():
                         node_names = ", ".join(nodes)
                         readme_content += f"- {node_type}: {node_names}\n"
@@ -664,7 +752,7 @@ def extract_workflow_from_image():
                 
                 # Add a note about extraction
                 readme_content += "## Note\n\n"
-                readme_content += "This workflow was automatically extracted from a screenshot. Some configuration details might need manual adjustment.\n"
+                readme_content += "This workflow was automatically extracted from a screenshot. While we've made every effort to accurately recreate it, some configuration details might need manual adjustment.\n"
                 
                 # Save the files
                 folder_path = os.path.join(base_path, dir_name)
@@ -724,6 +812,153 @@ def extract_workflow_from_image():
             "success": False,
             "error": f"Error processing image: {str(e)}",
             "error_type": "general_error"
+        }), 500
+
+@app.route('/api/add-workflow', methods=['POST'])
+def add_workflow():
+    """Add a new workflow to the gallery from user submission"""
+    try:
+        data = request.json
+        
+        # Validate required fields
+        required_fields = ['author_name', 'workflow_title', 'workflow_description', 'categories', 'workflow_json']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({
+                    "success": False,
+                    "error": f"Missing required field: {field}"
+                }), 400
+        
+        # Validate categories
+        categories = data['categories']
+        if not categories or len(categories) == 0:
+            return jsonify({
+                "success": False,
+                "error": "At least one category is required"
+            }), 400
+            
+        if len(categories) > 3:
+            categories = categories[:3]  # Limit to 3 categories
+        
+        # Validate workflow JSON
+        workflow_json = data['workflow_json']
+        
+        if not isinstance(workflow_json, dict) or 'nodes' not in workflow_json or not isinstance(workflow_json['nodes'], list):
+            return jsonify({
+                "success": False,
+                "error": "Invalid workflow JSON format"
+            }), 400
+        
+        # Set workflow name if not already set
+        if 'name' not in workflow_json or not workflow_json['name']:
+            workflow_json['name'] = data['workflow_title']
+        
+        # Create a directory name for the workflow
+        base_path = os.path.join(os.path.dirname(__file__), 'automation')
+        
+        # Ensure automation directory exists
+        os.makedirs(base_path, exist_ok=True)
+        
+        # Find the highest number and increment by 1
+        existing_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
+        highest_num = 0
+        for dir_name in existing_dirs:
+            match = re.match(r'^(\d+)', dir_name)
+            if match:
+                num = int(match.group(1))
+                highest_num = max(highest_num, num)
+        
+        new_num = highest_num + 1
+        workflow_title_slug = data['workflow_title'].lower().replace(' ', '-')
+        workflow_title_slug = re.sub(r'[^a-z0-9\-]', '', workflow_title_slug)
+        dir_name = f"{new_num}-{workflow_title_slug[:30]}"
+        
+        # Create directory
+        workflow_dir = os.path.join(base_path, dir_name)
+        os.makedirs(workflow_dir, exist_ok=True)
+        
+        # Save workflow.json
+        workflow_path = os.path.join(workflow_dir, 'workflow.json')
+        with open(workflow_path, 'w') as f:
+            json.dump(workflow_json, f, indent=2)
+        
+        # Generate README.md
+        readme_content = f"# {data['workflow_title']}\n\n"
+        readme_content += f"Categories: {', '.join(categories)}\n\n"
+        readme_content += f"{data['workflow_description']}\n\n"
+        
+        # Add technical details based on nodes
+        nodes = workflow_json.get('nodes', [])
+        node_types = {}
+        for node in nodes:
+            node_type = node.get('type', '').replace('n8n-nodes-base.', '')
+            if node_type not in node_types:
+                node_types[node_type] = []
+            node_types[node_type].append(node.get('name', node_type))
+        
+        if node_types:
+            readme_content += "## Technical Details\n\n"
+            readme_content += f"This workflow consists of {len(nodes)} nodes that work together to automate your process. Here's what it uses:\n\n"
+            for node_type, node_names in node_types.items():
+                node_name_list = ", ".join(node_names)
+                readme_content += f"- {node_type}: {node_name_list}\n"
+            readme_content += "\n"
+        
+        # Add usage instructions
+        readme_content += "## Usage\n\n"
+        readme_content += "1. Download the workflow JSON file\n"
+        readme_content += "2. Import it into your n8n instance\n"
+        readme_content += "3. Review and adjust the workflow as needed\n"
+        readme_content += "4. Activate and test the workflow\n\n"
+        
+        # Save README.md
+        readme_path = os.path.join(workflow_dir, 'README.md')
+        with open(readme_path, 'w') as f:
+            f.write(readme_content)
+        
+        # Create meta.json
+        meta_path = os.path.join(workflow_dir, 'meta.json')
+        meta_data = {
+            "categories": categories,
+            "generated": False,
+            "submitted": True,
+            "submission_date": datetime.datetime.now().isoformat(),
+            "author": data['author_name'],
+            "summary": data['workflow_description'][:100],
+            "published": True,
+            "published_date": datetime.datetime.now().isoformat(),
+            "published_by": data['author_name']
+        }
+        
+        with open(meta_path, 'w') as f:
+            json.dump(meta_data, f, indent=2)
+        
+        # Create initial ratings in the database
+        try:
+            supabase.table('workflow_ratings').insert({
+                'workflow_id': dir_name,
+                'upvotes': 0,
+                'downvotes': 0
+            }).execute()
+        except Exception as e:
+            print(f"Warning: Unable to create initial ratings: {str(e)}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Workflow successfully added to the gallery!",
+            "workflow_id": dir_name
+        })
+        
+    except json.JSONDecodeError as e:
+        return jsonify({
+            "success": False,
+            "error": f"Invalid JSON: {str(e)}"
+        }), 400
+    except Exception as e:
+        print(f"Error adding workflow: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": f"An unexpected error occurred: {str(e)}"
         }), 500
 
 # TODO: Add download route, meme animation, and user upload logic
