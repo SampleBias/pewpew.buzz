@@ -58,8 +58,8 @@
             <a href="/add" class="hover:text-pink-400 transition">Add</a>
             <a href="/howto" class="hover:text-pink-400 transition">How to Use</a>
             {% if user %}
-                <div class="relative group">
-                    <div class="flex items-center gap-2 cursor-pointer hover:text-pink-400 transition">
+                <div class="relative">
+                    <div id="userMenuToggle" class="flex items-center gap-2 cursor-pointer hover:text-pink-400 transition">
                         {% if user.picture %}
                             <img src="{{ user.picture }}" alt="User" class="w-8 h-8 rounded-full border border-pink-400">
                         {% else %}
@@ -69,7 +69,7 @@
                         {% endif %}
                         <span>{{ user.name|default(user.email, true)|truncate(15) }}</span>
                     </div>
-                    <div class="absolute right-0 mt-2 w-48 bg-[#1a0025] border-2 border-pink-500 rounded-lg shadow-xl py-2 hidden group-hover:block z-10">
+                    <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-[#1a0025] border-2 border-pink-500 rounded-lg shadow-xl py-2 hidden z-10">
                         <a href="/profile" class="block px-4 py-2 text-white hover:bg-pink-700 transition">Profile</a>
                         <a href="/logout" class="block px-4 py-2 text-white hover:bg-pink-700 transition">Logout</a>
                     </div>
@@ -124,6 +124,26 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Ensure widget is visible on every page load
             document.getElementById('pewpewWidget').style.display = 'block';
+        });
+
+        // User menu toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const userMenuToggle = document.getElementById('userMenuToggle');
+            const userDropdown = document.getElementById('userDropdown');
+            
+            if (userMenuToggle && userDropdown) {
+                userMenuToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    userDropdown.classList.toggle('hidden');
+                });
+                
+                // Close the dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!userMenuToggle.contains(e.target) && !userDropdown.contains(e.target)) {
+                        userDropdown.classList.add('hidden');
+                    }
+                });
+            }
         });
     </script>
 </body>
