@@ -60,6 +60,19 @@ def dashboard():
     selected_category = request.args.get('category')
     search_query = request.args.get('search', '').lower()
     
+    # Fetch all workflow ratings at once for efficiency
+    ratings_data = {}
+    try:
+        ratings_response = supabase.table('workflow_ratings').select('workflow_id, upvotes, downvotes').execute()
+        if ratings_response.data:
+            for rating in ratings_response.data:
+                ratings_data[rating['workflow_id']] = {
+                    'upvotes': rating['upvotes'], 
+                    'downvotes': rating['downvotes']
+                }
+    except Exception as e:
+        print(f"Error fetching ratings: {str(e)}")
+    
     # Get all folders and try to sort them numerically if possible
     folders = os.listdir(base_path)
     try:
@@ -115,13 +128,20 @@ def dashboard():
                     description = next((l.strip() for l in lines[1:] if l.strip() and not l.startswith('#')), '')
                 download_url = f'/download_workflow/{folder}'
                 readme_url = f'/readme/{folder}'
+                
+                # Get ratings data for this workflow, defaults to 0 if not rated
+                rating = ratings_data.get(folder, {'upvotes': 0, 'downvotes': 0})
+                
                 automation = {
+                    'id': folder,
                     'title': title,
                     'description': description,
                     'download_url': download_url,
                     'readme_url': readme_url,
                     'author': 'James Utley PhD',
-                    'categories': categories
+                    'categories': categories,
+                    'upvotes': rating['upvotes'],
+                    'downvotes': rating['downvotes']
                 }
                 # Filter by category
                 if selected_category and selected_category not in categories:
@@ -273,6 +293,89 @@ def test_gemini_api():
             "error": f"Error testing API: {str(e)}",
             "error_type": str(type(e))
         })
+
+# Workflow feedback system routes
+@app.route('/api/workflow/rating/<workflow_folder>', methods=['GET'])
+def get_workflow_rating(workflow_folder):
+    """Get the current rating for a workflow"""
+    try:
+        # Get the current rating from Supabase
+        response = supabase.table('workflow_ratings').select('upvotes, downvotes').eq('workflow_id', workflow_folder).execute()
+        
+        # If the workflow doesn't have any ratings yet, return zeros
+        if not response.data:
+            return jsonify({
+                "success": True,
+                "upvotes": 0,
+                "downvotes": 0
+            })
+        
+        # Return the current upvotes and downvotes
+        return jsonify({
+            "success": True,
+            "upvotes": response.data[0]['upvotes'],
+            "downvotes": response.data[0]['downvotes']
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Error getting rating: {str(e)}"
+        }), 500
+
+@app.route('/api/workflow/rating/<workflow_folder>', methods=['POST'])
+def rate_workflow(workflow_folder):
+    """Rate a workflow with upvote or downvote"""
+    try:
+        data = request.json
+        vote_type = data.get('vote_type')
+        
+        if vote_type not in ['upvote', 'downvote']:
+            return jsonify({
+                "success": False,
+                "error": "Invalid vote type. Must be 'upvote' or 'downvote'."
+            }), 400
+        
+        # Get the current rating
+        response = supabase.table('workflow_ratings').select('*').eq('workflow_id', workflow_folder).execute()
+        
+        # If the workflow doesn't have any ratings yet, create a new record
+        if not response.data:
+            upvotes = 1 if vote_type == 'upvote' else 0
+            downvotes = 1 if vote_type == 'downvote' else 0
+            
+            supabase.table('workflow_ratings').insert({
+                'workflow_id': workflow_folder,
+                'upvotes': upvotes,
+                'downvotes': downvotes
+            }).execute()
+        else:
+            # Update the existing record
+            rating_id = response.data[0]['id']
+            current_upvotes = response.data[0]['upvotes']
+            current_downvotes = response.data[0]['downvotes']
+            
+            if vote_type == 'upvote':
+                supabase.table('workflow_ratings').update({
+                    'upvotes': current_upvotes + 1
+                }).eq('id', rating_id).execute()
+            else:
+                supabase.table('workflow_ratings').update({
+                    'downvotes': current_downvotes + 1
+                }).eq('id', rating_id).execute()
+        
+        # Get the updated rating
+        updated = supabase.table('workflow_ratings').select('upvotes, downvotes').eq('workflow_id', workflow_folder).execute()
+        
+        return jsonify({
+            "success": True,
+            "upvotes": updated.data[0]['upvotes'],
+            "downvotes": updated.data[0]['downvotes']
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Error rating workflow: {str(e)}"
+        }), 500
 
 # TODO: Add download route, meme animation, and user upload logic
 
