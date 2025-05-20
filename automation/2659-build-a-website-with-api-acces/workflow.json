@@ -1,0 +1,204 @@
+{
+  "name": "Build a Website with API Access to OpenAI",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "3f8c6c9f-7f4b-4a5b-8c1d-9e2a3b4c5d6e",
+      "name": "Manual Test Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": [
+          {
+            "name": "prompt",
+            "value": "Tell me a short story about an AI that dreams of painting."
+          }
+        ],
+        "options": {
+          "keepOnlySet": true
+        }
+      },
+      "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      "name": "Set Test Prompt",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "openAiApi",
+        "resource": "chat",
+        "model": "gpt-3.5-turbo",
+        "messages": [
+          {
+            "role": "user",
+            "content": "={{ $json.prompt }}"
+          }
+        ],
+        "options": {}
+      },
+      "id": "b2c3d4e5-f6a7-8901-2345-678901bcdef0",
+      "name": "Test OpenAI Call",
+      "type": "n8n-nodes-ai.openAi",
+      "typeVersion": 1,
+      "position": [
+        600,
+        300
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "PLEASE_REPLACE_WITH_YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI API credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "openai-service",
+        "httpMethod": "POST",
+        "responseMode": "usingRespondToWebhookNode",
+        "jsonPassthrough": true,
+        "options": {
+          "jsonBody": true
+        }
+      },
+      "id": "c3d4e5f6-a7b8-9012-3456-789012cdef01",
+      "name": "Website API: OpenAI Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        200,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "values": [
+          {
+            "name": "user_prompt",
+            "value": "={{ $json.body.prompt }}"
+          }
+        ],
+        "options": {
+          "keepOnlySet": true
+        }
+      },
+      "id": "d4e5f6a7-b8c9-0123-4567-890123def012",
+      "name": "Extract Prompt from Webhook",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        400,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "openAiApi",
+        "resource": "chat",
+        "model": "gpt-3.5-turbo",
+        "messages": [
+          {
+            "role": "user",
+            "content": "={{ $json.user_prompt }}"
+          }
+        ],
+        "options": {}
+      },
+      "id": "e5f6a7b8-c9d0-1234-5678-901234ef0123",
+      "name": "Process API Request with OpenAI",
+      "type": "n8n-nodes-ai.openAi",
+      "typeVersion": 1,
+      "position": [
+        600,
+        500
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "PLEASE_REPLACE_WITH_YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI API credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "responseCode": 200,
+        "options": {
+          "responseBody": "={{ $('Process API Request with OpenAI').json.choices[0].message.content }}"
+        }
+      },
+      "id": "f6a7b8c9-d0e1-2345-6789-012345f01234",
+      "name": "Return OpenAI Response via API",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        800,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Test Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Test Prompt",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Set Test Prompt": {
+      "main": [
+        [
+          {
+            "node": "Test OpenAI Call",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Website API: OpenAI Request": {
+      "main": [
+        [
+          {
+            "node": "Extract Prompt from Webhook",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Extract Prompt from Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process API Request with OpenAI",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "Process API Request with OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Return OpenAI Response via API",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "a0b1c2d3-e4f5-a6b7-c8d9-e0f1a2b3c4d5"
+}

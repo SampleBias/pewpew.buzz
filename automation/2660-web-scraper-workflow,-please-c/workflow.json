@@ -1,0 +1,114 @@
+{
+  "name": "Web Scraper Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f9e8d7c6-b5a4-4321-8fed-cba987654321",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "url",
+              "value": "https://n8n.io"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e8d7c6b5-a493-4210-9edc-ba9876543210",
+      "name": "Set Target URL",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1.1,
+      "position": [
+        1000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "responseFormat": "string",
+        "options": {}
+      },
+      "id": "d7c6b5a4-9382-410f-8dcb-a9876543210f",
+      "name": "Fetch Website Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "sourceData": "={{ $json.data }}",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "pageTitle",
+              "cssSelector": "title",
+              "returnValue": "text"
+            },
+            {
+              "key": "allLinksHrefs",
+              "cssSelector": "a",
+              "returnValue": "attribute",
+              "attribute": "href",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c6b5a493-8271-40fe-7cba-9876543210fe",
+      "name": "Extract Website Data",
+      "type": "n8n-nodes-base.htmlExtract",
+      "typeVersion": 1.1,
+      "position": [
+        1400,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Target URL",
+            "input": "main"
+          }
+        ]
+      ]
+    },
+    "Set Target URL": {
+      "main": [
+        [
+          {
+            "node": "Fetch Website Content",
+            "input": "main"
+          }
+        ]
+      ]
+    },
+    "Fetch Website Content": {
+      "main": [
+        [
+          {
+            "node": "Extract Website Data",
+            "input": "main"
+          }
+        ]
+      ]
+    }
+  }
+}
