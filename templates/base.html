@@ -17,6 +17,32 @@
         .neon-pink {
             text-shadow: 0 0 8px #fff, 0 0 16px #ff00de, 0 0 32px #ff00de;
         }
+        .pewpew-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ff00de;
+            border-radius: 12px;
+            padding: 15px;
+            z-index: 1000;
+            box-shadow: 0 0 15px rgba(255, 0, 222, 0.5);
+            max-width: 320px;
+            backdrop-filter: blur(5px);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px rgba(255, 0, 222, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(255, 0, 222, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(255, 0, 222, 0.5); }
+        }
+        .pewpew-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -41,8 +67,49 @@
     <main class="flex-1">
         {% block content %}{% endblock %}
     </main>
+    
+    <!-- PEWPEW Token Promotion Widget -->
+    <div id="pewpewWidget" class="pewpew-widget">
+        <span class="pewpew-close" onclick="togglePewpewWidget()">&times;</span>
+        <div class="text-center mb-3">
+            <h3 class="text-xl font-bold neon-pink mb-2">🚀 Join the PEWPEW Movement! 🚀</h3>
+            <p class="text-yellow-300 mb-2 text-sm">The official meme coin of pewpew.buzz community</p>
+            <div class="flex justify-center items-center gap-2 mb-1">
+                <img src="/static/images/96d3be855dc7a637cec3cfb52050f1349039a39a6ecefdfb985c99be5541a6a3.svg" alt="PEWPEW" class="w-6 h-6">
+                <span class="font-bold text-pink-300">In PEW We Trust!</span>
+            </div>
+        </div>
+        <div class="flex flex-col gap-2">
+            <a href="https://raydium.io/swap/?inputMint=sol&outputMint=4YxQn34RDK8aDddp7YQMagT1NnBEUva6nZRAHapPpump" target="_blank" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-2 px-4 rounded-lg text-center transition">
+                🔥 Buy PEWPEW Now 🔥
+            </a>
+            <div class="text-xs text-center text-gray-300 mt-1">
+                Limited supply! Don't miss out on the next moonshot 🌙
+            </div>
+        </div>
+    </div>
+
     <footer class="text-center py-4 text-pink-300 text-sm">
         &copy; {{ year }} pewpew.buzz &mdash; Powered by N8n, Supabase, Auth0, and memes.
     </footer>
+
+    <script>
+        // Widget toggle functionality
+        function togglePewpewWidget() {
+            const widget = document.getElementById('pewpewWidget');
+            if (widget.style.display === 'none') {
+                widget.style.display = 'block';
+            } else {
+                widget.style.display = 'none';
+                // Show again if they refresh the page
+            }
+        }
+
+        // Widget will always show on each page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure widget is visible on every page load
+            document.getElementById('pewpewWidget').style.display = 'block';
+        });
+    </script>
 </body>
 </html> 
