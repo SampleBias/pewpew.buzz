@@ -700,42 +700,64 @@ def rate_workflow(workflow_folder):
             upvotes = 1 if vote_type == 'upvote' else 0
             downvotes = 1 if vote_type == 'downvote' else 0
             
-            supabase.table('workflow_ratings').insert({
-                'workflow_id': workflow_folder,
-                'upvotes': upvotes,
-                'downvotes': downvotes
-            }).execute()
-            
-            return jsonify({
-                "success": True,
-                "upvotes": upvotes,
-                "downvotes": downvotes,
-                "message": "Rating added successfully"
-            })
+            try:
+                supabase.table('workflow_ratings').insert({
+                    'workflow_id': workflow_folder,
+                    'upvotes': upvotes,
+                    'downvotes': downvotes
+                }).execute()
+                
+                return jsonify({
+                    "success": True,
+                    "upvotes": upvotes,
+                    "downvotes": downvotes,
+                    "message": "Rating added successfully"
+                })
+            except Exception as insert_err:
+                error_message = str(insert_err)
+                if '42501' in error_message and 'row-level security policy' in error_message:
+                    return jsonify({
+                        "success": False,
+                        "error": "Permission denied. RLS policy not configured correctly. Please contact the administrator.",
+                        "details": "The database is missing an RLS policy that allows inserting ratings. Run the add_workflow_ratings_policy.sql script."
+                    }), 403
+                else:
+                    raise insert_err
         else:
             # Update the existing record
             rating_id = response.data[0]['id']
             current_upvotes = response.data[0]['upvotes'] or 0  # Default to 0 if None
             current_downvotes = response.data[0]['downvotes'] or 0  # Default to 0 if None
             
-            if vote_type == 'upvote':
-                supabase.table('workflow_ratings').update({
-                    'upvotes': current_upvotes + 1
-                }).eq('id', rating_id).execute()
-                current_upvotes += 1
-            else:
-                supabase.table('workflow_ratings').update({
-                    'downvotes': current_downvotes + 1
-                }).eq('id', rating_id).execute()
-                current_downvotes += 1
-        
-            # Return the updated counts
-            return jsonify({
-                "success": True,
-                "upvotes": current_upvotes,
-                "downvotes": current_downvotes,
-                "message": "Rating updated successfully"
-            })
+            try:
+                if vote_type == 'upvote':
+                    supabase.table('workflow_ratings').update({
+                        'upvotes': current_upvotes + 1
+                    }).eq('id', rating_id).execute()
+                    current_upvotes += 1
+                else:
+                    supabase.table('workflow_ratings').update({
+                        'downvotes': current_downvotes + 1
+                    }).eq('id', rating_id).execute()
+                    current_downvotes += 1
+                
+                # Return the updated counts
+                return jsonify({
+                    "success": True,
+                    "upvotes": current_upvotes,
+                    "downvotes": current_downvotes,
+                    "message": "Rating updated successfully"
+                })
+            except Exception as update_err:
+                error_message = str(update_err)
+                if '42501' in error_message and 'row-level security policy' in error_message:
+                    return jsonify({
+                        "success": False,
+                        "error": "Permission denied. RLS policy not configured correctly. Please contact the administrator.",
+                        "details": "The database is missing an RLS policy that allows updating ratings. Run the add_workflow_ratings_policy.sql script."
+                    }), 403
+                else:
+                    raise update_err
     except Exception as e:
         print(f"Error rating workflow: {str(e)}")
         return jsonify({
