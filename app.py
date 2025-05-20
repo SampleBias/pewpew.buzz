@@ -8,6 +8,7 @@ import markdown
 import json
 import re
 import asyncio
+import datetime
 from workflow_builder import N8nWorkflowBuilder
 from werkzeug.utils import secure_filename
 import uuid
@@ -17,6 +18,9 @@ from PIL import Image
 import google.generativeai as genai
 
 load_dotenv()
+
+# Get API keys from environment
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'supersecret')
@@ -556,7 +560,7 @@ def extract_workflow_from_image():
             }), 500
         
         # Use Gemini Pro Vision to analyze the image
-        model = genai.GenerativeModel('gemini-pro-vision')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         # First, check if this is actually an n8n workflow
         validation_prompt = [
