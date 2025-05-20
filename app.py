@@ -9,6 +9,7 @@ import json
 import re
 import asyncio
 import datetime
+import shutil
 from workflow_builder import N8nWorkflowBuilder
 from werkzeug.utils import secure_filename
 import uuid
@@ -38,6 +39,16 @@ def requires_auth(f):
             session['next_url'] = request.url
             # Redirect to login
             return redirect('/login')
+        return f(*args, **kwargs)
+    return decorated
+
+# Admin auth decorator
+def requires_admin(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('admin_authenticated'):
+            # Redirect to admin login
+            return redirect('/admin')
         return f(*args, **kwargs)
     return decorated
 
@@ -1374,4 +1385,116 @@ def inject_user():
 @app.route('/profile')
 @requires_auth
 def profile():
-    return render_template('profile.html') 
+    return render_template('profile.html')
+
+@app.route('/admin', methods=['GET', 'POST'])
+def admin_panel():
+    error = None
+    # Admin authentication
+    if request.method == 'POST':
+        access_code = request.form.get('access_code')
+        if access_code == '123456':  # Hard-coded access code
+            session['admin_authenticated'] = True
+            return redirect('/admin')
+        else:
+            error = "Invalid access code. Please try again."
+    
+    # If already authenticated or after successful authentication
+    if session.get('admin_authenticated'):
+        # Get all automations
+        automations = []
+        base_path = os.path.join(os.path.dirname(__file__), 'automation')
+        if os.path.exists(base_path):
+            folders = os.listdir(base_path)
+            folders.sort()  # Sort folders alphabetically
+            
+            for folder in folders:
+                folder_path = os.path.join(base_path, folder)
+                if os.path.isdir(folder_path):
+                    readme_path = os.path.join(folder_path, 'README.md')
+                    meta_path = os.path.join(folder_path, 'meta.json')
+                    workflow_path = os.path.join(folder_path, 'workflow.json')
+                    
+                    # Skip if workflow.json doesn't exist
+                    if not os.path.exists(workflow_path):
+                        continue
+                    
+                    # Get title and description
+                    title = folder.split('-', 1)[1] if '-' in folder else folder
+                    title = title.replace('-', ' ').strip().title()
+                    description = ""
+                    author = "Unknown"
+                    categories = []
+                    
+                    # Try meta.json
+                    if os.path.exists(meta_path):
+                        try:
+                            with open(meta_path, 'r') as f:
+                                meta_data = json.load(f)
+                                author = meta_data.get('author', author)
+                                categories = meta_data.get('categories', [])
+                                if meta_data.get('summary'):
+                                    description = meta_data.get('summary')
+                        except:
+                            pass
+                    
+                    # Try README.md if no description yet
+                    if not description and os.path.exists(readme_path):
+                        try:
+                            with open(readme_path, 'r') as f:
+                                readme_lines = f.readlines()
+                                for line in readme_lines:
+                                    if line.strip() and not line.startswith('#'):
+                                        description = line.strip()
+                                        break
+                        except:
+                            pass
+                    
+                    automation = {
+                        'id': folder,
+                        'title': title,
+                        'description': description,
+                        'author': author,
+                        'categories': categories
+                    }
+                    
+                    automations.append(automation)
+        
+        return render_template('admin.html', automations=automations, authenticated=True)
+    
+    return render_template('admin.html', authenticated=False, error=error)
+
+@app.route('/admin/delete', methods=['POST'])
+@requires_admin
+def delete_automation():
+    automation_id = request.form.get('automation_id')
+    if not automation_id:
+        return redirect('/admin')
+    
+    # Path to the automation folder
+    automation_path = os.path.join(os.path.dirname(__file__), 'automation', automation_id)
+    
+    # Delete from the database if it exists
+    try:
+        # Delete from workflow_ratings table
+        supabase.table('workflow_ratings').delete().eq('workflow_id', automation_id).execute()
+        
+        # Delete from workflow_categories table
+        supabase.table('workflow_categories').delete().eq('workflow_id', automation_id).execute()
+        
+        # Delete from workflows table
+        supabase.table('workflows').delete().eq('slug', automation_id).execute()
+        
+        print(f"Deleted automation {automation_id} from database")
+    except Exception as e:
+        print(f"Error deleting automation from database: {str(e)}")
+    
+    # Delete the folder from the filesystem
+    if os.path.exists(automation_path):
+        try:
+            shutil.rmtree(automation_path)
+            print(f"Deleted automation folder: {automation_path}")
+        except Exception as e:
+            print(f"Error deleting automation folder: {str(e)}")
+    
+    return redirect('/admin') 
