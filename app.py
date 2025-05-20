@@ -337,10 +337,45 @@ def dashboard():
 
 @app.route('/download_workflow/<workflow_folder>')
 def download_workflow(workflow_folder):
+    try:
+        # Try to get workflow from database first
+        workflow_response = supabase.table('workflows') \
+            .select('json_content') \
+            .eq('slug', workflow_folder) \
+            .single() \
+            .execute()
+        
+        if workflow_response.data:
+            # Get workflow from database
+            workflow_json = workflow_response.data['json_content']
+            
+            # Update download count
+            try:
+                supabase.table('workflows') \
+                    .update({'downloads': supabase.table('workflows').select('downloads').eq('slug', workflow_folder).single().execute().data['downloads'] + 1}) \
+                    .eq('slug', workflow_folder) \
+                    .execute()
+            except Exception as e:
+                print(f"Error updating download count: {str(e)}")
+                
+            # Create a temporary in-memory file
+            json_str = json.dumps(workflow_json, indent=2)
+            
+            return send_file(
+                io.BytesIO(json_str.encode('utf-8')),
+                mimetype='application/json',
+                as_attachment=True,
+                download_name=f"{workflow_folder}.json"
+            )
+    except Exception as e:
+        print(f"Error fetching workflow from database: {str(e)}")
+        # Fall back to file system if database fails
+        
+    # Fallback to file system
     base_path = os.path.join(os.path.dirname(__file__), 'automation')
     workflow_path = os.path.join(base_path, workflow_folder, 'workflow.json')
     if os.path.exists(workflow_path):
-        return send_file(workflow_path, as_attachment=True)
+        return send_file(workflow_path, as_attachment=True, download_name=f"{workflow_folder}.json")
     return 'Workflow not found', 404
 
 @app.route('/add', methods=['GET', 'POST'])
@@ -373,6 +408,34 @@ def logout():
 
 @app.route('/readme/<workflow_folder>')
 def readme(workflow_folder):
+    try:
+        # Try to get readme from database first
+        readme_response = supabase.table('workflows') \
+            .select('readme_content, title') \
+            .eq('slug', workflow_folder) \
+            .single() \
+            .execute()
+        
+        if readme_response.data:
+            # Get readme from database
+            readme_content = readme_response.data['readme_content']
+            
+            # Update view count
+            try:
+                supabase.table('workflows') \
+                    .update({'views': supabase.table('workflows').select('views').eq('slug', workflow_folder).single().execute().data['views'] + 1}) \
+                    .eq('slug', workflow_folder) \
+                    .execute()
+            except Exception as e:
+                print(f"Error updating view count: {str(e)}")
+                
+            # Return content as markdown
+            return readme_content, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+    except Exception as e:
+        print(f"Error fetching readme from database: {str(e)}")
+        # Fall back to file system if database fails
+        
+    # Fallback to file system
     base_path = os.path.join(os.path.dirname(__file__), 'automation')
     readme_path = os.path.join(base_path, workflow_folder, 'README.md')
     if os.path.exists(readme_path):
