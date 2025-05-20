@@ -1,0 +1,170 @@
+{
+  "name": "Step-by-Step Web Scraper",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "8f9a3c21-0e6d-4f8a-b1c3-5d7e6a2f0b9e",
+      "name": "Start Scrape",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        600,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "urlToScrape",
+              "value": "https://n8n.io"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b4c2d1e0-7a5f-4b9e-8d1c-9f0e3a7b6c5d",
+      "name": "1. Enter URL",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.urlToScrape }}",
+        "response": {
+          "responseFormat": "string"
+        },
+        "options": {}
+      },
+      "id": "e1f0a9b8-3c7d-4e6f-a2b1-6d0c5e4f8a3b",
+      "name": "2. Fetch Webpage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "source": "html",
+        "htmlInput": "={{ $json.data }}",
+        "extractValue": [
+          {
+            "type": "cssSelector",
+            "key": "pageTitle",
+            "cssSelector": "title",
+            "returnValue": "text",
+            "returnArray": false
+          },
+          {
+            "type": "cssSelector",
+            "key": "h1_tags",
+            "cssSelector": "h1",
+            "returnValue": "text",
+            "returnArray": true
+          },
+          {
+            "type": "cssSelector",
+            "key": "all_links",
+            "cssSelector": "a",
+            "returnValue": "html",
+            "attribute": "href",
+            "returnArray": true
+          }
+        ],
+        "options": {}
+      },
+      "id": "c9d8b7a6-0f5e-4c3a-9e2d-1a8b7c6d5e4f",
+      "name": "3. Extract Data",
+      "type": "n8n-nodes-base.htmlExtract",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "scrapedPageTitle",
+              "value": "={{ $json.pageTitle }}"
+            },
+            {
+              "name": "scrapedH1Tags",
+              "value": "={{ $json.h1_tags }}"
+            },
+            {
+              "name": "scrapedLinks",
+              "value": "={{ $json.all_links }}"
+            }
+          ]
+        },
+        "keepOnlySet": true,
+        "options": {}
+      },
+      "id": "a7b6c5d4-e3f2-4a1b-8c9d-0e7f6a5b4c3d",
+      "name": "4. View Scraped Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1.1,
+      "position": [
+        1400,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Start Scrape": {
+      "main": [
+        [
+          {
+            "node": "1. Enter URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Enter URL": {
+      "main": [
+        [
+          {
+            "node": "2. Fetch Webpage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Fetch Webpage": {
+      "main": [
+        [
+          {
+            "node": "3. Extract Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Extract Data": {
+      "main": [
+        [
+          {
+            "node": "4. View Scraped Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {}
+}
