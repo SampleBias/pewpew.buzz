@@ -373,17 +373,6 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
         with open(readme_path, 'w') as f:
             f.write(readme_content)
             
-        # Create meta.json
-        meta_path = os.path.join(base_path, 'meta.json')
-        meta = {
-            "categories": ["AI", "Engineering"],
-            "generated": True,
-            "summary": f"Automated workflow for: {folder_name.split('-', 1)[1] if '-' in folder_name else folder_name}"
-        }
-        
-        with open(meta_path, 'w') as f:
-            json.dump(meta, f, indent=2)
-            
         return base_path
         
     def generate_readme(self, workflow, folder_name, goal=None):

@@ -9,6 +9,7 @@ import json
 import re
 import asyncio
 from workflow_builder import N8nWorkflowBuilder
+import datetime
 
 load_dotenv()
 
@@ -216,6 +217,7 @@ def workflow_builder_page():
 def generate_workflow():
     data = request.json
     goal = data.get('goal', '')
+    publish_to_gallery = data.get('publish_to_gallery', False)
     
     if not goal:
         return jsonify({"success": False, "error": "No workflow goal provided"}), 400
@@ -249,6 +251,20 @@ def generate_workflow():
         
         # Generate README content
         readme_content = workflow_builder.generate_readme(result["workflow"], goal, dir_name)
+        
+        # Create a meta.json file that indicates whether the workflow is published
+        meta_path = os.path.join(base_path, dir_name, 'meta.json')
+        meta_data = {
+            "categories": ["AI", "Engineering"],  # Default categories
+            "generated": True,
+            "summary": f"Automated workflow for: {goal[:100]}",
+            "published": publish_to_gallery,  # Only set to true if explicitly published
+            "published_date": datetime.datetime.now().isoformat() if publish_to_gallery else None,
+            "published_by": session.get('user', {}).get('email', 'anonymous') if publish_to_gallery else None
+        }
+        
+        with open(meta_path, 'w') as f:
+            json.dump(meta_data, f, indent=2)
         
         response_data = {
             "success": True, 
@@ -320,6 +336,105 @@ def get_workflow_rating(workflow_folder):
         return jsonify({
             "success": False,
             "error": f"Error getting rating: {str(e)}"
+        }), 500
+
+@app.route('/api/publish-workflow', methods=['POST'])
+def publish_workflow():
+    """Add a workflow to the public gallery"""
+    try:
+        data = request.json
+        workflow_path = data.get('workflow_path', '')
+        categories = data.get('categories', [])
+        
+        if not workflow_path:
+            return jsonify({
+                "success": False,
+                "error": "No workflow path provided"
+            }), 400
+            
+        if not categories:
+            return jsonify({
+                "success": False,
+                "error": "No categories provided"
+            }), 400
+            
+        # Limit to 3 categories max
+        if len(categories) > 3:
+            categories = categories[:3]
+            
+        # Validate that the workflow exists
+        base_path = os.path.join(os.path.dirname(__file__), 'automation')
+        full_path = os.path.join(base_path, workflow_path)
+        
+        if not os.path.isdir(full_path):
+            return jsonify({
+                "success": False,
+                "error": "Workflow folder not found"
+            }), 404
+            
+        workflow_json_path = os.path.join(full_path, 'workflow.json')
+        readme_path = os.path.join(full_path, 'README.md')
+        
+        if not os.path.exists(workflow_json_path) or not os.path.exists(readme_path):
+            return jsonify({
+                "success": False,
+                "error": "Workflow files not found"
+            }), 404
+            
+        # Update the meta.json file with publication info
+        meta_path = os.path.join(full_path, 'meta.json')
+        
+        # Create or update meta.json
+        meta_data = {
+            "categories": categories,
+            "published": True,
+            "published_date": datetime.datetime.now().isoformat(),
+            "published_by": session.get('user', {}).get('email', 'anonymous')
+        }
+        
+        # If meta.json already exists, read and update it
+        if os.path.exists(meta_path):
+            with open(meta_path, 'r') as f:
+                existing_meta = json.load(f)
+                # Merge the existing meta with the new publication data
+                meta_data = {**existing_meta, **meta_data}
+        
+        # Write the updated meta.json
+        with open(meta_path, 'w') as f:
+            json.dump(meta_data, f, indent=2)
+            
+        # Update README with categories if they don't exist
+        with open(readme_path, 'r') as f:
+            readme_content = f.read()
+            
+        # Check if Categories line exists
+        if 'Categories:' not in readme_content:
+            # Add categories line after title
+            lines = readme_content.split('\n')
+            title_index = -1
+            
+            for i, line in enumerate(lines):
+                if line.startswith('# '):
+                    title_index = i
+                    break
+                    
+            if title_index >= 0:
+                categories_line = f"Categories: {', '.join(categories)}"
+                lines.insert(title_index + 1, categories_line)
+                
+                # Write updated README
+                with open(readme_path, 'w') as f:
+                    f.write('\n'.join(lines))
+        
+        return jsonify({
+            "success": True,
+            "message": "Workflow published to gallery"
+        })
+            
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Error publishing workflow: {str(e)}"
         }), 500
 
 @app.route('/api/workflow/rating/<workflow_folder>', methods=['POST'])

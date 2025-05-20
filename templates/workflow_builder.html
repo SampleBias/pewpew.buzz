@@ -37,6 +37,56 @@
                     <button id="viewDetails" class="bg-pink-700 hover:bg-pink-600 text-white px-6 py-3 rounded-lg font-bold shadow-md transition text-center">View Details</button>
                 </div>
                 
+                <!-- Gallery publishing option -->
+                <div class="mb-6 p-4 border-2 border-pink-400 border-dashed rounded-lg bg-[#2d006e]/50">
+                    <h3 class="text-xl font-bold text-pink-300 mb-2">Publish to Automation Gallery</h3>
+                    <p class="text-pink-200 mb-3">Would you like to make this workflow available in the public automation gallery?</p>
+                    
+                    <div class="flex items-center gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="publishToGallery" value="no" checked class="accent-pink-500 w-5 h-5">
+                            <span class="text-white">No, keep it private</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="publishToGallery" value="yes" class="accent-pink-500 w-5 h-5">
+                            <span class="text-white">Yes, publish to gallery</span>
+                        </label>
+                    </div>
+                    
+                    <div id="publishDetails" class="mt-4 hidden">
+                        <div class="mb-3">
+                            <label for="workflowCategory" class="block text-sm font-medium text-pink-200 mb-1">Category (select up to 3)</label>
+                            <select id="workflowCategory" multiple class="w-full bg-[#2d006e] text-white border-2 border-pink-400 rounded-lg p-2 focus:outline-none focus:border-pink-300" size="4">
+                                <option value="AI">AI</option>
+                                <option value="Analytics">Analytics</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Data Management">Data Management</option>
+                                <option value="Email">Email</option>
+                                <option value="Content Creation">Content Creation</option>
+                                <option value="Customer Support">Customer Support</option>
+                                <option value="Dev Ops">Dev Ops</option>
+                                <option value="Ecommerce">Ecommerce</option>
+                                <option value="Education">Education</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Finance">Finance</option>
+                                <option value="HR">HR</option>
+                                <option value="IT">IT</option>
+                                <option value="Project Management">Project Management</option>
+                                <option value="Social Media">Social Media</option>
+                                <option value="Webhooks">Webhooks</option>
+                            </select>
+                            <p class="text-xs text-pink-300 mt-1">Hold Ctrl/Cmd to select multiple categories</p>
+                        </div>
+                        
+                        <button id="publishBtn" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white px-4 py-2 rounded-lg font-bold shadow-md transition flex items-center justify-center gap-2">
+                            <span>Publish to Gallery</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
                 <div class="mb-4">
                     <label class="block text-lg font-bold text-pink-300 mb-2">Workflow JSON</label>
                     <pre id="jsonResult" class="bg-[#2d006e] text-pink-100 rounded-lg p-4 overflow-x-auto whitespace-pre-wrap text-sm max-h-96 overflow-y-auto border-2 border-pink-700"></pre>
@@ -70,9 +120,96 @@ document.addEventListener('DOMContentLoaded', function() {
     const readmeModal = document.getElementById('readmeModal');
     const closeModal = document.getElementById('closeModal');
     const readmeContent = document.getElementById('readmeContent');
+    const publishRadios = document.querySelectorAll('input[name="publishToGallery"]');
+    const publishDetails = document.getElementById('publishDetails');
+    const publishBtn = document.getElementById('publishBtn');
+    const workflowCategory = document.getElementById('workflowCategory');
     
     let currentWorkflowPath = '';
     let currentReadmeHtml = '';
+    let currentWorkflow = null;
+    
+    // Toggle publish details when radio buttons change
+    publishRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'yes') {
+                publishDetails.classList.remove('hidden');
+            } else {
+                publishDetails.classList.add('hidden');
+            }
+        });
+    });
+    
+    // Handle publish button click
+    publishBtn.addEventListener('click', async function() {
+        if (!currentWorkflowPath) {
+            alert('No workflow generated yet');
+            return;
+        }
+        
+        // Get selected categories
+        const selectedCategories = Array.from(workflowCategory.selectedOptions).map(option => option.value);
+        
+        if (selectedCategories.length === 0) {
+            alert('Please select at least one category');
+            return;
+        }
+        
+        if (selectedCategories.length > 3) {
+            alert('Please select no more than 3 categories');
+            return;
+        }
+        
+        // Disable the button and show loading state
+        publishBtn.disabled = true;
+        publishBtn.innerHTML = '<span>Publishing...</span><svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+        
+        try {
+            const response = await fetch('/api/publish-workflow', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    workflow_path: currentWorkflowPath,
+                    categories: selectedCategories
+                }),
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Workflow published to gallery successfully!');
+                
+                // Update UI to show it's published
+                publishBtn.innerHTML = '<span>Published!</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+                publishBtn.disabled = true;
+                publishBtn.classList.remove('bg-gradient-to-r', 'from-pink-500', 'to-purple-500', 'hover:from-pink-400', 'hover:to-purple-400');
+                publishBtn.classList.add('bg-green-600');
+                
+                // Disable the radio buttons
+                publishRadios.forEach(radio => {
+                    radio.disabled = true;
+                });
+                
+                // Disable the category selection
+                workflowCategory.disabled = true;
+            } else {
+                alert('Error publishing workflow: ' + (data.error || 'Unknown error'));
+                
+                // Reset button state
+                publishBtn.disabled = false;
+                publishBtn.innerHTML = '<span>Publish to Gallery</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error publishing workflow: ' + error.message);
+            
+            // Reset button state
+            publishBtn.disabled = false;
+            publishBtn.innerHTML = '<span>Publish to Gallery</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>';
+        }
+    });
     
     // Show/hide modal
     viewDetails.addEventListener('click', function() {
@@ -153,18 +290,40 @@ document.addEventListener('DOMContentLoaded', function() {
         resultSection.classList.add('hidden');
         resultMessage.innerHTML = '';
         
+        // Reset publish options
+        publishRadios.forEach(radio => {
+            if (radio.value === 'no') {
+                radio.checked = true;
+            } else {
+                radio.checked = false;
+            }
+        });
+        publishDetails.classList.add('hidden');
+        
+        workflowCategory.selectedIndex = -1;
+        publishBtn.disabled = false;
+        publishBtn.innerHTML = '<span>Publish to Gallery</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>';
+        publishBtn.classList.remove('bg-green-600');
+        publishBtn.classList.add('bg-gradient-to-r', 'from-pink-500', 'to-purple-500', 'hover:from-pink-400', 'hover:to-purple-400');
+        
         try {
             const response = await fetch('/api/generate-workflow', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ goal: goal }),
+                body: JSON.stringify({ 
+                    goal: goal,
+                    publish_to_gallery: false // Always default to not publishing
+                }),
             });
             
             const data = await response.json();
             
             if (data.success) {
+                // Store the workflow data
+                currentWorkflow = data.workflow;
+                
                 // Show result
                 if (data.warning) {
                     resultMessage.innerHTML = `<div class="text-yellow-300 mb-2">${data.message || 'Workflow generated with a fallback template.'}</div>` +
