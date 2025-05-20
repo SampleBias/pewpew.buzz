@@ -9,7 +9,12 @@ import json
 import re
 import asyncio
 from workflow_builder import N8nWorkflowBuilder
-import datetime
+from werkzeug.utils import secure_filename
+import uuid
+import base64
+import io
+from PIL import Image
+import google.generativeai as genai
 
 load_dotenv()
 
@@ -490,6 +495,231 @@ def rate_workflow(workflow_folder):
         return jsonify({
             "success": False,
             "error": f"Error rating workflow: {str(e)}"
+        }), 500
+
+@app.route('/api/extract-workflow-from-image', methods=['POST'])
+def extract_workflow_from_image():
+    """Extract an n8n workflow configuration from an uploaded screenshot"""
+    try:
+        # Check if file is in the request
+        if 'screenshot' not in request.files:
+            return jsonify({
+                "success": False,
+                "error": "No screenshot provided",
+                "error_type": "missing_file"
+            }), 400
+            
+        screenshot_file = request.files['screenshot']
+        
+        # Check if filename is empty
+        if screenshot_file.filename == '':
+            return jsonify({
+                "success": False,
+                "error": "No screenshot selected",
+                "error_type": "empty_filename"
+            }), 400
+            
+        # Check file extension
+        allowed_extensions = {'png', 'jpg', 'jpeg'}
+        if not ('.' in screenshot_file.filename and \
+                screenshot_file.filename.rsplit('.', 1)[1].lower() in allowed_extensions):
+            return jsonify({
+                "success": False,
+                "error": "Invalid file type. Only PNG, JPG, and JPEG are allowed.",
+                "error_type": "invalid_file_type"
+            }), 400
+            
+        # Read the image file
+        img = Image.open(screenshot_file)
+        
+        # Convert the image to RGB mode if it's not already
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+            
+        # Save image to buffer
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='JPEG')
+        img_byte_arr.seek(0)
+        
+        # Convert to base64 for Gemini
+        encoded_img = base64.b64encode(img_byte_arr.getvalue()).decode('ascii')
+        mime_type = "image/jpeg"
+        
+        # Configure Gemini model for image analysis
+        if GEMINI_API_KEY:
+            genai.configure(api_key=GEMINI_API_KEY)
+        else:
+            return jsonify({
+                "success": False,
+                "error": "GEMINI_API_KEY not configured. Unable to process image.",
+                "error_type": "api_key_missing"
+            }), 500
+        
+        # Use Gemini Pro Vision to analyze the image
+        model = genai.GenerativeModel('gemini-pro-vision')
+        
+        # First, check if this is actually an n8n workflow
+        validation_prompt = [
+            "Analyze this image and determine if it contains an n8n workflow diagram.",
+            "An n8n workflow typically has connected nodes with labels for different operations.",
+            "Respond with ONLY 'YES' if it's an n8n workflow or 'NO' if it's not.",
+            {"mime_type": mime_type, "data": encoded_img}
+        ]
+        
+        validation_response = model.generate_content(validation_prompt)
+        validation_text = validation_response.text.strip().upper()
+        
+        if validation_text != "YES":
+            return jsonify({
+                "success": False,
+                "error": "The uploaded image does not appear to be an n8n workflow.",
+                "error_type": "not_workflow"
+            }), 400
+        
+        # Extract workflow information
+        extraction_prompt = [
+            "You are an expert in extracting n8n workflow configurations from screenshots.",
+            "Analyze this screenshot of an n8n workflow and create a valid JSON workflow that matches it.",
+            "Include all nodes visible in the workflow with their names, types, positions, and connections.",
+            "For each node, identify the type (e.g., 'HTTP Request', 'Set', 'Function', etc.), position, and connections to other nodes.",
+            "Follow the exact n8n format for workflow JSON:",
+            "{\n  \"name\": \"Extracted Workflow\",\n  \"nodes\": [\n    {\"id\": \"1\", \"name\": \"Start\", \"type\": \"n8n-nodes-base.start\", \"position\": [x, y], ...},\n    ...\n  ],\n  \"connections\": {\"Node1\": {\"main\": [[{\"node\": \"Node2\", \"type\": \"main\", \"index\": 0}]]}}\n}",
+            "Respond with ONLY the valid JSON. No explanations or markdown formatting.",
+            {"mime_type": mime_type, "data": encoded_img}
+        ]
+        
+        extraction_response = model.generate_content(extraction_prompt)
+        extraction_text = extraction_response.text.strip()
+        
+        # Try to extract JSON from the response
+        try:
+            # Remove any markdown code blocks
+            extraction_text = re.sub(r'^```(?:json)?\s*', '', extraction_text)
+            extraction_text = re.sub(r'\s*```$', '', extraction_text)
+            
+            # Find JSON object in the text
+            start_idx = extraction_text.find('{')
+            end_idx = extraction_text.rfind('}')
+            
+            if start_idx >= 0 and end_idx >= 0 and start_idx < end_idx:
+                extraction_text = extraction_text[start_idx:end_idx+1]
+                
+                # Parse the JSON
+                workflow_json = json.loads(extraction_text)
+                
+                # Make sure the workflow has a proper name
+                if "name" not in workflow_json or not workflow_json["name"]:
+                    workflow_json["name"] = "Extracted from Screenshot"
+                    
+                # Create a directory name for the workflow
+                base_path = os.path.join(os.path.dirname(__file__), 'automation')
+                
+                # Ensure automation directory exists
+                os.makedirs(base_path, exist_ok=True)
+                
+                # Generate a unique ID for this extraction
+                existing_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
+                highest_num = 0
+                for dir_name in existing_dirs:
+                    match = re.match(r'^(\d+)', dir_name)
+                    if match:
+                        num = int(match.group(1))
+                        highest_num = max(highest_num, num)
+                
+                new_num = highest_num + 1
+                dir_name = f"{new_num}-extracted-workflow-{uuid.uuid4().hex[:8]}"
+                
+                # Generate an informative README
+                workflow_name = workflow_json.get('name', 'Extracted Workflow')
+                readme_content = f"# {workflow_name}\n\n"
+                readme_content += f"Categories: AI, Extracted\n\n"
+                readme_content += f"This workflow was extracted from a screenshot using AI recognition.\n\n"
+                
+                # Count nodes by type
+                node_types = {}
+                for node in workflow_json.get('nodes', []):
+                    node_type = node.get('type', '').replace('n8n-nodes-base.', '')
+                    if node_type not in node_types:
+                        node_types[node_type] = []
+                    node_types[node_type].append(node.get('name', node_type))
+                
+                if node_types:
+                    readme_content += "## Technical Details\n\n"
+                    readme_content += "This workflow uses the following node types:\n\n"
+                    for node_type, nodes in node_types.items():
+                        node_names = ", ".join(nodes)
+                        readme_content += f"- {node_type}: {node_names}\n"
+                    readme_content += "\n"
+                
+                # Add import instructions
+                readme_content += "## Usage\n\n"
+                readme_content += "1. Download the workflow JSON file\n"
+                readme_content += "2. Import it into your n8n instance\n"
+                readme_content += "3. Review and adjust the workflow as needed\n"
+                readme_content += "4. Activate and test the workflow\n\n"
+                
+                # Add a note about extraction
+                readme_content += "## Note\n\n"
+                readme_content += "This workflow was automatically extracted from a screenshot. Some configuration details might need manual adjustment.\n"
+                
+                # Save the files
+                folder_path = os.path.join(base_path, dir_name)
+                os.makedirs(folder_path, exist_ok=True)
+                
+                # Save workflow.json
+                workflow_path = os.path.join(folder_path, 'workflow.json')
+                with open(workflow_path, 'w') as f:
+                    json.dump(workflow_json, f, indent=2)
+                
+                # Save README.md
+                readme_path = os.path.join(folder_path, 'README.md')
+                with open(readme_path, 'w') as f:
+                    f.write(readme_content)
+                
+                # Save meta.json
+                meta_path = os.path.join(folder_path, 'meta.json')
+                meta_data = {
+                    "categories": ["AI", "Extracted"],
+                    "generated": False,
+                    "extracted": True,
+                    "extraction_date": datetime.datetime.now().isoformat(),
+                    "summary": "Workflow extracted from screenshot",
+                    "published": False
+                }
+                
+                with open(meta_path, 'w') as f:
+                    json.dump(meta_data, f, indent=2)
+                
+                return jsonify({
+                    "success": True,
+                    "message": "Workflow successfully extracted from image",
+                    "workflow": workflow_json,
+                    "path": dir_name,
+                    "readme": readme_content
+                })
+            else:
+                return jsonify({
+                    "success": False,
+                    "error": "Could not extract valid workflow JSON from the image",
+                    "error_type": "extraction_failed"
+                }), 400
+        except json.JSONDecodeError as e:
+            return jsonify({
+                "success": False,
+                "error": f"Invalid JSON format: {str(e)}",
+                "error_type": "invalid_json"
+            }), 400
+        except Exception as e:
+            return jsonify({
+                "success": False,
+                "error": f"Error processing workflow: {str(e)}",
+                "error_type": "processing_error"
+            }), 500
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Error processing image: {str(e)}",
+            "error_type": "general_error"
         }), 500
 
 # TODO: Add download route, meme animation, and user upload logic
