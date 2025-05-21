@@ -4,6 +4,7 @@ import re
 import google.generativeai as genai
 from dotenv import load_dotenv
 import traceback
+import html
 
 load_dotenv()
 
@@ -35,6 +36,7 @@ Requirements:
 - Always include a manual trigger node as entry point
 - Ensure all required fields are present
 - Set the "name" field to a concise, descriptive title based on the automation's purpose
+- DO NOT include any HTML tags or characters that could be interpreted as markup
 
 Example structure:
 {{
@@ -66,6 +68,7 @@ Create a concise, descriptive name for an n8n workflow based on the following de
 Goal: {goal}
 
 The name should be brief (3-6 words), professional, and clearly indicate the workflow's purpose.
+Do not include any HTML tags, XML elements, or special characters.
 Respond with ONLY the name text - no quotes, no additional explanations, comments, or formatting.
 """
 
@@ -129,6 +132,10 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
                 # Strip whitespace, quotes, and newlines
                 name = name.strip().strip('"\'').strip()
                 name = re.sub(r'[\n\r\t]+', ' ', name)
+                # Escape any HTML-like content
+                name = html.escape(name)
+                # Remove any HTML tags that might have survived
+                name = re.sub(r'<[^>]*>', '', name)
                 # Remove any non-alphanumeric characters that might cause issues
                 name = re.sub(r'[^\w\s\-:]', '', name)
                 # Limit length
@@ -211,6 +218,12 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
                 # Remove any markdown code blocks
                 workflow_json_text = re.sub(r'^```(?:json)?\s*', '', workflow_json_text)
                 workflow_json_text = re.sub(r'\s*```$', '', workflow_json_text)
+                
+                # Sanitize any HTML-like content
+                workflow_json_text = html.escape(workflow_json_text)
+                workflow_json_text = re.sub(r'&quot;', '"', workflow_json_text)  # Restore JSON quotes
+                workflow_json_text = re.sub(r'&lt;', '<', workflow_json_text)   # Restore < for any comparison operators
+                workflow_json_text = re.sub(r'&gt;', '>', workflow_json_text)   # Restore > for any comparison operators
                 
                 # Find JSON object in the text
                 start_idx = workflow_json_text.find('{')
@@ -295,6 +308,13 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
         if name is None:
             name = f"Workflow for: {goal[:50]}"
             
+        # Ensure name doesn't contain HTML tags
+        name = html.escape(name)
+        name = re.sub(r'<[^>]*>', '', name)
+        
+        # Sanitize the goal text as well
+        safe_goal = html.escape(goal)
+            
         return {
             "name": name,
             "nodes": [
@@ -309,7 +329,7 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
                     "parameters": {
                         "mode": "manually",
                         "text": {
-                            "value": f"# {name}\n\nThis is a starter workflow for: {goal}\n\nPlease customize it according to your needs."
+                            "value": f"# {name}\n\nThis is a starter workflow for: {safe_goal}\n\nPlease customize it according to your needs."
                         }
                     },
                     "id": "2",
@@ -352,6 +372,9 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
         if not steps:
             steps = [goal]
             
+        # Sanitize all steps
+        steps = [html.escape(step) for step in steps]
+            
         return steps
             
     def save_workflow(self, workflow, folder_name):
@@ -384,6 +407,10 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
             goal = folder_name.split('-', 1)[1] if '-' in folder_name else folder_name
             goal = goal.replace('-', ' ').title()
         
+        # Sanitize all text content
+        workflow_name = html.escape(workflow_name)
+        goal = html.escape(goal)
+        
         readme_content = f"# {workflow_name}\n\n"
         readme_content += f"Categories: AI, Engineering\n\n"
         readme_content += f"This workflow automates the following task: {goal}\n\n"
@@ -391,6 +418,7 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
         # Extract workflow description from workflow if available
         workflow_description = workflow.get('description', '')
         if workflow_description:
+            workflow_description = html.escape(workflow_description)
             readme_content += f"{workflow_description}\n\n"
         
         # Add an example section
@@ -416,7 +444,9 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
             readme_content += "## Technical Details\n\n"
             readme_content += "This workflow uses the following node types:\n\n"
             for node_type, nodes in node_types.items():
-                node_names = ", ".join(nodes)
+                # Sanitize node info
+                node_type = html.escape(node_type)
+                node_names = ", ".join([html.escape(name) for name in nodes])
                 readme_content += f"- {node_type}: {node_names}\n"
             readme_content += "\n"
         

@@ -184,6 +184,37 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentWorkflow = null;
     let screenshotFile = null;
     
+    // Helper function to safely display JSON
+    function safeDisplayJson(jsonObj) {
+        try {
+            // First convert to a formatted string
+            const jsonString = JSON.stringify(jsonObj, null, 2);
+            
+            // Escape any HTML in the text
+            const escapedString = jsonString
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+                
+            return escapedString;
+        } catch (error) {
+            console.error("Error formatting JSON:", error);
+            return "Error formatting workflow JSON";
+        }
+    }
+    
+    // Helper function to safely set HTML content
+    function safeSetHTML(element, htmlContent) {
+        try {
+            element.innerHTML = htmlContent;
+        } catch (error) {
+            console.error("Error setting HTML:", error);
+            element.textContent = "An error occurred displaying this content";
+        }
+    }
+    
     // Handle screenshot file selection
     workflowScreenshot.addEventListener('change', function(e) {
         if (this.files && this.files[0]) {
@@ -322,13 +353,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Show result
                 if (data.warning) {
-                    resultMessage.innerHTML = `<div class="text-yellow-300 mb-2">${data.message || 'Workflow extracted with warnings.'}</div>` +
-                                           `<div class="text-yellow-300 mb-2">Warning: ${data.warning}</div>`;
+                    safeSetHTML(resultMessage, `<div class="text-yellow-300 mb-2">${data.message || 'Workflow extracted with warnings.'}</div>` +
+                                           `<div class="text-yellow-300 mb-2">Warning: ${data.warning}</div>`);
                 } else {
-                    resultMessage.innerHTML = `<div class="text-green-300">${data.message || 'Workflow successfully extracted from image!'}</div>`;
+                    safeSetHTML(resultMessage, `<div class="text-green-300">${data.message || 'Workflow successfully extracted from image!'}</div>`);
                 }
                 
-                jsonResult.textContent = JSON.stringify(data.workflow, null, 2);
+                // Safely display the JSON
+                jsonResult.textContent = safeDisplayJson(data.workflow);
                 
                 // Set up download link
                 downloadLink.href = `/download_workflow/${data.path}`;
@@ -366,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultSection.classList.remove('hidden');
             } else {
                 // Show error
-                resultMessage.innerHTML = `<div class="text-red-400">${data.error || 'Failed to extract workflow from the image.'}</div>`;
+                safeSetHTML(resultMessage, `<div class="text-red-400">${data.error || 'Failed to extract workflow from the image.'}</div>`);
                 resultSection.classList.remove('hidden');
                 
                 if (data.error_type === 'not_workflow') {
@@ -375,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Error:', error);
-            resultMessage.innerHTML = `<div class="text-red-400">An unexpected error occurred: ${error.message}</div>`;
+            safeSetHTML(resultMessage, `<div class="text-red-400">An unexpected error occurred: ${error.message}</div>`);
             resultSection.classList.remove('hidden');
         } finally {
             // Reset button state
@@ -489,27 +521,40 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Format README markdown as HTML
     function formatReadme(markdown) {
-        // Very simple markdown to HTML converter
-        const formatted = markdown
-            // Headers
-            .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold text-pink-300 my-4">$1</h1>')
-            .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold text-pink-200 my-3">$1</h2>')
-            .replace(/^### (.+)$/gm, '<h3 class="text-xl font-bold text-pink-100 my-2">$1</h3>')
-            // Lists
-            .replace(/^- (.+)$/gm, '<li class="text-white ml-6 my-1">$1</li>')
-            .replace(/^(\d+)\. (.+)$/gm, '<li class="text-white ml-6 my-1">$2</li>')
-            // Convert consecutive list items to lists
-            .replace(/(<li[^>]*>.*<\/li>\n)+/g, '<ul class="list-disc my-4">$&</ul>')
-            // Paragraphs
-            .replace(/^(?!<[uh]).+$/gm, '<p class="text-white my-2">$&</p>')
-            // Fix blank lines in paragraphs
-            .replace(/<\/p>\n<p>/g, '<br>')
-            // Fix list wrapping
-            .replace(/<ul class="list-disc my-4">(<li[^>]*>.*<\/li>\n)+/g, match => {
-                return match.replace(/\n(?!<\/ul>)/g, '');
-            });
+        try {
+            // Escape markdown text first to prevent any HTML injection
+            const safeMarkdown = markdown
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+            
+            // Very simple markdown to HTML converter - operating on the escaped text
+            const formatted = safeMarkdown
+                // Headers
+                .replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold text-pink-300 my-4">$1</h1>')
+                .replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold text-pink-200 my-3">$1</h2>')
+                .replace(/^### (.+)$/gm, '<h3 class="text-xl font-bold text-pink-100 my-2">$1</h3>')
+                // Lists
+                .replace(/^- (.+)$/gm, '<li class="text-white ml-6 my-1">$1</li>')
+                .replace(/^(\d+)\. (.+)$/gm, '<li class="text-white ml-6 my-1">$2</li>')
+                // Convert consecutive list items to lists
+                .replace(/(<li[^>]*>.*<\/li>\n)+/g, '<ul class="list-disc my-4">$&</ul>')
+                // Paragraphs
+                .replace(/^(?!<[uh]).+$/gm, '<p class="text-white my-2">$&</p>')
+                // Fix blank lines in paragraphs
+                .replace(/<\/p>\n<p>/g, '<br>')
+                // Fix list wrapping
+                .replace(/<ul class="list-disc my-4">(<li[^>]*>.*<\/li>\n)+/g, match => {
+                    return match.replace(/\n(?!<\/ul>)/g, '');
+                });
 
-        return formatted;
+            return formatted;
+        } catch (error) {
+            console.error("Error formatting README:", error);
+            return "<p class='text-red-400'>Error displaying README content</p>";
+        }
     }
     
     // Fetch README from server
@@ -519,7 +564,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     currentReadmeHtml = data.readme;
-                    readmeContent.innerHTML = formatReadme(data.readme);
+                    safeSetHTML(readmeContent, formatReadme(data.readme));
                     readmeModal.classList.remove('hidden');
                 } else {
                     alert('Could not load workflow details: ' + (data.error || 'Unknown error'));
@@ -581,13 +626,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Show result
                 if (data.warning) {
-                    resultMessage.innerHTML = `<div class="text-yellow-300 mb-2">${data.message || 'Workflow generated with a fallback template.'}</div>` +
-                                           `<div class="text-yellow-300 mb-2">Warning: ${data.warning}</div>`;
+                    safeSetHTML(resultMessage, `<div class="text-yellow-300 mb-2">${data.message || 'Workflow generated with a fallback template.'}</div>` +
+                                           `<div class="text-yellow-300 mb-2">Warning: ${data.warning}</div>`);
                 } else {
-                    resultMessage.innerHTML = `<div class="text-green-300">${data.message || 'Workflow generated successfully!'}</div>`;
+                    safeSetHTML(resultMessage, `<div class="text-green-300">${data.message || 'Workflow generated successfully!'}</div>`);
                 }
                 
-                jsonResult.textContent = JSON.stringify(data.workflow, null, 2);
+                // Safely display the JSON
+                jsonResult.textContent = safeDisplayJson(data.workflow);
                 
                 // Set up download link
                 downloadLink.href = `/download_workflow/${data.path}`;
@@ -609,7 +655,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultSection.classList.remove('hidden');
             } else {
                 // Show error
-                resultMessage.innerHTML = `<div class="text-red-400">${data.error || 'An error occurred'}</div>`;
+                safeSetHTML(resultMessage, `<div class="text-red-400">${data.error || 'An error occurred'}</div>`);
                 if (data.raw_text) {
                     jsonResult.textContent = data.raw_text;
                 }
@@ -617,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Error:', error);
-            resultMessage.innerHTML = `<div class="text-red-400">An unexpected error occurred: ${error.message}</div>`;
+            safeSetHTML(resultMessage, `<div class="text-red-400">An unexpected error occurred: ${error.message}</div>`);
             resultSection.classList.remove('hidden');
         } finally {
             // Reset button state
