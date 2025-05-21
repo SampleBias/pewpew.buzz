@@ -354,7 +354,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: formData
             });
             
-            const data = await response.json();
+            // Check if the response is valid JSON
+            const contentType = response.headers.get('content-type');
+            let data;
+            
+            if (!contentType || !contentType.includes('application/json')) {
+                // Not JSON, handle as text
+                const textData = await response.text();
+                console.error("Server returned non-JSON response:", textData);
+                
+                // Show error with raw text content
+                safeSetHTML(resultMessage, `<div class="text-red-400">Server returned non-JSON response</div>`);
+                jsonResult.textContent = textData;
+                jsonError.classList.remove('hidden');
+                resultSection.classList.remove('hidden');
+                
+                // Reset button state
+                extractWorkflowBtn.disabled = false;
+                extractSpinner.classList.add('hidden');
+                return;
+            }
+            
+            // Parse as JSON
+            data = await response.json();
             
             if (data.success) {
                 // Store the workflow data
@@ -648,7 +670,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 }),
             });
             
-            const data = await response.json();
+            // Check if the response is valid JSON
+            const contentType = response.headers.get('content-type');
+            let data;
+            
+            if (!contentType || !contentType.includes('application/json')) {
+                // Not JSON, handle as text
+                const textData = await response.text();
+                console.error("Server returned non-JSON response:", textData);
+                
+                // Show error with raw text content
+                safeSetHTML(resultMessage, `<div class="text-red-400">Server returned non-JSON response</div>`);
+                jsonResult.textContent = textData;
+                jsonError.classList.remove('hidden');
+                resultSection.classList.remove('hidden');
+                
+                // Reset button state
+                generateBtn.disabled = false;
+                spinner.classList.add('hidden');
+                return;
+            }
+            
+            // Parse as JSON
+            data = await response.json();
             
             if (data.success) {
                 // Store the workflow data

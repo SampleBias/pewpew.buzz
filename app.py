@@ -589,53 +589,75 @@ def generate_workflow():
             new_num = highest_num + 1
             dir_name = f"{new_num}-{goal[:30].lower().replace(' ', '-').replace('/', '-')}"
             
-            # Save the workflow
-            workflow_path = workflow_builder.save_workflow(result["workflow"], dir_name)
-            
-            # Generate README content
-            readme_content = workflow_builder.generate_readme(result["workflow"], goal, dir_name)
-            
-            # Create a meta.json file that indicates whether the workflow is published
-            meta_path = os.path.join(base_path, dir_name, 'meta.json')
-            meta_data = {
-                "categories": ["AI", "Engineering"],  # Default categories
-                "generated": True,
-                "summary": f"Automated workflow for: {goal[:100]}",
-                "published": publish_to_gallery,  # Only set to true if explicitly published
-                "published_date": datetime.datetime.now().isoformat() if publish_to_gallery else None,
-                "published_by": session.get('user', {}).get('email', 'anonymous') if publish_to_gallery else None
-            }
-            
-            with open(meta_path, 'w') as f:
-                json.dump(meta_data, f, indent=2)
-            
-            response_data = {
-                "success": True, 
-                "message": "Workflow generated successfully", 
-                "workflow": result["workflow"],
-                "path": dir_name,
-                "readme": readme_content
-            }
-            
-            # Add warning if present in the result
-            if "warning" in result:
-                response_data["warning"] = result["warning"]
-            
-            # Sync the workflow to the database
-            sync_workflow_immediately(dir_name)
-            
-            return jsonify(response_data)
-        except json.JSONDecodeError as e:
-            print(f"JSON error with workflow: {str(e)}")
-            return jsonify({
-                "success": False, 
-                "error": f"Invalid JSON format in workflow: {str(e)}"
-            }), 500
+            try:
+                # Save the workflow with proper JSON handling
+                workflow_path = workflow_builder.save_workflow(result["workflow"], dir_name)
+                
+                # Generate README content
+                readme_content = workflow_builder.generate_readme(result["workflow"], goal, dir_name)
+                
+                # Create a meta.json file that indicates whether the workflow is published
+                meta_path = os.path.join(base_path, dir_name, 'meta.json')
+                meta_data = {
+                    "categories": ["AI", "Engineering"],  # Default categories
+                    "generated": True,
+                    "summary": f"Automated workflow for: {goal[:100]}",
+                    "published": publish_to_gallery,
+                    "published_date": datetime.datetime.now().isoformat() if publish_to_gallery else None,
+                    "published_by": session.get('user', {}).get('email', 'anonymous') if publish_to_gallery else None
+                }
+                
+                with open(meta_path, 'w') as f:
+                    json.dump(meta_data, f, indent=2)
+                
+                # Make sure we're handling potential HTML content in the response
+                # Check if the workflow JSON contains any potential HTML by looking for '<' character
+                workflow_json_str = json.dumps(result["workflow"])
+                if '<' in workflow_json_str:
+                    print("Warning: Potential HTML content found in workflow JSON, sanitizing")
+                    # Additional sanitization for HTML content
+                    # This is already handled in workflow_builder.py, but just to be sure
+                    workflow_json_str = workflow_json_str.replace('<', '&lt;').replace('>', '&gt;')
+                    # Parse it back into a Python object
+                    try:
+                        sanitized_workflow = json.loads(workflow_json_str)
+                        result["workflow"] = sanitized_workflow
+                    except json.JSONDecodeError:
+                        print("Warning: Couldn't parse sanitized JSON, returning original")
+                
+                response_data = {
+                    "success": True, 
+                    "message": "Workflow generated successfully", 
+                    "workflow": result["workflow"],
+                    "path": dir_name,
+                    "readme": readme_content
+                }
+                
+                # Add warning if present in the result
+                if "warning" in result:
+                    response_data["warning"] = result["warning"]
+                
+                # Sync the workflow to the database
+                sync_workflow_immediately(dir_name)
+                
+                return jsonify(response_data)
+            except json.JSONDecodeError as e:
+                print(f"JSON error with workflow: {str(e)}")
+                return jsonify({
+                    "success": False, 
+                    "error": f"Invalid JSON format in workflow: {str(e)}"
+                }), 500
+            except Exception as e:
+                print(f"Error saving workflow: {str(e)}")
+                return jsonify({
+                    "success": False, 
+                    "error": f"Error saving workflow: {str(e)}"
+                }), 500
         except Exception as e:
-            print(f"Error saving workflow: {str(e)}")
+            print(f"Directory error: {str(e)}")
             return jsonify({
                 "success": False, 
-                "error": f"Error saving workflow: {str(e)}"
+                "error": f"Error creating workflow directory: {str(e)}"
             }), 500
     except Exception as e:
         print(f"Error generating workflow: {str(e)}")
