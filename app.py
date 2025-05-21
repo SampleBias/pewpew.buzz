@@ -29,6 +29,11 @@ GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 # Create automation directory if it doesn't exist
 automation_dir = os.path.join(os.path.dirname(__file__), 'automation')
 os.makedirs(automation_dir, exist_ok=True)
+print(f"Automation directory path: {automation_dir}")
+if os.path.exists(automation_dir):
+    print(f"Automation directory exists and contains {len(os.listdir(automation_dir))} items")
+else:
+    print("Warning: Automation directory does not exist!")
 
 # Authentication decorator
 def requires_auth(f):
@@ -155,7 +160,14 @@ def dashboard():
         # Continue without ratings rather than failing completely
     
     # Get all folders and try to sort them numerically if possible
-    folders = os.listdir(base_path)
+    print(f"Looking in filesystem path: {base_path}")
+    try:
+        folders = os.listdir(base_path)
+        print(f"Found {len(folders)} folders in automation directory")
+    except Exception as e:
+        print(f"Error accessing automation directory: {str(e)}")
+        folders = []
+    
     filesystem_automations = []
     max_folder_id = 0
     
@@ -173,75 +185,123 @@ def dashboard():
             folder_num = extract_numeric(folder)
             if folder_num != float('inf') and folder_num > max_folder_id:
                 max_folder_id = folder_num
-    except (ValueError, TypeError):
+    except (ValueError, TypeError) as e:
+        print(f"Error sorting folders: {str(e)}")
         # Fall back to normal sorting if conversion fails
         folders = sorted(folders)
         
+    # Process each folder to extract workflow information
     for folder in folders:
         folder_path = os.path.join(base_path, folder)
-        if os.path.isdir(folder_path):
+        
+        if not os.path.isdir(folder_path):
+            continue
+            
+        try:
             readme_path = os.path.join(folder_path, 'README.md')
             meta_path = os.path.join(folder_path, 'meta.json')
             workflow_path = os.path.join(folder_path, 'workflow.json')
+            
+            # Skip if essential files are missing
+            if not os.path.exists(workflow_path):
+                print(f"Skipping {folder}: Missing workflow.json")
+                continue
+                
             categories = []
-            # 1. Try meta.json
+            author = 'James Utley PhD'  # Default author
+            
+            # 1. Try meta.json for categories and author
             if os.path.exists(meta_path):
-                with open(meta_path, 'r') as mf:
-                    meta = json.load(mf)
-                    categories = meta.get('categories', [])
-                    author = meta.get('author', 'James Utley PhD')  # Use author from meta if available
-            # 2. Try README.md 'Categories:' line
-            elif os.path.exists(readme_path):
-                with open(readme_path, 'r') as f:
-                    lines = f.readlines()
-                    for line in lines:
-                        if line.lower().startswith('categories:'):
-                            categories = [c.strip() for c in line.split(':', 1)[1].split(',')]
-                            break
+                try:
+                    with open(meta_path, 'r') as mf:
+                        meta = json.load(mf)
+                        categories = meta.get('categories', [])
+                        author = meta.get('author', author)
+                except Exception as e:
+                    print(f"Error reading meta.json for {folder}: {str(e)}")
+            
+            # 2. Try README.md 'Categories:' line if no categories yet
+            if not categories and os.path.exists(readme_path):
+                try:
+                    with open(readme_path, 'r') as f:
+                        lines = f.readlines()
+                        for line in lines:
+                            if line.lower().startswith('categories:'):
+                                categories = [c.strip() for c in line.split(':', 1)[1].split(',')]
+                                break
+                except Exception as e:
+                    print(f"Error reading README.md for categories in {folder}: {str(e)}")
+            
             # 3. If still no category, try to infer from README content
             if not categories and os.path.exists(readme_path):
-                with open(readme_path, 'r') as f:
-                    readme_content = f.read().lower()
-                    found = False
-                    for cat in COMMON_CATEGORIES:
-                        if cat.lower() in readme_content:
-                            categories = [cat]
-                            found = True
-                            break
-                    if not found:
-                        categories = [DEFAULT_CATEGORY]
+                try:
+                    with open(readme_path, 'r') as f:
+                        readme_content = f.read().lower()
+                        found = False
+                        for cat in COMMON_CATEGORIES:
+                            if cat.lower() in readme_content:
+                                categories = [cat]
+                                found = True
+                                break
+                        if not found:
+                            categories = [DEFAULT_CATEGORY]
+                except Exception as e:
+                    print(f"Error inferring categories from README.md in {folder}: {str(e)}")
+                    categories = [DEFAULT_CATEGORY]
             elif not categories:
                 categories = [DEFAULT_CATEGORY]
             
-            if os.path.exists(readme_path) and os.path.exists(workflow_path):
-                with open(readme_path, 'r') as f:
-                    lines = f.readlines()
-                    title = lines[0].replace('#', '').strip() if lines else folder
-                    description = next((l.strip() for l in lines[1:] if l.strip() and not l.startswith('#')), '')
-                download_url = f'/download_workflow/{folder}'
-                readme_url = f'/readme/{folder}'
+            # Extract title and description from README if it exists
+            title = folder
+            description = ""
+            if os.path.exists(readme_path):
+                try:
+                    with open(readme_path, 'r') as f:
+                        lines = f.readlines()
+                        if lines:
+                            # First line is typically the title (with # prefix)
+                            title = lines[0].replace('#', '').strip() if lines else folder
+                            # Next non-empty, non-header line is the description
+                            description = next((l.strip() for l in lines[1:] if l.strip() and not l.startswith('#')), '')
+                except Exception as e:
+                    print(f"Error reading README.md for title/description in {folder}: {str(e)}")
+                    # Fallback to folder name based title
+                    if '-' in folder:
+                        title_part = folder.split('-', 1)[1]
+                        title = title_part.replace('-', ' ').title()
+            
+            # Create download and readme URLs
+            download_url = f'/download_workflow/{folder}'
+            readme_url = f'/readme/{folder}'
+            
+            # Get ratings data for this workflow, defaults to 0 if not rated
+            rating = ratings_data.get(folder, {'upvotes': 0, 'downvotes': 0})
+            
+            # Create the automation entry
+            automation = {
+                'id': folder,
+                'title': title,
+                'description': description,
+                'download_url': download_url,
+                'readme_url': readme_url,
+                'author': author,
+                'categories': categories,
+                'upvotes': rating['upvotes'] or 0,  # Ensure we have 0 instead of None
+                'downvotes': rating['downvotes'] or 0  # Ensure we have 0 instead of None
+            }
+            
+            # Store the workflow in our list
+            filesystem_automations.append(automation)
+            
+            # Update category counts for sidebar
+            for cat in categories:
+                categories_count[cat] = categories_count.get(cat, 0) + 1
                 
-                # Get ratings data for this workflow, defaults to 0 if not rated
-                rating = ratings_data.get(folder, {'upvotes': 0, 'downvotes': 0})
-                
-                automation = {
-                    'id': folder,
-                    'title': title,
-                    'description': description,
-                    'download_url': download_url,
-                    'readme_url': readme_url,
-                    'author': meta.get('author', 'James Utley PhD') if os.path.exists(meta_path) else 'James Utley PhD',
-                    'categories': categories,
-                    'upvotes': rating['upvotes'] or 0,  # Ensure we have 0 instead of None
-                    'downvotes': rating['downvotes'] or 0  # Ensure we have 0 instead of None
-                }
-                
-                # Store the workflow in our temporary list
-                filesystem_automations.append(automation)
-                
-                # Update category counts
-                for cat in categories:
-                    categories_count[cat] = categories_count.get(cat, 0) + 1
+        except Exception as e:
+            print(f"Error processing folder {folder}: {str(e)}")
+            continue
+    
+    print(f"Loaded {len(filesystem_automations)} workflows from filesystem")
     
     # Now try to fetch additional (newer) entries from the database
     try:
@@ -256,13 +316,12 @@ def dashboard():
             # Try to get workflow IDs that are greater than our max filesystem ID
             workflows_query = workflows_query.gte('id', str(max_folder_id + 1))
             
-        # Apply category filter if specified - we'll do this in memory after fetching
-        # to avoid extra database calls
-        
         # Execute the query
         workflows_response = workflows_query.execute()
         
         if workflows_response.data:
+            print(f"Found {len(workflows_response.data)} additional workflows in database")
+            
             # Get all categories for newer workflows
             workflow_ids = [workflow['id'] for workflow in workflows_response.data]
             wf_categories_query = supabase.table('workflow_categories') \
@@ -285,16 +344,12 @@ def dashboard():
             for workflow in workflows_response.data:
                 slug = workflow['slug']
                 
+                # Skip if we already have this workflow from filesystem
+                if any(a['id'] == slug for a in filesystem_automations):
+                    continue
+                
                 # Get categories for this workflow
                 categories = workflow_categories.get(workflow['id'], [DEFAULT_CATEGORY])
-                
-                # Apply category filter if specified
-                if selected_category and selected_category not in categories:
-                    continue
-                
-                # Filter by search query if specified
-                if search_query and search_query not in workflow['title'].lower() and search_query not in workflow['description'].lower():
-                    continue
                 
                 # Get ratings data for this workflow
                 rating = ratings_data.get(slug, {'upvotes': 0, 'downvotes': 0})
@@ -317,7 +372,7 @@ def dashboard():
         print(f"Error loading additional workflows from database: {str(e)}")
         # Continue with just filesystem automations
     
-    # Apply filtering to filesystem automations
+    # Apply filtering to automations
     automations = []
     for automation in filesystem_automations:
         # Apply category filter if specified
@@ -329,6 +384,8 @@ def dashboard():
             continue
             
         automations.append(automation)
+    
+    print(f"Final count after filtering: {len(automations)} workflows")
     
     # Sort workflows by the numeric part of the slug (to maintain the same order as before)
     def extract_numeric(automation):
@@ -354,8 +411,18 @@ def dashboard():
 
 @app.route('/download_workflow/<workflow_folder>')
 def download_workflow(workflow_folder):
+    # Always try filesystem first for better performance
+    base_path = os.path.join(os.path.dirname(__file__), 'automation')
+    workflow_path = os.path.join(base_path, workflow_folder, 'workflow.json')
+    
+    if os.path.exists(workflow_path):
+        print(f"Serving workflow from filesystem: {workflow_folder}")
+        return send_file(workflow_path, as_attachment=True, download_name=f"{workflow_folder}.json")
+        
+    # Fallback to database if not found in filesystem
     try:
-        # Try to get workflow from database first
+        print(f"Workflow not found in filesystem, checking database: {workflow_folder}")
+        # Try to get workflow from database
         workflow_response = supabase.table('workflows') \
             .select('json_content') \
             .eq('slug', workflow_folder) \
@@ -384,16 +451,13 @@ def download_workflow(workflow_folder):
                 as_attachment=True,
                 download_name=f"{workflow_folder}.json"
             )
+            
+        # If we get here, the workflow was not found in either location
+        print(f"Workflow not found in database either: {workflow_folder}")
+        return 'Workflow not found', 404
     except Exception as e:
         print(f"Error fetching workflow from database: {str(e)}")
-        # Fall back to file system if database fails
-        
-    # Fallback to file system
-    base_path = os.path.join(os.path.dirname(__file__), 'automation')
-    workflow_path = os.path.join(base_path, workflow_folder, 'workflow.json')
-    if os.path.exists(workflow_path):
-        return send_file(workflow_path, as_attachment=True, download_name=f"{workflow_folder}.json")
-    return 'Workflow not found', 404
+        return 'Error retrieving workflow', 500
 
 @app.route('/add', methods=['GET', 'POST'])
 @requires_auth
@@ -439,8 +503,24 @@ def logout():
 
 @app.route('/readme/<workflow_folder>')
 def readme(workflow_folder):
+    # Always try filesystem first for better performance
+    base_path = os.path.join(os.path.dirname(__file__), 'automation')
+    readme_path = os.path.join(base_path, workflow_folder, 'README.md')
+    
+    if os.path.exists(readme_path):
+        print(f"Serving README from filesystem: {workflow_folder}")
+        try:
+            with open(readme_path, 'r') as f:
+                content = f.read()
+            return content, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+        except Exception as e:
+            print(f"Error reading README file: {str(e)}")
+    
+    # Fallback to database if not found in filesystem
     try:
-        # Try to get readme from database first
+        print(f"README not found in filesystem, checking database: {workflow_folder}")
+        
+        # Try to get readme from database
         readme_response = supabase.table('workflows') \
             .select('readme_content, title') \
             .eq('slug', workflow_folder) \
@@ -462,18 +542,13 @@ def readme(workflow_folder):
                 
             # Return content as markdown
             return readme_content, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+            
+        # If we get here, the README was not found in either location
+        print(f"README not found in database either: {workflow_folder}")
+        return 'README not found', 404
     except Exception as e:
-        print(f"Error fetching readme from database: {str(e)}")
-        # Fall back to file system if database fails
-        
-    # Fallback to file system
-    base_path = os.path.join(os.path.dirname(__file__), 'automation')
-    readme_path = os.path.join(base_path, workflow_folder, 'README.md')
-    if os.path.exists(readme_path):
-        with open(readme_path, 'r') as f:
-            content = f.read()
-        return content, 200, {'Content-Type': 'text/plain; charset=utf-8'}
-    return 'README not found', 404
+        print(f"Error fetching README from database: {str(e)}")
+        return 'Error retrieving README', 500
 
 @app.route('/builder', methods=['GET'])
 @requires_auth
