@@ -1401,14 +1401,58 @@ def admin_panel():
     
     # If already authenticated or after successful authentication
     if session.get('admin_authenticated'):
-        # Get all automations
+        # Get all automations from both database and filesystem
         automations = []
+        automations_ids = set()  # To track unique IDs
+        
+        # STEP 1: Fetch from database first (this ensures we get ALL workflows)
+        try:
+            workflows_response = supabase.table('workflows').select(
+                'id, slug, title, description, author_name, is_generated, is_submitted, is_extracted, published_date, published'
+            ).execute()
+            
+            if workflows_response.data:
+                # Get all categories in one query for better performance
+                all_categories = {}
+                categories_response = supabase.table('workflow_categories').select('workflow_id, category').execute()
+                if categories_response.data:
+                    for cat_entry in categories_response.data:
+                        wf_id = cat_entry['workflow_id']
+                        category = cat_entry['category']
+                        if wf_id not in all_categories:
+                            all_categories[wf_id] = []
+                        all_categories[wf_id].append(category)
+                
+                # Process workflows from the database
+                for workflow in workflows_response.data:
+                    workflow_id = workflow['slug']
+                    automations_ids.add(workflow_id)
+                    
+                    automation = {
+                        'id': workflow_id,
+                        'title': workflow['title'],
+                        'description': workflow['description'],
+                        'author': workflow['author_name'],
+                        'categories': all_categories.get(workflow_id, []),
+                        'from_database': True
+                    }
+                    automations.append(automation)
+                    
+                print(f"Found {len(automations)} workflows in the database")
+        except Exception as e:
+            print(f"Error fetching workflows from database: {str(e)}")
+        
+        # STEP 2: Check filesystem for any workflows not in the database
         base_path = os.path.join(os.path.dirname(__file__), 'automation')
         if os.path.exists(base_path):
             folders = os.listdir(base_path)
             folders.sort()  # Sort folders alphabetically
             
             for folder in folders:
+                # Skip if we already have this from the database
+                if folder in automations_ids:
+                    continue
+                    
                 folder_path = os.path.join(base_path, folder)
                 if os.path.isdir(folder_path):
                     readme_path = os.path.join(folder_path, 'README.md')
@@ -1450,15 +1494,26 @@ def admin_panel():
                         except:
                             pass
                     
+                    # Add to our list
+                    automations_ids.add(folder)
                     automation = {
                         'id': folder,
                         'title': title,
                         'description': description,
                         'author': author,
-                        'categories': categories
+                        'categories': categories,
+                        'from_database': False
                     }
-                    
                     automations.append(automation)
+            
+            print(f"Total workflows after filesystem check: {len(automations)}")
+        
+        # Sort automations by ID (numerically)
+        def extract_numeric(automation):
+            match = re.match(r'^(\d+)', automation['id'])
+            return int(match.group(1)) if match else float('inf')
+            
+        automations.sort(key=extract_numeric)
         
         return render_template('admin.html', automations=automations, authenticated=True)
     
@@ -1474,27 +1529,38 @@ def delete_automation():
     # Path to the automation folder
     automation_path = os.path.join(os.path.dirname(__file__), 'automation', automation_id)
     
-    # Delete from the database if it exists
+    # Delete from the database first
+    db_deleted = False
     try:
         # Delete from workflow_ratings table
-        supabase.table('workflow_ratings').delete().eq('workflow_id', automation_id).execute()
+        ratings_result = supabase.table('workflow_ratings').delete().eq('workflow_id', automation_id).execute()
         
         # Delete from workflow_categories table
-        supabase.table('workflow_categories').delete().eq('workflow_id', automation_id).execute()
+        categories_result = supabase.table('workflow_categories').delete().eq('workflow_id', automation_id).execute()
         
         # Delete from workflows table
-        supabase.table('workflows').delete().eq('slug', automation_id).execute()
+        workflow_result = supabase.table('workflows').delete().eq('slug', automation_id).execute()
         
-        print(f"Deleted automation {automation_id} from database")
+        # Check if we actually deleted anything from the workflows table
+        if workflow_result.data and len(workflow_result.data) > 0:
+            print(f"Successfully deleted automation {automation_id} from database")
+            db_deleted = True
+        else:
+            print(f"No records found in database for automation {automation_id}")
     except Exception as e:
         print(f"Error deleting automation from database: {str(e)}")
     
-    # Delete the folder from the filesystem
+    # Delete the folder from the filesystem if it exists
+    fs_deleted = False
     if os.path.exists(automation_path):
         try:
             shutil.rmtree(automation_path)
             print(f"Deleted automation folder: {automation_path}")
+            fs_deleted = True
         except Exception as e:
             print(f"Error deleting automation folder: {str(e)}")
     
-    return redirect('/admin') 
+    if db_deleted or fs_deleted:
+        return redirect('/admin?status=success&message=Automation+successfully+deleted')
+    else:
+        return redirect('/admin?status=error&message=Failed+to+delete+automation') 
