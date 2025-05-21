@@ -195,17 +195,22 @@ document.addEventListener('DOMContentLoaded', function() {
             jsonError.classList.add('hidden');
             
             // First convert to a formatted string
-            const jsonString = JSON.stringify(jsonObj, null, 2);
+            let jsonString = JSON.stringify(jsonObj, null, 2);
             
-            // Escape any HTML in the text
-            const escapedString = jsonString
+            // Replace HTML entities if present in the JSON object
+            jsonString = jsonString
+                .replace(/&quot;/g, '"')
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>');
+                
+            // Now escape only dangerous HTML characters but preserve JSON syntax
+            const safeString = jsonString
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
+                .replace(/>/g, '&gt;');
                 
-            return escapedString;
+            return safeString;
         } catch (error) {
             console.error("Error formatting JSON:", error);
             // Show the error message
@@ -476,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Apply safeguards to ensure no HTML-related errors
                     // First try using the safe function
                     const safeJsonContent = safeDisplayJson(data.workflow);
-                    jsonResult.textContent = safeJsonContent;
+                    jsonResult.innerHTML = safeJsonContent;
                     // Hide any previous error messages
                     jsonError.classList.add('hidden');
                 } catch (jsonError) {
@@ -922,7 +927,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Apply safeguards to ensure no HTML-related errors
                     // First try using the safe function
                     const safeJsonContent = safeDisplayJson(data.workflow);
-                    jsonResult.textContent = safeJsonContent;
+                    jsonResult.innerHTML = safeJsonContent;
                     // Hide any previous error messages
                     jsonError.classList.add('hidden');
                 } catch (jsonError) {
