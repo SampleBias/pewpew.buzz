@@ -6,6 +6,137 @@
         
         <p class="text-pink-200 mb-2">Describe your automation goal and our AI will generate a production-ready n8n workflow JSON. This workflow can be directly imported into n8n.</p>
         
+        <!-- Common Nodes Reference Section -->
+        <div class="bg-[#1a0025] border-2 border-pink-500 rounded-2xl shadow-xl p-6 mb-4">
+            <button id="toggleNodesBtn" class="flex w-full items-center justify-between text-2xl font-bold text-pink-300 mb-2">
+                <span>Common n8n Nodes Reference</span>
+                <svg id="chevronDown" class="w-6 h-6 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+                <svg id="chevronUp" class="w-6 h-6 text-pink-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                </svg>
+            </button>
+            
+            <div id="nodesReference" class="hidden mt-4">
+                <p class="text-pink-200 mb-4">Reference these common nodes when describing your automation goal or reviewing extracted workflows:</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-white">
+                    <div class="bg-[#2d006e]/50 p-3 rounded-lg">
+                        <h3 class="font-bold text-pink-300 mb-2">AI & LLM Nodes</h3>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>OpenAI</li>
+                            <li>ElevenLabs</li>
+                            <li>ChatGPT (OpenAI) Memory</li>
+                            <li>Basic LLM Chain</li>
+                            <li>Ollama Chat Model</li>
+                            <li>Google Gemini Chat Model</li>
+                            <li>Anthropic Chat Model</li>
+                            <li>Information Extractor</li>
+                            <li>Groq Chat Model</li>
+                            <li>Azure OpenAI Chat Model</li>
+                            <li>Mistral Cloud Chat Model</li>
+                            <li>Hugging Face Inference Model</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-[#2d006e]/50 p-3 rounded-lg">
+                        <h3 class="font-bold text-pink-300 mb-2">Database & Storage</h3>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Pinecone</li>
+                            <li>Supabase</li>
+                            <li>Postgres</li>
+                            <li>MySQL</li>
+                            <li>Supabase Vector Store</li>
+                            <li>Pinecone Vector Store</li>
+                            <li>In-Memory Vector Store</li>
+                            <li>Postgres PGVector Store</li>
+                            <li>Qdrant Vector Store</li>
+                            <li>Vector Store Retriever</li>
+                            <li>Embeddings OpenAI</li>
+                            <li>Embeddings Ollama</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-[#2d006e]/50 p-3 rounded-lg">
+                        <h3 class="font-bold text-pink-300 mb-2">Messaging & Communication</h3>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Telegram</li>
+                            <li>WhatsApp Trigger</li>
+                            <li>WhatsApp Business Cloud</li>
+                            <li>Slack</li>
+                            <li>Discord</li>
+                            <li>Microsoft Teams</li>
+                            <li>Gmail</li>
+                            <li>Gmail Trigger</li>
+                            <li>Microsoft Outlook Trigger</li>
+                            <li>X (Formerly Twitter)</li>
+                            <li>Facebook Graph API</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-[#2d006e]/50 p-3 rounded-lg">
+                        <h3 class="font-bold text-pink-300 mb-2">Google Services</h3>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Google Sheets</li>
+                            <li>Google Drive</li>
+                            <li>Google Sheets Trigger</li>
+                            <li>Google Drive Trigger</li>
+                            <li>Google Calendar</li>
+                            <li>Google Docs</li>
+                            <li>SerpApi (Google Search)</li>
+                            <li>Google Vertex Chat Model</li>
+                            <li>Embeddings Google Gemini</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-[#2d006e]/50 p-3 rounded-lg">
+                        <h3 class="font-bold text-pink-300 mb-2">Utilities & Tools</h3>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>HTTP Request Tool</li>
+                            <li>Call n8n Workflow Tool</li>
+                            <li>Code Tool</li>
+                            <li>Calculator</li>
+                            <li>Default Data Loader</li>
+                            <li>Structured Output Parser</li>
+                            <li>Auto-fixing Output Parser</li>
+                            <li>Item List Output Parser</li>
+                            <li>DebugHelper</li>
+                            <li>Vector Store Tool</li>
+                            <li>Motherboard</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-[#2d006e]/50 p-3 rounded-lg">
+                        <h3 class="font-bold text-pink-300 mb-2">NLP & Text Processing</h3>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Question and Answer Chain</li>
+                            <li>Recursive Character Text Splitter</li>
+                            <li>Character Text Splitter</li>
+                            <li>Text Classifier</li>
+                            <li>Summarization Chain</li>
+                            <li>Sentiment Analysis</li>
+                            <li>Chat Memory Manager</li>
+                            <li>Postgres Chat Memory</li>
+                            <li>Redis Chat Memory</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-[#2d006e]/50 p-3 rounded-lg">
+                        <h3 class="font-bold text-pink-300 mb-2">Productivity & Content</h3>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Airtable</li>
+                            <li>Notion</li>
+                            <li>Microsoft Excel 365</li>
+                            <li>YouTube</li>
+                            <li>Wikipedia</li>
+                            <li>Action Network</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Screenshot Upload Section -->
         <div class="bg-[#1a0025] border-2 border-pink-500 rounded-2xl shadow-xl p-6 mb-2">
             <h2 class="text-2xl font-bold text-pink-300 mb-4">Extract Workflow from Screenshot</h2>

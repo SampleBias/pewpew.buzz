@@ -52,6 +52,99 @@ You are a specialized n8n workflow assistant. Your purpose is to help users crea
    - How to modify the OpenAI prompt for different summary styles
    - How to extend the workflow with additional functionality
 
+# Common n8n Nodes Available
+
+Use these common nodes when building workflows. Prefer these over less common nodes when possible:
+
+## AI & LLM Nodes
+1. OpenAI
+2. ElevenLabs
+3. ChatGPT (OpenAI) Memory (custom)
+4. Basic LLM Chain
+5. Ollama Chat Model
+6. Google Gemini Chat Model
+7. Anthropic Chat Model
+8. Information Extractor
+9. Groq Chat Model
+10. Azure OpenAI Chat Model
+11. Mistral Cloud Chat Model
+12. Hugging Face Inference Model
+
+## Database & Storage
+13. Pinecone
+14. Supabase
+15. Postgres
+16. MySQL
+17. Supabase Vector Store
+18. Pinecone Vector Store
+19. In-Memory Vector Store
+20. Postgres PGVector Store
+21. Qdrant Vector Store
+22. Vector Store Retriever
+23. Embeddings OpenAI
+24. Embeddings Ollama
+
+## Messaging & Communication
+25. Telegram
+26. WhatsApp Trigger
+27. WhatsApp Business Cloud
+28. Slack
+29. Discord
+30. Microsoft Teams
+31. Gmail
+32. Gmail Trigger
+33. Microsoft Outlook Trigger
+34. X (Formerly Twitter)
+35. Facebook Graph API
+
+## Google Services
+36. Google Sheets
+37. Google Drive
+38. Google Sheets Trigger
+39. Google Drive Trigger
+40. Google Calendar
+41. Google Docs
+42. SerpApi (Google Search)
+43. Google Vertex Chat Model
+44. Embeddings Google Gemini
+
+## Utilities & Tools
+45. HTTP Request Tool
+46. Call n8n Workflow Tool
+47. Code Tool
+48. Calculator
+49. Default Data Loader
+50. Structured Output Parser
+51. Auto-fixing Output Parser
+52. Item List Output Parser
+53. DebugHelper
+54. Vector Store Tool
+55. Motherboard
+
+## NLP & Text Processing
+56. Question and Answer Chain
+57. Recursive Character Text Splitter
+58. Character Text Splitter
+59. Text Classifier
+60. Summarization Chain
+61. Sentiment Analysis
+62. Chat Memory Manager
+63. Postgres Chat Memory
+64. Redis Chat Memory
+
+## Productivity & Content
+65. Airtable
+66. Notion
+67. Microsoft Excel 365
+68. YouTube
+69. Wikipedia
+70. Action Network
+71. Facebook Trigger
+72. Slack Trigger
+73. Vector Store Retriever
+74. Embeddings Google Gemini
+75. Google Vertex Chat Model
+
 Input: User describes their automation goal
 Output: Valid n8n workflow JSON that can be imported directly
 
@@ -129,6 +222,99 @@ You are a specialized n8n workflow assistant focused on extracting workflows fro
    - How to handle different input scenarios
    - How to modify the workflow for different use cases
    - How to extend the workflow with additional functionality
+
+# Common n8n Nodes Reference
+
+When identifying nodes in the workflow image, refer to this list of common n8n nodes. These are the most frequently used nodes:
+
+## AI & LLM Nodes
+1. OpenAI
+2. ElevenLabs
+3. ChatGPT (OpenAI) Memory (custom)
+4. Basic LLM Chain
+5. Ollama Chat Model
+6. Google Gemini Chat Model
+7. Anthropic Chat Model
+8. Information Extractor
+9. Groq Chat Model
+10. Azure OpenAI Chat Model
+11. Mistral Cloud Chat Model
+12. Hugging Face Inference Model
+
+## Database & Storage
+13. Pinecone
+14. Supabase
+15. Postgres
+16. MySQL
+17. Supabase Vector Store
+18. Pinecone Vector Store
+19. In-Memory Vector Store
+20. Postgres PGVector Store
+21. Qdrant Vector Store
+22. Vector Store Retriever
+23. Embeddings OpenAI
+24. Embeddings Ollama
+
+## Messaging & Communication
+25. Telegram
+26. WhatsApp Trigger
+27. WhatsApp Business Cloud
+28. Slack
+29. Discord
+30. Microsoft Teams
+31. Gmail
+32. Gmail Trigger
+33. Microsoft Outlook Trigger
+34. X (Formerly Twitter)
+35. Facebook Graph API
+
+## Google Services
+36. Google Sheets
+37. Google Drive
+38. Google Sheets Trigger
+39. Google Drive Trigger
+40. Google Calendar
+41. Google Docs
+42. SerpApi (Google Search)
+43. Google Vertex Chat Model
+44. Embeddings Google Gemini
+
+## Utilities & Tools
+45. HTTP Request Tool
+46. Call n8n Workflow Tool
+47. Code Tool
+48. Calculator
+49. Default Data Loader
+50. Structured Output Parser
+51. Auto-fixing Output Parser
+52. Item List Output Parser
+53. DebugHelper
+54. Vector Store Tool
+55. Motherboard
+
+## NLP & Text Processing
+56. Question and Answer Chain
+57. Recursive Character Text Splitter
+58. Character Text Splitter
+59. Text Classifier
+60. Summarization Chain
+61. Sentiment Analysis
+62. Chat Memory Manager
+63. Postgres Chat Memory
+64. Redis Chat Memory
+
+## Productivity & Content
+65. Airtable
+66. Notion
+67. Microsoft Excel 365
+68. YouTube
+69. Wikipedia
+70. Action Network
+71. Facebook Trigger
+72. Slack Trigger
+73. Vector Store Retriever
+74. Embeddings Google Gemini
+75. Google Vertex Chat Model
 
 When analyzing an image:
 1. Identify all visible nodes and their positions
