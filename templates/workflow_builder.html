@@ -305,6 +305,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const publishBtn = document.getElementById('publishBtn');
     const workflowCategory = document.getElementById('workflowCategory');
     
+    // Add references to the nodes dropdown elements
+    const toggleNodesBtn = document.getElementById('toggleNodesBtn');
+    const nodesReference = document.getElementById('nodesReference');
+    const chevronDown = document.getElementById('chevronDown');
+    const chevronUp = document.getElementById('chevronUp');
+    
     // Screenshot handling elements
     const workflowScreenshot = document.getElementById('workflow-screenshot');
     const screenshotPreview = document.getElementById('screenshot-preview');
@@ -361,6 +367,13 @@ document.addEventListener('DOMContentLoaded', function() {
             element.textContent = "An error occurred displaying this content";
         }
     }
+    
+    // Toggle nodes reference dropdown
+    toggleNodesBtn.addEventListener('click', function() {
+        nodesReference.classList.toggle('hidden');
+        chevronDown.classList.toggle('hidden');
+        chevronUp.classList.toggle('hidden');
+    });
     
     // Handle screenshot file selection
     workflowScreenshot.addEventListener('change', function(e) {
