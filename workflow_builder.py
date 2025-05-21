@@ -19,8 +19,8 @@ else:
 class N8nWorkflowBuilder:
     def __init__(self):
         # Use the specified model requested by user
-        self.model = genai.GenerativeModel('gemini-2.5-pro-preview-03-25')
-        print(f"Using Gemini model: gemini-2.5-pro-preview-03-25")
+        self.model = genai.GenerativeModel('gemini-2.0-flash')
+        print(f"Using Gemini model: gemini-2.0-flash")
         
         # Remove model listing to keep logs cleaner
         self.prompt_template = """
@@ -193,12 +193,12 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
             
             try:
                 # Configure a timeout for the API call to avoid Heroku H12 errors
-                # Using a 20-second timeout to leave room for processing time
+                # Using a 15-second timeout to leave more room for processing time
                 try:
                     # Use asyncio.wait_for with a timeout
                     response = await asyncio.wait_for(
                         self.model.generate_content_async(prompt),
-                        timeout=20.0
+                        timeout=15.0
                     )
                 except asyncio.TimeoutError:
                     print(f"API call timed out while generating workflow for goal: {goal[:50]}...")

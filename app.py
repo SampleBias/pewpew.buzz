@@ -632,7 +632,8 @@ def generate_workflow():
                     "success": True,
                     "workflow": fallback_workflow,
                     "warning": "The workflow generation timed out. A simple fallback workflow has been created. Please try again with a simpler request.",
-                    "message": "Fallback workflow created due to timeout"
+                    "message": "Fallback workflow created due to timeout",
+                    "error_details": "The request to the Gemini API timed out. This can happen due to high demand or complex workflows."
                 })
             
             if not result["success"]:
@@ -706,11 +707,11 @@ def generate_workflow():
                     
                     # Sync the workflow to the database
                     try:
-                        # We'll run this in a thread to avoid holding up the response
-                        # This prevents the sync from causing timeouts
                         def background_sync():
                             try:
-                                sync_workflow_immediately(dir_name)
+                                # Create application context for the thread
+                                with app.app_context():
+                                    sync_workflow_immediately(dir_name)
                             except Exception as e:
                                 print(f"Background sync error: {str(e)}")
                                 
@@ -718,10 +719,9 @@ def generate_workflow():
                         sync_thread = threading.Thread(target=background_sync)
                         sync_thread.daemon = True
                         sync_thread.start()
-                        
                     except Exception as sync_error:
                         print(f"Warning: Failed to start background sync: {str(sync_error)}")
-                        response_data["warning"] = f"Workflow saved but sync may be delayed: {str(sync_error)}"
+                        # Continue even if sync fails
                     
                     return jsonify(response_data)
                 except json.JSONDecodeError as e:
@@ -1331,9 +1331,20 @@ def extract_workflow_from_image():
                 
                 # Sync the workflow to the database
                 try:
-                    sync_workflow_immediately(dir_name)
+                    def background_sync():
+                        try:
+                            # Create application context for the thread
+                            with app.app_context():
+                                sync_workflow_immediately(dir_name)
+                        except Exception as e:
+                            print(f"Background sync error: {str(e)}")
+                            
+                    import threading
+                    sync_thread = threading.Thread(target=background_sync)
+                    sync_thread.daemon = True
+                    sync_thread.start()
                 except Exception as sync_error:
-                    print(f"Warning: Failed to sync workflow to database: {str(sync_error)}")
+                    print(f"Warning: Failed to start background sync: {str(sync_error)}")
                     # Continue even if sync fails
                 
                 return jsonify({
