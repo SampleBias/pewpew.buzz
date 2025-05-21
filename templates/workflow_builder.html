@@ -135,6 +135,9 @@
                 <div class="mb-4">
                     <label class="block text-lg font-bold text-pink-300 mb-2">Workflow JSON</label>
                     <pre id="jsonResult" class="bg-[#2d006e] text-pink-100 rounded-lg p-4 overflow-x-auto whitespace-pre-wrap text-sm max-h-96 overflow-y-auto border-2 border-pink-700"></pre>
+                    <div id="jsonError" class="hidden mt-2 text-red-400 text-sm">
+                        <p>There was an issue displaying the workflow JSON. Please use the Download button.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -160,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultSection = document.getElementById('resultSection');
     const resultMessage = document.getElementById('resultMessage');
     const jsonResult = document.getElementById('jsonResult');
+    const jsonError = document.getElementById('jsonError');
     const downloadLink = document.getElementById('downloadLink');
     const viewDetails = document.getElementById('viewDetails');
     const readmeModal = document.getElementById('readmeModal');
@@ -187,6 +191,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Helper function to safely display JSON
     function safeDisplayJson(jsonObj) {
         try {
+            // Hide any previous error message
+            jsonError.classList.add('hidden');
+            
             // First convert to a formatted string
             const jsonString = JSON.stringify(jsonObj, null, 2);
             
@@ -201,7 +208,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return escapedString;
         } catch (error) {
             console.error("Error formatting JSON:", error);
-            return "Error formatting workflow JSON";
+            // Show the error message
+            jsonError.classList.remove('hidden');
+            return "Error formatting workflow JSON. Please try using the download option instead.";
         }
     }
     
@@ -359,8 +368,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     safeSetHTML(resultMessage, `<div class="text-green-300">${data.message || 'Workflow successfully extracted from image!'}</div>`);
                 }
                 
-                // Safely display the JSON
-                jsonResult.textContent = safeDisplayJson(data.workflow);
+                try {
+                    // Apply safeguards to ensure no HTML-related errors
+                    // First try using the safe function
+                    const safeJsonContent = safeDisplayJson(data.workflow);
+                    jsonResult.textContent = safeJsonContent;
+                } catch (jsonError) {
+                    // If that fails, use a more aggressive approach
+                    console.error("Error with safeDisplayJson, using fallback:", jsonError);
+                    try {
+                        // As a fallback, stringify and use textContent directly
+                        const basicJsonString = JSON.stringify(data.workflow, null, 2);
+                        jsonResult.textContent = basicJsonString;
+                    } catch (fallbackError) {
+                        // Last resort - simple error message
+                        console.error("Complete JSON display failure:", fallbackError);
+                        jsonResult.textContent = "Error displaying workflow JSON. Please try downloading the workflow instead.";
+                        // Show the error message
+                        document.getElementById('jsonError').classList.remove('hidden');
+                    }
+                }
                 
                 // Set up download link
                 downloadLink.href = `/download_workflow/${data.path}`;
@@ -409,6 +436,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
             safeSetHTML(resultMessage, `<div class="text-red-400">An unexpected error occurred: ${error.message}</div>`);
             resultSection.classList.remove('hidden');
+            // Hide JSON display errors in case of API failure
+            jsonResult.textContent = "";
+            jsonError.classList.add('hidden');
         } finally {
             // Reset button state
             extractWorkflowBtn.disabled = false;
@@ -632,8 +662,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     safeSetHTML(resultMessage, `<div class="text-green-300">${data.message || 'Workflow generated successfully!'}</div>`);
                 }
                 
-                // Safely display the JSON
-                jsonResult.textContent = safeDisplayJson(data.workflow);
+                try {
+                    // Apply safeguards to ensure no HTML-related errors
+                    // First try using the safe function
+                    const safeJsonContent = safeDisplayJson(data.workflow);
+                    jsonResult.textContent = safeJsonContent;
+                } catch (jsonError) {
+                    // If that fails, use a more aggressive approach
+                    console.error("Error with safeDisplayJson, using fallback:", jsonError);
+                    try {
+                        // As a fallback, stringify and use textContent directly
+                        const basicJsonString = JSON.stringify(data.workflow, null, 2);
+                        jsonResult.textContent = basicJsonString;
+                    } catch (fallbackError) {
+                        // Last resort - simple error message
+                        console.error("Complete JSON display failure:", fallbackError);
+                        jsonResult.textContent = "Error displaying workflow JSON. Please try downloading the workflow instead.";
+                        // Show the error message
+                        document.getElementById('jsonError').classList.remove('hidden');
+                    }
+                }
                 
                 // Set up download link
                 downloadLink.href = `/download_workflow/${data.path}`;
@@ -665,6 +713,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
             safeSetHTML(resultMessage, `<div class="text-red-400">An unexpected error occurred: ${error.message}</div>`);
             resultSection.classList.remove('hidden');
+            // Hide JSON display errors in case of API failure
+            jsonResult.textContent = "";
+            jsonError.classList.add('hidden');
         } finally {
             // Reset button state
             generateBtn.disabled = false;

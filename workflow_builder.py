@@ -215,17 +215,25 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
                 # Clean up and process the response
                 workflow_json_text = workflow_json_text.strip()
                 
-                # Remove any markdown code blocks
+                # Aggressive cleaning of any unexpected tokens
+                
+                # 1. Remove any markdown code blocks
                 workflow_json_text = re.sub(r'^```(?:json)?\s*', '', workflow_json_text)
                 workflow_json_text = re.sub(r'\s*```$', '', workflow_json_text)
                 
-                # Sanitize any HTML-like content
+                # 2. Sanitize any HTML-like content
                 workflow_json_text = html.escape(workflow_json_text)
+                
+                # 3. Restore necessary JSON characters
                 workflow_json_text = re.sub(r'&quot;', '"', workflow_json_text)  # Restore JSON quotes
                 workflow_json_text = re.sub(r'&lt;', '<', workflow_json_text)   # Restore < for any comparison operators
                 workflow_json_text = re.sub(r'&gt;', '>', workflow_json_text)   # Restore > for any comparison operators
                 
-                # Find JSON object in the text
+                # 4. Remove any potential script or HTML tags that might have survived
+                workflow_json_text = re.sub(r'<script[^>]*>.*?</script>', '', workflow_json_text, flags=re.DOTALL)
+                workflow_json_text = re.sub(r'<[^>]*>', '', workflow_json_text)
+                
+                # 5. Find JSON object in the text - be more precise
                 start_idx = workflow_json_text.find('{')
                 end_idx = workflow_json_text.rfind('}')
                 
@@ -233,7 +241,36 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
                     workflow_json_text = workflow_json_text[start_idx:end_idx+1]
                     
                     try:
+                        # 6. Before parsing to JSON, do a final check for unexpected tokens
+                        # Replace any sequences that look like XML/HTML tags
+                        workflow_json_text = re.sub(r'<[^{}\[\]"\']*?>', '', workflow_json_text)
+                        
                         workflow_json = json.loads(workflow_json_text)
+                        
+                        # 7. Sanitize all string values in the JSON object
+                        def sanitize_dict(d):
+                            if isinstance(d, dict):
+                                for key, value in list(d.items()):
+                                    if isinstance(value, str):
+                                        # Escape and remove HTML tags from string values
+                                        clean_value = html.escape(value)
+                                        clean_value = re.sub(r'<[^>]*>', '', clean_value)
+                                        d[key] = clean_value
+                                    elif isinstance(value, (dict, list)):
+                                        sanitize_dict(value)
+                            elif isinstance(d, list):
+                                for i, item in enumerate(d):
+                                    if isinstance(item, str):
+                                        # Escape and remove HTML tags from string values
+                                        clean_item = html.escape(item)
+                                        clean_item = re.sub(r'<[^>]*>', '', clean_item)
+                                        d[i] = clean_item
+                                    elif isinstance(item, (dict, list)):
+                                        sanitize_dict(item)
+                            return d
+                                
+                        # Apply sanitization to all values in the workflow JSON
+                        workflow_json = sanitize_dict(workflow_json)
                         
                         # Ensure the workflow has a name, using our generated one if missing
                         if "name" not in workflow_json or not workflow_json["name"]:
@@ -263,6 +300,7 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
                         # Try to do more aggressive cleanup
                         clean_text = re.sub(r'[\n\r\t]', ' ', workflow_json_text)
                         clean_text = re.sub(r'\s+', ' ', clean_text)
+                        clean_text = re.sub(r'<[^{}\[\]"\']*?>', '', clean_text)
                         
                         try:
                             workflow_json = json.loads(clean_text)
