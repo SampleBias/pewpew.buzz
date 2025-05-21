@@ -7,4 +7,5 @@ markdown
 google-generativeai
 gunicorn
 pillow
-werkzeug 
+werkzeug
+gevent==23.9.1

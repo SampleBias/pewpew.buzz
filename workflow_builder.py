@@ -5,6 +5,7 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 import traceback
 import html
+import asyncio
 
 load_dotenv()
 
@@ -76,7 +77,18 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
         """Test if the Gemini API is working properly"""
         try:
             # Simple test prompt
-            test_response = await self.model.generate_content_async("Say hello world")
+            try:
+                # Set a 3-second timeout for the API test
+                test_response = await asyncio.wait_for(
+                    self.model.generate_content_async("Say hello world"),
+                    timeout=3.0
+                )
+            except asyncio.TimeoutError:
+                return {
+                    "success": False,
+                    "error": "API connection timed out",
+                    "error_type": "timeout"
+                }
             
             # Try to access the response content
             if hasattr(test_response, 'text'):
@@ -113,7 +125,16 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
             default_name = f"Workflow for {goal[:40]}"
             
             prompt = self.name_generation_template.format(goal=goal)
-            response = await self.model.generate_content_async(prompt)
+            
+            try:
+                # Set a 5-second timeout for name generation - this is less critical than the workflow itself
+                response = await asyncio.wait_for(
+                    self.model.generate_content_async(prompt),
+                    timeout=5.0
+                )
+            except asyncio.TimeoutError:
+                print(f"Name generation timed out for goal: {goal[:30]}...")
+                return default_name
             
             # Extract text from response
             name = None
@@ -171,7 +192,21 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
             prompt = self.prompt_template.format(goal=goal)
             
             try:
-                response = await self.model.generate_content_async(prompt)
+                # Configure a timeout for the API call to avoid Heroku H12 errors
+                # Using a 20-second timeout to leave room for processing time
+                try:
+                    # Use asyncio.wait_for with a timeout
+                    response = await asyncio.wait_for(
+                        self.model.generate_content_async(prompt),
+                        timeout=20.0
+                    )
+                except asyncio.TimeoutError:
+                    print(f"API call timed out while generating workflow for goal: {goal[:50]}...")
+                    return {
+                        "success": True,
+                        "workflow": self._create_fallback_workflow(goal, f"Timeout: {workflow_name}"),
+                        "warning": "The API call timed out. A simple fallback workflow has been created. Please try again with a simpler request."
+                    }
                 
                 # Extract text from response based on response structure
                 workflow_json_text = None
@@ -198,130 +233,116 @@ Respond with ONLY the name text - no quotes, no additional explanations, comment
                                     workflow_json_text = response['text']
                                 elif 'candidates' in response:
                                     workflow_json_text = response['candidates'][0]['content']['parts'][0]['text']
-                        except (KeyError, TypeError, IndexError) as e:
-                            print(f"Dictionary access failed: {e}")
+                        except:
+                            pass
                             
-                except Exception as e:
-                    print(f"Error extracting text: {e}")
+                    if workflow_json_text:
+                        # Clean up the response text to extract the JSON
+                        # 1. Remove any markdown code blocks
+                        workflow_json_text = re.sub(r'^```(?:json)?\s*', '', workflow_json_text)
+                        workflow_json_text = re.sub(r'\s*```$', '', workflow_json_text)
+                        
+                        # 2. Find JSON object in the text - look for curly braces
+                        start_idx = workflow_json_text.find('{')
+                        end_idx = workflow_json_text.rfind('}')
+                        
+                        if start_idx >= 0 and end_idx >= 0 and start_idx < end_idx:
+                            workflow_json_text = workflow_json_text[start_idx:end_idx+1]
+                            
+                            # 3. Try to parse as JSON
+                            try:
+                                workflow_json = json.loads(workflow_json_text)
+                                
+                                # Ensure required fields exist
+                                if not isinstance(workflow_json, dict):
+                                    print("Invalid workflow: not a dictionary")
+                                    workflow_json = {}
+                                    
+                                # 7. Sanitize all string values in the JSON object
+                                def sanitize_dict(d):
+                                    if isinstance(d, dict):
+                                        for key, value in list(d.items()):
+                                            if isinstance(value, str):
+                                                # Escape and remove HTML tags from string values
+                                                clean_value = html.escape(value)
+                                                clean_value = re.sub(r'<[^>]*>', '', clean_value)
+                                                d[key] = clean_value
+                                            elif isinstance(value, (dict, list)):
+                                                sanitize_dict(value)
+                                    elif isinstance(d, list):
+                                        for i, item in enumerate(d):
+                                            if isinstance(item, str):
+                                                # Escape and remove HTML tags from string values
+                                                clean_item = html.escape(item)
+                                                clean_item = re.sub(r'<[^>]*>', '', clean_item)
+                                                d[i] = clean_item
+                                            elif isinstance(item, (dict, list)):
+                                                sanitize_dict(item)
+                                    return d
+                                        
+                                # Apply sanitization to all values in the workflow JSON
+                                workflow_json = sanitize_dict(workflow_json)
+                                
+                                # Ensure the workflow has a name, using our generated one if missing
+                                if "name" not in workflow_json or not workflow_json["name"]:
+                                    workflow_json["name"] = workflow_name
+                                    
+                                # Make sure we have required fields
+                                if "nodes" not in workflow_json:
+                                    workflow_json["nodes"] = []
+                                if "connections" not in workflow_json:
+                                    workflow_json["connections"] = {}
+                                    
+                                # Ensure we have at least a manual trigger node
+                                if not workflow_json["nodes"]:
+                                    workflow_json["nodes"].append({
+                                        "parameters": {},
+                                        "id": "1",
+                                        "name": "Manual Trigger", 
+                                        "type": "n8n-nodes-base.manualTrigger",
+                                        "position": [100, 300]
+                                    })
+                                    
+                                return {"success": True, "workflow": workflow_json}
+                            except json.JSONDecodeError as e:
+                                print(f"JSON parsing error: {e}")
+                                print(f"Raw text: {workflow_json_text[:200]}...")
+                                
+                                # Try to do more aggressive cleanup
+                                clean_text = re.sub(r'[\n\r\t]', ' ', workflow_json_text)
+                                clean_text = re.sub(r'\s+', ' ', clean_text)
+                                clean_text = re.sub(r'<[^{}\[\]"\']*?>', '', clean_text)
+                                
+                                try:
+                                    workflow_json = json.loads(clean_text)
+                                    
+                                    # Ensure the workflow has a name, using our generated one if missing
+                                    if "name" not in workflow_json or not workflow_json["name"]:
+                                        workflow_json["name"] = workflow_name
+                                        
+                                    return {"success": True, "workflow": workflow_json}
+                                except:
+                                    pass
+                        else:
+                            print(f"No valid JSON object found in the response")
                     
-                if workflow_json_text is None:
-                    print(f"Could not extract text from response: {response}")
+                    # If we get here, use fallback workflow
                     return {
                         "success": True,
                         "workflow": self._create_fallback_workflow(goal, workflow_name),
-                        "warning": "Could not extract content from API response"
+                        "warning": "Could not extract valid JSON from the API response"
                     }
-                    
-                # Clean up and process the response
-                workflow_json_text = workflow_json_text.strip()
-                
-                # Aggressive cleaning of any unexpected tokens
-                
-                # 1. Remove any markdown code blocks
-                workflow_json_text = re.sub(r'^```(?:json)?\s*', '', workflow_json_text)
-                workflow_json_text = re.sub(r'\s*```$', '', workflow_json_text)
-                
-                # 2. Sanitize any HTML-like content
-                workflow_json_text = html.escape(workflow_json_text)
-                
-                # 3. Restore necessary JSON characters
-                workflow_json_text = re.sub(r'&quot;', '"', workflow_json_text)  # Restore JSON quotes
-                workflow_json_text = re.sub(r'&lt;', '<', workflow_json_text)   # Restore < for any comparison operators
-                workflow_json_text = re.sub(r'&gt;', '>', workflow_json_text)   # Restore > for any comparison operators
-                
-                # 4. Remove any potential script or HTML tags that might have survived
-                workflow_json_text = re.sub(r'<script[^>]*>.*?</script>', '', workflow_json_text, flags=re.DOTALL)
-                workflow_json_text = re.sub(r'<[^>]*>', '', workflow_json_text)
-                
-                # 5. Find JSON object in the text - be more precise
-                start_idx = workflow_json_text.find('{')
-                end_idx = workflow_json_text.rfind('}')
-                
-                if start_idx >= 0 and end_idx >= 0 and start_idx < end_idx:
-                    workflow_json_text = workflow_json_text[start_idx:end_idx+1]
-                    
-                    try:
-                        # 6. Before parsing to JSON, do a final check for unexpected tokens
-                        # Replace any sequences that look like XML/HTML tags
-                        workflow_json_text = re.sub(r'<[^{}\[\]"\']*?>', '', workflow_json_text)
                         
-                        workflow_json = json.loads(workflow_json_text)
+                except Exception as e:
+                    print(f"Error extracting response content: {e}")
+                    print(f"Exception type: {type(e)}")
+                    traceback.print_exc()
+                    return {
+                        "success": True,
+                        "workflow": self._create_fallback_workflow(goal, workflow_name),
+                        "warning": f"Error extracting content from API response: {str(e)}"
+                    }
                         
-                        # 7. Sanitize all string values in the JSON object
-                        def sanitize_dict(d):
-                            if isinstance(d, dict):
-                                for key, value in list(d.items()):
-                                    if isinstance(value, str):
-                                        # Escape and remove HTML tags from string values
-                                        clean_value = html.escape(value)
-                                        clean_value = re.sub(r'<[^>]*>', '', clean_value)
-                                        d[key] = clean_value
-                                    elif isinstance(value, (dict, list)):
-                                        sanitize_dict(value)
-                            elif isinstance(d, list):
-                                for i, item in enumerate(d):
-                                    if isinstance(item, str):
-                                        # Escape and remove HTML tags from string values
-                                        clean_item = html.escape(item)
-                                        clean_item = re.sub(r'<[^>]*>', '', clean_item)
-                                        d[i] = clean_item
-                                    elif isinstance(item, (dict, list)):
-                                        sanitize_dict(item)
-                            return d
-                                
-                        # Apply sanitization to all values in the workflow JSON
-                        workflow_json = sanitize_dict(workflow_json)
-                        
-                        # Ensure the workflow has a name, using our generated one if missing
-                        if "name" not in workflow_json or not workflow_json["name"]:
-                            workflow_json["name"] = workflow_name
-                            
-                        # Make sure we have required fields
-                        if "nodes" not in workflow_json:
-                            workflow_json["nodes"] = []
-                        if "connections" not in workflow_json:
-                            workflow_json["connections"] = {}
-                            
-                        # Ensure we have at least a manual trigger node
-                        if not workflow_json["nodes"]:
-                            workflow_json["nodes"].append({
-                                "parameters": {},
-                                "id": "1",
-                                "name": "Manual Trigger", 
-                                "type": "n8n-nodes-base.manualTrigger",
-                                "position": [100, 300]
-                            })
-                            
-                        return {"success": True, "workflow": workflow_json}
-                    except json.JSONDecodeError as e:
-                        print(f"JSON parsing error: {e}")
-                        print(f"Raw text: {workflow_json_text[:200]}...")
-                        
-                        # Try to do more aggressive cleanup
-                        clean_text = re.sub(r'[\n\r\t]', ' ', workflow_json_text)
-                        clean_text = re.sub(r'\s+', ' ', clean_text)
-                        clean_text = re.sub(r'<[^{}\[\]"\']*?>', '', clean_text)
-                        
-                        try:
-                            workflow_json = json.loads(clean_text)
-                            
-                            # Ensure the workflow has a name, using our generated one if missing
-                            if "name" not in workflow_json or not workflow_json["name"]:
-                                workflow_json["name"] = workflow_name
-                                
-                            return {"success": True, "workflow": workflow_json}
-                        except:
-                            pass
-                else:
-                    print(f"No valid JSON object found in the response")
-                
-                # If we get here, use fallback workflow
-                return {
-                    "success": True,
-                    "workflow": self._create_fallback_workflow(goal, workflow_name),
-                    "warning": "Could not extract valid JSON from the API response"
-                }
-                    
             except Exception as e:
                 print(f"Error calling Gemini API: {e}")
                 print(f"Exception type: {type(e)}")

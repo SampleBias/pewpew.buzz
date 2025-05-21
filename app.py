@@ -613,8 +613,27 @@ def generate_workflow():
             }), 400
         
         try:
-            # Generate the workflow using asyncio to handle the async call
-            result = asyncio.run(workflow_builder.generate_workflow(goal))
+            # Generate the workflow using asyncio with a timeout to prevent Heroku H12 errors
+            # Heroku has a 30-second timeout, so we set ours to 25 seconds to ensure we respond before that
+            try:
+                # Set a timeout to prevent Heroku H12 errors (30 second limit)
+                result = asyncio.run(asyncio.wait_for(
+                    workflow_builder.generate_workflow(goal), 
+                    timeout=25.0
+                ))
+            except asyncio.TimeoutError:
+                print(f"Workflow generation timed out for goal: {goal[:50]}...")
+                # Return a fallback workflow with timeout message
+                fallback_workflow = workflow_builder._create_fallback_workflow(
+                    goal, 
+                    f"Timeout Workflow for: {goal[:30]}"
+                )
+                return jsonify({
+                    "success": True,
+                    "workflow": fallback_workflow,
+                    "warning": "The workflow generation timed out. A simple fallback workflow has been created. Please try again with a simpler request.",
+                    "message": "Fallback workflow created due to timeout"
+                })
             
             if not result["success"]:
                 return jsonify(result), 400
@@ -687,10 +706,22 @@ def generate_workflow():
                     
                     # Sync the workflow to the database
                     try:
-                        sync_workflow_immediately(dir_name)
+                        # We'll run this in a thread to avoid holding up the response
+                        # This prevents the sync from causing timeouts
+                        def background_sync():
+                            try:
+                                sync_workflow_immediately(dir_name)
+                            except Exception as e:
+                                print(f"Background sync error: {str(e)}")
+                                
+                        import threading
+                        sync_thread = threading.Thread(target=background_sync)
+                        sync_thread.daemon = True
+                        sync_thread.start()
+                        
                     except Exception as sync_error:
-                        print(f"Warning: Failed to sync workflow to database: {str(sync_error)}")
-                        response_data["warning"] = f"Workflow saved but not synced to database: {str(sync_error)}"
+                        print(f"Warning: Failed to start background sync: {str(sync_error)}")
+                        response_data["warning"] = f"Workflow saved but sync may be delayed: {str(sync_error)}"
                     
                     return jsonify(response_data)
                 except json.JSONDecodeError as e:
@@ -1614,6 +1645,30 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
 
+# Gunicorn configuration for Heroku - these are accessed when the app is run with Gunicorn
+# The default worker timeout in Heroku is 30 seconds, which can lead to H12 errors
+# Let's add some optimizations to better handle long-running API requests
+
+# Increase the worker timeout to 60 seconds
+timeout = 60
+
+# Use 2-4 workers as recommended by Heroku for standard dynos
+workers = int(os.environ.get('WEB_CONCURRENCY', 3))
+
+# Use worker class designed for async operations to process more requests
+worker_class = 'gevent'
+
+# Increase max requests to reduce worker churn
+max_requests = 1000
+max_requests_jitter = 200
+
+# Log to stdout, which Heroku captures
+accesslog = '-'  # stdout
+errorlog = '-'   # stderr
+loglevel = 'info'
+
+# This will be used by Heroku's Procfile "web: gunicorn app:app"
+
 # Add a context processor to make user info available in all templates
 @app.context_processor
 def inject_user():
@@ -1666,14 +1721,23 @@ def admin_panel():
                 # Process workflows from the database
                 for workflow in workflows_response.data:
                     workflow_id = workflow['slug']
-                    automations_ids.add(workflow_id)
+                    
+                    # Skip if we already have this workflow from filesystem
+                    if any(a['id'] == workflow_id for a in automations):
+                        continue
+                    
+                    # Get categories for this workflow
+                    categories = all_categories.get(workflow['id'], [DEFAULT_CATEGORY])
+                    
+                    # Get ratings data for this workflow
+                    rating = {'upvotes': 0, 'downvotes': 0}
                     
                     automation = {
                         'id': workflow_id,
                         'title': workflow['title'],
                         'description': workflow['description'],
                         'author': workflow['author_name'],
-                        'categories': all_categories.get(workflow_id, []),
+                        'categories': categories,
                         'from_database': True
                     }
                     automations.append(automation)
