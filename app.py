@@ -905,12 +905,15 @@ def publish_workflow():
         # Update the meta.json file with publication info
         meta_path = os.path.join(full_path, 'meta.json')
         
+        # Get current user as publisher
+        publisher = session.get('user', {}).get('email', 'anonymous')
+        
         # Create or update meta.json
         meta_data = {
             "categories": categories,
-            "published": True,
+            "published": True,  # Set published flag to true
             "published_date": datetime.datetime.now().isoformat(),
-            "published_by": session.get('user', {}).get('email', 'anonymous')
+            "published_by": publisher
         }
         
         # If meta.json already exists, read and update it
@@ -948,6 +951,7 @@ def publish_workflow():
                     f.write('\n'.join(lines))
         
         # Sync the workflow to the database
+        print(f"Publishing workflow to gallery and database: {workflow_path}")
         sync_workflow_immediately(workflow_path)
         
         return jsonify({
@@ -956,6 +960,8 @@ def publish_workflow():
         })
             
     except Exception as e:
+        print(f"Error in publish_workflow: {str(e)}")
+        traceback.print_exc()
         return jsonify({
             "success": False,
             "error": f"Error publishing workflow: {str(e)}"
@@ -1568,6 +1574,8 @@ def sync_workflow_immediately(workflow_dir):
             print("Supabase not configured, skipping immediate sync")
             return
         
+        print(f"Starting immediate sync for workflow: {workflow_dir}")
+        
         # Ensure the workflow directory exists
         base_path = os.path.join(os.path.dirname(__file__), 'automation')
         workflow_path = os.path.join(base_path, workflow_dir)
@@ -1585,6 +1593,8 @@ def sync_workflow_immediately(workflow_dir):
             print(f"Workflow files not found in: {workflow_path}")
             return
             
+        print(f"Found workflow files in: {workflow_path}")
+        
         # Load workflow data
         with open(workflow_json_path, 'r') as f:
             workflow_data = json.load(f)
@@ -1605,16 +1615,22 @@ def sync_workflow_immediately(workflow_dir):
         categories = ["AI", "Engineering"]  # Default categories
         is_published = False
         is_generated = True
+        is_extracted = False
         
         if os.path.exists(meta_path):
             try:
                 with open(meta_path, 'r') as f:
                     meta_data = json.load(f)
                     categories = meta_data.get('categories', categories)
+                    # Ensure we use the correct published status
                     is_published = meta_data.get('published', False)
                     is_generated = meta_data.get('generated', True)
-            except:
-                print(f"Error loading meta data from: {meta_path}")
+                    is_extracted = meta_data.get('extracted', False)
+                print(f"Meta data loaded. Published status: {is_published}, Categories: {categories}")
+            except Exception as meta_error:
+                print(f"Error loading meta data from: {meta_path}, Error: {str(meta_error)}")
+        else:
+            print(f"No meta.json found in {workflow_path}, using defaults")
         
         # Try to extract the first paragraph from README as description
         description = ""
@@ -1639,6 +1655,8 @@ def sync_workflow_immediately(workflow_dir):
         # Get current user as author (if authenticated)
         author_name = session.get('user', {}).get('email', 'anonymous')
         
+        print(f"Syncing workflow to database: {workflow_dir}, Title: {workflow_name}, Published: {is_published}")
+        
         # Sync to database using the sync_workflow_to_database function
         try:
             response = supabase.rpc('sync_workflow_to_database', {
@@ -1650,11 +1668,16 @@ def sync_workflow_immediately(workflow_dir):
                 'p_readme_content': readme_content,
                 'p_categories': categories,
                 'p_is_generated': is_generated,
-                'p_is_submitted': is_published,
-                'p_is_extracted': False
+                'p_is_submitted': is_published,  # Pass the published flag as is_submitted
+                'p_is_extracted': is_extracted
             }).execute()
             
-            print(f"Synchronized workflow to database: {workflow_dir}, published: {is_published}")
+            if response.data:
+                print(f"Database sync result: {response.data}")
+            else:
+                print("No data returned from database sync")
+            
+            print(f"Successfully synchronized workflow to database: {workflow_dir}, published: {is_published}")
             
             # Ensure meta file is updated with the correct published status
             if os.path.exists(meta_path):
@@ -1667,15 +1690,18 @@ def sync_workflow_immediately(workflow_dir):
                     
                     with open(meta_path, 'w') as f:
                         json.dump(meta_data, f, indent=2)
+                    print(f"Updated meta file with published status: {is_published}")
                 except Exception as e:
                     print(f"Error updating meta file: {str(e)}")
                     
         except Exception as e:
             print(f"Error syncing workflow to database: {str(e)}")
+            traceback.print_exc()
             # Still proceed with the flow even if database sync fails
             
     except Exception as e:
         print(f"Error in immediate workflow sync: {str(e)}")
+        traceback.print_exc()
 
 # TODO: Add download route, meme animation, and user upload logic
 
