@@ -534,6 +534,11 @@ Follow these guidelines:
         # Create directory if it doesn't exist
         os.makedirs(base_path, exist_ok=True)
         
+        # Clean any remaining HTML entities in the workflow
+        workflow_json_str = json.dumps(workflow)
+        workflow_json_str = html.unescape(workflow_json_str)
+        workflow = json.loads(workflow_json_str)
+        
         # Save workflow.json
         workflow_path = os.path.join(base_path, 'workflow.json')
         with open(workflow_path, 'w') as f:

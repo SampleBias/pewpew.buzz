@@ -21,6 +21,7 @@ import google.generativeai as genai
 from workflow_sync import get_workflow_from_filesystem, sync_workflow_to_database, get_supabase_client
 from functools import wraps
 import traceback
+import html
 
 load_dotenv()
 
@@ -693,10 +694,18 @@ def generate_workflow():
                         except json.JSONDecodeError:
                             print("Warning: Couldn't parse sanitized JSON, returning original")
                     
+                    # Ensure workflow is a clean Python dictionary with no HTML entities
+                    # Convert to JSON string and back to ensure proper encoding
+                    workflow_json_str = json.dumps(result["workflow"])
+                    # Convert any remaining HTML entities to actual characters
+                    workflow_json_str = html.unescape(workflow_json_str)
+                    # Convert back to Python dictionary
+                    cleaned_workflow = json.loads(workflow_json_str)
+                    
                     response_data = {
                         "success": True, 
                         "message": "Workflow generated successfully", 
-                        "workflow": result["workflow"],
+                        "workflow": cleaned_workflow,
                         "path": dir_name,
                         "readme": readme_content
                     }
@@ -1238,6 +1247,14 @@ def extract_workflow_from_image():
                 except Exception as sanitize_error:
                     print(f"Warning during JSON sanitization: {str(sanitize_error)}")
                 
+                # Ensure workflow is a clean Python dictionary with no HTML entities
+                # Convert to JSON string and back to ensure proper encoding
+                workflow_json_str = json.dumps(workflow_json)
+                # Convert any remaining HTML entities to actual characters
+                workflow_json_str = html.unescape(workflow_json_str)
+                # Convert back to Python dictionary
+                cleaned_workflow = json.loads(workflow_json_str)
+                
                 # Create a directory name for the workflow
                 base_path = os.path.join(os.path.dirname(__file__), 'automation')
                 
@@ -1356,7 +1373,7 @@ def extract_workflow_from_image():
                 return jsonify({
                     "success": True,
                     "message": "Workflow successfully extracted from image",
-                    "workflow": workflow_json,
+                    "workflow": cleaned_workflow,
                     "path": dir_name,
                     "readme": readme_content
                 })
@@ -1421,6 +1438,11 @@ def add_workflow():
                 "success": False,
                 "error": "Invalid workflow JSON format"
             }), 400
+            
+        # Clean any HTML entities in the workflow JSON
+        workflow_json_str = json.dumps(workflow_json)
+        workflow_json_str = html.unescape(workflow_json_str)
+        workflow_json = json.loads(workflow_json_str)
         
         # Set workflow name if not already set
         if 'name' not in workflow_json or not workflow_json['name']:
