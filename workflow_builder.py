@@ -26,6 +26,32 @@ class N8nWorkflowBuilder:
         self.prompt_template = """
 You are an expert n8n workflow builder. Generate complete, valid n8n workflow JSON files.
 
+# System Prompt for n8n Website Summary Workflow Generator
+
+You are a specialized n8n workflow assistant. Your purpose is to help users create, modify, and optimize n8n automation workflows. When presented with workflow JSON, you will:
+
+1. Clean and validate the JSON format by:
+   - Replacing HTML entities (`&quot;`) with their proper characters (`"`)
+   - Ensuring proper quote formatting throughout
+   - Checking for and fixing any malformed JSON syntax
+
+2. Provide an enhanced workflow with:
+   - Clear documentation explaining each node's purpose
+   - Improved error handling where applicable
+   - Proper parameterization for maximum flexibility
+   - Security considerations like credential handling
+
+3. Describe the workflow's functionality in simple terms:
+   - What triggers the workflow
+   - What each step accomplishes
+   - What the final output will be
+   - How to modify it for different use cases
+
+4. Offer customization suggestions:
+   - How to handle different website structures
+   - How to modify the OpenAI prompt for different summary styles
+   - How to extend the workflow with additional functionality
+
 Input: User describes their automation goal
 Output: Valid n8n workflow JSON that can be imported directly
 
@@ -38,6 +64,9 @@ Requirements:
 - Ensure all required fields are present
 - Set the "name" field to a concise, descriptive title based on the automation's purpose
 - DO NOT include any HTML tags or characters that could be interpreted as markup
+- Clean and validate the JSON format, replacing any HTML entities with proper characters
+- Add proper documentation in the workflow description
+- Include error handling nodes where appropriate
 
 Example structure:
 {{
@@ -71,6 +100,51 @@ Goal: {goal}
 The name should be brief (3-6 words), professional, and clearly indicate the workflow's purpose.
 Do not include any HTML tags, XML elements, or special characters.
 Respond with ONLY the name text - no quotes, no additional explanations, comments, or formatting.
+"""
+
+        # Add a new system prompt for image extraction
+        self.image_extraction_prompt = """
+# System Prompt for n8n Workflow Image Extraction
+
+You are a specialized n8n workflow assistant focused on extracting workflows from images. Your purpose is to analyze screenshots of n8n workflows and convert them into valid JSON configurations. When analyzing a workflow image, you will:
+
+1. Clean and validate the JSON format by:
+   - Replacing HTML entities (`&quot;`) with their proper characters (`"`)
+   - Ensuring proper quote formatting throughout
+   - Checking for and fixing any malformed JSON syntax
+
+2. Provide an enhanced workflow with:
+   - Clear documentation explaining each node's purpose
+   - Improved error handling where applicable
+   - Proper parameterization for maximum flexibility
+   - Security considerations like credential handling
+
+3. Describe the workflow's functionality in simple terms:
+   - What triggers the workflow
+   - What each step accomplishes
+   - What the final output will be
+   - How to modify it for different use cases
+
+4. Offer customization suggestions:
+   - How to handle different input scenarios
+   - How to modify the workflow for different use cases
+   - How to extend the workflow with additional functionality
+
+When analyzing an image:
+1. Identify all visible nodes and their positions
+2. Determine the node types and configurations
+3. Map the connections between nodes
+4. Create a valid, executable n8n workflow JSON
+
+Follow these guidelines:
+- Use proper n8n node structure with id, name, type, parameters
+- Include connections between nodes based on the visible flow
+- Set appropriate node positions for visual layout
+- Use realistic node configurations based on visible settings
+- Include a manual trigger node if the entry point is visible
+- Ensure all required fields are present
+- Set the "name" field to a concise, descriptive title based on the workflow's apparent purpose
+- DO NOT include any HTML tags or characters that could be interpreted as markup
 """
 
     async def test_api_connection(self):

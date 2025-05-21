@@ -1135,9 +1135,9 @@ def extract_workflow_from_image():
                     "error_type": "not_workflow"
                 }), 400
             
-            # Extract workflow information
+            # Extract workflow information using the new system prompt
             extraction_prompt = [
-                "You are an expert in extracting n8n workflow configurations from screenshots.",
+                workflow_builder.image_extraction_prompt,
                 "Analyze this screenshot of an n8n workflow and create a valid JSON workflow that matches it.",
                 "Include all nodes visible in the workflow with their names, types, positions, and connections.",
                 "For each node, identify the type (e.g., 'HTTP Request', 'Set', 'Function', etc.), position, and connections to other nodes.",
