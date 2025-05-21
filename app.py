@@ -137,244 +137,220 @@ def dashboard():
     selected_category = request.args.get('category')
     search_query = request.args.get('search', '').lower()
     
+    # Start by loading automations from the filesystem
+    base_path = os.path.join(os.path.dirname(__file__), 'automation')
+    
+    # Fetch all workflow ratings at once for efficiency
+    ratings_data = {}
     try:
-        # Build the query to fetch workflows from the database
+        ratings_response = supabase.table('workflow_ratings').select('workflow_id, upvotes, downvotes').execute()
+        if ratings_response.data:
+            for rating in ratings_response.data:
+                ratings_data[rating['workflow_id']] = {
+                    'upvotes': rating['upvotes'], 
+                    'downvotes': rating['downvotes']
+                }
+    except Exception as e:
+        print(f"Error fetching ratings: {str(e)}")
+        # Continue without ratings rather than failing completely
+    
+    # Get all folders and try to sort them numerically if possible
+    folders = os.listdir(base_path)
+    filesystem_automations = []
+    max_folder_id = 0
+    
+    try:
+        # Extract numeric part from folder names (handles both '3-name' and '2653' formats)
+        def extract_numeric(folder_name):
+            match = re.match(r'^(\d+)', folder_name)
+            return int(match.group(1)) if match else float('inf')
+            
+        # Sort folders in ascending order (smallest to largest)
+        folders = sorted(folders, key=extract_numeric)
+        
+        # Find the maximum numeric ID in the filesystem
+        for folder in folders:
+            folder_num = extract_numeric(folder)
+            if folder_num != float('inf') and folder_num > max_folder_id:
+                max_folder_id = folder_num
+    except (ValueError, TypeError):
+        # Fall back to normal sorting if conversion fails
+        folders = sorted(folders)
+        
+    for folder in folders:
+        folder_path = os.path.join(base_path, folder)
+        if os.path.isdir(folder_path):
+            readme_path = os.path.join(folder_path, 'README.md')
+            meta_path = os.path.join(folder_path, 'meta.json')
+            workflow_path = os.path.join(folder_path, 'workflow.json')
+            categories = []
+            # 1. Try meta.json
+            if os.path.exists(meta_path):
+                with open(meta_path, 'r') as mf:
+                    meta = json.load(mf)
+                    categories = meta.get('categories', [])
+                    author = meta.get('author', 'James Utley PhD')  # Use author from meta if available
+            # 2. Try README.md 'Categories:' line
+            elif os.path.exists(readme_path):
+                with open(readme_path, 'r') as f:
+                    lines = f.readlines()
+                    for line in lines:
+                        if line.lower().startswith('categories:'):
+                            categories = [c.strip() for c in line.split(':', 1)[1].split(',')]
+                            break
+            # 3. If still no category, try to infer from README content
+            if not categories and os.path.exists(readme_path):
+                with open(readme_path, 'r') as f:
+                    readme_content = f.read().lower()
+                    found = False
+                    for cat in COMMON_CATEGORIES:
+                        if cat.lower() in readme_content:
+                            categories = [cat]
+                            found = True
+                            break
+                    if not found:
+                        categories = [DEFAULT_CATEGORY]
+            elif not categories:
+                categories = [DEFAULT_CATEGORY]
+            
+            if os.path.exists(readme_path) and os.path.exists(workflow_path):
+                with open(readme_path, 'r') as f:
+                    lines = f.readlines()
+                    title = lines[0].replace('#', '').strip() if lines else folder
+                    description = next((l.strip() for l in lines[1:] if l.strip() and not l.startswith('#')), '')
+                download_url = f'/download_workflow/{folder}'
+                readme_url = f'/readme/{folder}'
+                
+                # Get ratings data for this workflow, defaults to 0 if not rated
+                rating = ratings_data.get(folder, {'upvotes': 0, 'downvotes': 0})
+                
+                automation = {
+                    'id': folder,
+                    'title': title,
+                    'description': description,
+                    'download_url': download_url,
+                    'readme_url': readme_url,
+                    'author': meta.get('author', 'James Utley PhD') if os.path.exists(meta_path) else 'James Utley PhD',
+                    'categories': categories,
+                    'upvotes': rating['upvotes'] or 0,  # Ensure we have 0 instead of None
+                    'downvotes': rating['downvotes'] or 0  # Ensure we have 0 instead of None
+                }
+                
+                # Store the workflow in our temporary list
+                filesystem_automations.append(automation)
+                
+                # Update category counts
+                for cat in categories:
+                    categories_count[cat] = categories_count.get(cat, 0) + 1
+    
+    # Now try to fetch additional (newer) entries from the database
+    try:
+        print(f"Looking for workflows with ID greater than {max_folder_id}")
+        # Only fetch workflows with ID greater than the max we found in the filesystem
         workflows_query = supabase.table('workflows').select(
             'id, slug, title, description, author_name, is_generated, is_submitted, is_extracted, published_date, published'
         ).eq('published', True)
         
-        # Apply category filter if specified
-        if selected_category:
-            # Get workflow IDs for the selected category
-            category_query = supabase.table('workflow_categories') \
-                .select('workflow_id') \
-                .eq('category', selected_category) \
-                .execute()
-                
-            if category_query.data:
-                workflow_ids = [item['workflow_id'] for item in category_query.data]
-                workflows_query = workflows_query.in_('id', workflow_ids)
-            else:
-                # No workflows in this category
-                return render_template('dashboard.html', 
-                    automations=[], 
-                    categories=[], 
-                    selected_category=selected_category,
-                    search_query=search_query)
-                
+        # Add numeric ID comparison - only fetch newer entries
+        if max_folder_id > 0:
+            # Try to get workflow IDs that are greater than our max filesystem ID
+            workflows_query = workflows_query.gte('id', str(max_folder_id + 1))
+            
+        # Apply category filter if specified - we'll do this in memory after fetching
+        # to avoid extra database calls
+        
         # Execute the query
         workflows_response = workflows_query.execute()
         
-        if not workflows_response.data:
-            # No workflows found
-            return render_template('dashboard.html', 
-                automations=[], 
-                categories=[], 
-                selected_category=selected_category,
-                search_query=search_query)
-        
-        # Get all workflow categories for category counts
-        categories_query = supabase.table('workflow_categories') \
-            .select('category, workflow_id') \
-            .execute()
-            
-        if categories_query.data:
-            # Build a dictionary of categories and their counts
-            for cat_item in categories_query.data:
-                cat = cat_item['category']
-                categories_count[cat] = categories_count.get(cat, 0) + 1
-        
-        # Fetch all workflow ratings at once for efficiency
-        ratings_data = {}
-        try:
-            ratings_response = supabase.table('workflow_ratings').select('workflow_id, upvotes, downvotes').execute()
-            if ratings_response.data:
-                for rating in ratings_response.data:
-                    ratings_data[rating['workflow_id']] = {
-                        'upvotes': rating['upvotes'], 
-                        'downvotes': rating['downvotes']
-                    }
-        except Exception as e:
-            print(f"Error fetching ratings: {str(e)}")
-        
-        # Get all categories for each workflow
-        workflow_categories = {}
-        for workflow in workflows_response.data:
-            # Get categories for this workflow
+        if workflows_response.data:
+            # Get all categories for newer workflows
+            workflow_ids = [workflow['id'] for workflow in workflows_response.data]
             wf_categories_query = supabase.table('workflow_categories') \
-                .select('category') \
-                .eq('workflow_id', workflow['id']) \
+                .select('category, workflow_id') \
+                .in_('workflow_id', workflow_ids) \
                 .execute()
             
+            # Group categories by workflow ID
+            workflow_categories = {}
             if wf_categories_query.data:
-                workflow_categories[workflow['id']] = [item['category'] for item in wf_categories_query.data]
-            else:
-                workflow_categories[workflow['id']] = [DEFAULT_CATEGORY]
-        
-        # Process workflows
-        for workflow in workflows_response.data:
-            # Filter by search query if specified
-            if search_query and search_query not in workflow['title'].lower() and search_query not in workflow['description'].lower():
-                continue
+                for cat_item in wf_categories_query.data:
+                    workflow_id = cat_item['workflow_id']
+                    cat = cat_item['category']
+                    if workflow_id not in workflow_categories:
+                        workflow_categories[workflow_id] = []
+                    workflow_categories[workflow_id].append(cat)
+                    categories_count[cat] = categories_count.get(cat, 0) + 1
+            
+            # Process workflows from database
+            for workflow in workflows_response.data:
+                slug = workflow['slug']
                 
-            slug = workflow['slug']
-            download_url = f'/download_workflow/{slug}'
-            readme_url = f'/readme/{slug}'
-            
-            # Get ratings data for this workflow, defaults to 0 if not rated
-            rating = ratings_data.get(slug, {'upvotes': 0, 'downvotes': 0})
-            
-            categories = workflow_categories.get(workflow['id'], [DEFAULT_CATEGORY])
-            
-            automation = {
-                'id': slug,
-                'title': workflow['title'],
-                'description': workflow['description'],
-                'download_url': download_url,
-                'readme_url': readme_url,
-                'author': workflow['author_name'],
-                'categories': categories,
-                'upvotes': rating['upvotes'] or 0,
-                'downvotes': rating['downvotes'] or 0
-            }
-            
-            automations.append(automation)
+                # Get categories for this workflow
+                categories = workflow_categories.get(workflow['id'], [DEFAULT_CATEGORY])
+                
+                # Apply category filter if specified
+                if selected_category and selected_category not in categories:
+                    continue
+                
+                # Filter by search query if specified
+                if search_query and search_query not in workflow['title'].lower() and search_query not in workflow['description'].lower():
+                    continue
+                
+                # Get ratings data for this workflow
+                rating = ratings_data.get(slug, {'upvotes': 0, 'downvotes': 0})
+                
+                automation = {
+                    'id': slug,
+                    'title': workflow['title'],
+                    'description': workflow['description'],
+                    'download_url': f'/download_workflow/{slug}',
+                    'readme_url': f'/readme/{slug}',
+                    'author': workflow['author_name'],
+                    'categories': categories,
+                    'upvotes': rating['upvotes'] or 0,
+                    'downvotes': rating['downvotes'] or 0
+                }
+                
+                filesystem_automations.append(automation)
         
-        # Sort workflows by the numeric part of the slug (to maintain the same order as before)
-        def extract_numeric(automation):
-            match = re.match(r'^(\d+)', automation['id'])
-            return int(match.group(1)) if match else float('inf')
-            
-        automations = sorted(automations, key=extract_numeric)
-        
-        # Create the categories list for the sidebar
-        categories_list = [(cat, categories_count.get(cat, 0)) for cat in COMMON_CATEGORIES if categories_count.get(cat, 0) > 0]
-        
-        # Ensure Uncategorized is always in the list
-        if DEFAULT_CATEGORY not in [cat for cat, _ in categories_list]:
-            categories_list.append((DEFAULT_CATEGORY, 0))
-            
-        categories_list = sorted(categories_list, key=lambda x: (-x[1], x[0]))
-        
-        return render_template('dashboard.html', 
-            automations=automations, 
-            categories=categories_list, 
-            selected_category=selected_category,
-            search_query=search_query)
-    
     except Exception as e:
-        print(f"Error loading workflows from database: {str(e)}")
-        # Fallback to file-based workflow loading if database fails
-        print("Falling back to file-based workflow loading")
-        base_path = os.path.join(os.path.dirname(__file__), 'automation')
-        
-        # Fetch all workflow ratings at once for efficiency
-        ratings_data = {}
-        try:
-            ratings_response = supabase.table('workflow_ratings').select('workflow_id, upvotes, downvotes').execute()
-            if ratings_response.data:
-                for rating in ratings_response.data:
-                    ratings_data[rating['workflow_id']] = {
-                        'upvotes': rating['upvotes'], 
-                        'downvotes': rating['downvotes']
-                    }
-        except Exception as e:
-            print(f"Error fetching ratings: {str(e)}")
-            # Continue without ratings rather than failing completely
-        
-        # Get all folders and try to sort them numerically if possible
-        folders = os.listdir(base_path)
-        try:
-            # Extract numeric part from folder names (handles both '3-name' and '2653' formats)
-            def extract_numeric(folder_name):
-                match = re.match(r'^(\d+)', folder_name)
-                return int(match.group(1)) if match else float('inf')
-                
-            # Sort folders in ascending order (smallest to largest)
-            folders = sorted(folders, key=extract_numeric)
-        except (ValueError, TypeError):
-            # Fall back to normal sorting if conversion fails
-            folders = sorted(folders)
+        print(f"Error loading additional workflows from database: {str(e)}")
+        # Continue with just filesystem automations
+    
+    # Apply filtering to filesystem automations
+    automations = []
+    for automation in filesystem_automations:
+        # Apply category filter if specified
+        if selected_category and selected_category not in automation['categories']:
+            continue
             
-        for folder in folders:
-            folder_path = os.path.join(base_path, folder)
-            if os.path.isdir(folder_path):
-                readme_path = os.path.join(folder_path, 'README.md')
-                meta_path = os.path.join(folder_path, 'meta.json')
-                workflow_path = os.path.join(folder_path, 'workflow.json')
-                categories = []
-                # 1. Try meta.json
-                if os.path.exists(meta_path):
-                    with open(meta_path, 'r') as mf:
-                        meta = json.load(mf)
-                        categories = meta.get('categories', [])
-                        author = meta.get('author', 'James Utley PhD')  # Use author from meta if available
-                # 2. Try README.md 'Categories:' line
-                elif os.path.exists(readme_path):
-                    with open(readme_path, 'r') as f:
-                        lines = f.readlines()
-                        for line in lines:
-                            if line.lower().startswith('categories:'):
-                                categories = [c.strip() for c in line.split(':', 1)[1].split(',')]
-                                break
-                # 3. If still no category, try to infer from README content
-                if not categories and os.path.exists(readme_path):
-                    with open(readme_path, 'r') as f:
-                        readme_content = f.read().lower()
-                        found = False
-                        for cat in COMMON_CATEGORIES:
-                            if cat.lower() in readme_content:
-                                categories = [cat]
-                                found = True
-                                break
-                        if not found:
-                            categories = [DEFAULT_CATEGORY]
-                elif not categories:
-                    categories = [DEFAULT_CATEGORY]
-                if os.path.exists(readme_path) and os.path.exists(workflow_path):
-                    with open(readme_path, 'r') as f:
-                        lines = f.readlines()
-                        title = lines[0].replace('#', '').strip() if lines else folder
-                        description = next((l.strip() for l in lines[1:] if l.strip() and not l.startswith('#')), '')
-                    download_url = f'/download_workflow/{folder}'
-                    readme_url = f'/readme/{folder}'
-                    
-                    # Get ratings data for this workflow, defaults to 0 if not rated
-                    rating = ratings_data.get(folder, {'upvotes': 0, 'downvotes': 0})
-                    
-                    automation = {
-                        'id': folder,
-                        'title': title,
-                        'description': description,
-                        'download_url': download_url,
-                        'readme_url': readme_url,
-                        'author': meta.get('author', 'James Utley PhD') if os.path.exists(meta_path) else 'James Utley PhD',
-                        'categories': categories,
-                        'upvotes': rating['upvotes'] or 0,  # Ensure we have 0 instead of None
-                        'downvotes': rating['downvotes'] or 0  # Ensure we have 0 instead of None
-                    }
-                    # Filter by category
-                    if selected_category and selected_category not in categories:
-                        continue
-                    # Filter by search
-                    if search_query and (search_query not in title.lower() and search_query not in description.lower()):
-                        continue
-                    automations.append(automation)
-                    for cat in categories:
-                        categories_count[cat] = categories_count.get(cat, 0) + 1
-        categories_list = [(cat, categories_count.get(cat, 0)) for cat in COMMON_CATEGORIES if categories_count.get(cat, 0) > 0]
-        
-        # Ensure Uncategorized is always in the list
-        if DEFAULT_CATEGORY not in [cat for cat, _ in categories_list]:
-            categories_list.append((DEFAULT_CATEGORY, 0))
+        # Apply search filter if specified
+        if search_query and search_query not in automation['title'].lower() and search_query not in automation['description'].lower():
+            continue
             
-        categories_list = sorted(categories_list, key=lambda x: (-x[1], x[0]))
+        automations.append(automation)
+    
+    # Sort workflows by the numeric part of the slug (to maintain the same order as before)
+    def extract_numeric(automation):
+        match = re.match(r'^(\d+)', automation['id'])
+        return int(match.group(1)) if match else float('inf')
         
-        return render_template('dashboard.html', 
-            automations=automations, 
-            categories=categories_list, 
-            selected_category=selected_category,
-            search_query=search_query)
+    automations = sorted(automations, key=extract_numeric)
+    
+    # Create the categories list for the sidebar
+    categories_list = [(cat, categories_count.get(cat, 0)) for cat in COMMON_CATEGORIES if categories_count.get(cat, 0) > 0]
+    
+    # Ensure Uncategorized is always in the list
+    if DEFAULT_CATEGORY not in [cat for cat, _ in categories_list]:
+        categories_list.append((DEFAULT_CATEGORY, 0))
+        
+    categories_list = sorted(categories_list, key=lambda x: (-x[1], x[0]))
+    
+    return render_template('dashboard.html', 
+        automations=automations, 
+        categories=categories_list, 
+        selected_category=selected_category,
+        search_query=search_query)
 
 @app.route('/download_workflow/<workflow_folder>')
 def download_workflow(workflow_folder):
