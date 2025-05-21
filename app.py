@@ -412,53 +412,89 @@ def dashboard():
 
 @app.route('/download_workflow/<workflow_folder>')
 def download_workflow(workflow_folder):
-    # Always try filesystem first for better performance
-    base_path = os.path.join(os.path.dirname(__file__), 'automation')
-    workflow_path = os.path.join(base_path, workflow_folder, 'workflow.json')
-    
-    if os.path.exists(workflow_path):
-        print(f"Serving workflow from filesystem: {workflow_folder}")
-        return send_file(workflow_path, as_attachment=True, download_name=f"{workflow_folder}.json")
-        
-    # Fallback to database if not found in filesystem
+    """Download a workflow JSON file"""
     try:
-        print(f"Workflow not found in filesystem, checking database: {workflow_folder}")
-        # Try to get workflow from database
-        workflow_response = supabase.table('workflows') \
-            .select('json_content') \
-            .eq('slug', workflow_folder) \
-            .single() \
-            .execute()
+        # Sanitize the workflow_folder to prevent path traversal attacks
+        workflow_folder = secure_filename(workflow_folder)
         
-        if workflow_response.data:
-            # Get workflow from database
-            workflow_json = workflow_response.data['json_content']
-            
-            # Update download count
+        # Always try filesystem first for better performance
+        base_path = os.path.join(os.path.dirname(__file__), 'automation')
+        workflow_path = os.path.join(base_path, workflow_folder, 'workflow.json')
+        
+        if os.path.exists(workflow_path):
             try:
-                supabase.table('workflows') \
-                    .update({'downloads': supabase.table('workflows').select('downloads').eq('slug', workflow_folder).single().execute().data['downloads'] + 1}) \
-                    .eq('slug', workflow_folder) \
-                    .execute()
-            except Exception as e:
-                print(f"Error updating download count: {str(e)}")
+                print(f"Serving workflow from filesystem: {workflow_folder}")
+                return send_file(workflow_path, 
+                                 as_attachment=True, 
+                                 download_name=f"{workflow_folder}.json",
+                                 mimetype='application/json')
+            except Exception as file_error:
+                print(f"Error sending workflow file: {str(file_error)}")
+                return jsonify({
+                    "success": False,
+                    "error": f"Error sending workflow file: {str(file_error)}"
+                }), 500
                 
-            # Create a temporary in-memory file
-            json_str = json.dumps(workflow_json, indent=2)
+        # Fallback to database if not found in filesystem
+        try:
+            print(f"Workflow not found in filesystem, checking database: {workflow_folder}")
+            # Try to get workflow from database
+            workflow_response = supabase.table('workflows') \
+                .select('json_content') \
+                .eq('slug', workflow_folder) \
+                .single() \
+                .execute()
             
-            return send_file(
-                io.BytesIO(json_str.encode('utf-8')),
-                mimetype='application/json',
-                as_attachment=True,
-                download_name=f"{workflow_folder}.json"
-            )
-            
-        # If we get here, the workflow was not found in either location
-        print(f"Workflow not found in database either: {workflow_folder}")
-        return 'Workflow not found', 404
-    except Exception as e:
-        print(f"Error fetching workflow from database: {str(e)}")
-        return 'Error retrieving workflow', 500
+            if workflow_response.data and 'json_content' in workflow_response.data:
+                # Get workflow from database
+                workflow_json = workflow_response.data['json_content']
+                
+                # Update download count
+                try:
+                    supabase.table('workflows') \
+                        .update({'downloads': supabase.table('workflows').select('downloads').eq('slug', workflow_folder).single().execute().data['downloads'] + 1}) \
+                        .eq('slug', workflow_folder) \
+                        .execute()
+                except Exception as update_error:
+                    print(f"Error updating download count: {str(update_error)}")
+                    # Continue without failing if download count update fails
+                    
+                # Create a temporary in-memory file
+                try:
+                    json_str = json.dumps(workflow_json, indent=2)
+                    
+                    return send_file(
+                        io.BytesIO(json_str.encode('utf-8')),
+                        mimetype='application/json',
+                        as_attachment=True,
+                        download_name=f"{workflow_folder}.json"
+                    )
+                except Exception as json_error:
+                    print(f"Error creating workflow JSON download: {str(json_error)}")
+                    return jsonify({
+                        "success": False,
+                        "error": f"Error creating workflow download: {str(json_error)}"
+                    }), 500
+                
+            # If we get here, the workflow was not found in either location
+            print(f"Workflow not found in database either: {workflow_folder}")
+            return jsonify({
+                "success": False,
+                "error": "Workflow not found"
+            }), 404
+        except Exception as db_error:
+            print(f"Error fetching workflow from database: {str(db_error)}")
+            return jsonify({
+                "success": False,
+                "error": f"Error retrieving workflow from database: {str(db_error)}"
+            }), 500
+    except Exception as general_error:
+        print(f"Unexpected error in download_workflow: {str(general_error)}")
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "error": f"Unexpected error: {str(general_error)}"
+        }), 500
 
 @app.route('/add', methods=['GET', 'POST'])
 @requires_auth
@@ -698,15 +734,44 @@ def generate_workflow():
 @app.route('/api/workflow-readme/<workflow_folder>', methods=['GET'])
 def get_workflow_readme(workflow_folder):
     """Get README content for a workflow"""
-    base_path = os.path.join(os.path.dirname(__file__), 'automation')
-    readme_path = os.path.join(base_path, workflow_folder, 'README.md')
-    
-    if os.path.exists(readme_path):
-        with open(readme_path, 'r') as f:
-            content = f.read()
-        return jsonify({"success": True, "readme": content})
-    
-    return jsonify({"success": False, "error": "README not found"}), 404
+    try:
+        # Sanitize the workflow_folder to prevent path traversal attacks
+        workflow_folder = secure_filename(workflow_folder)
+        
+        base_path = os.path.join(os.path.dirname(__file__), 'automation')
+        readme_path = os.path.join(base_path, workflow_folder, 'README.md')
+        
+        if os.path.exists(readme_path):
+            try:
+                with open(readme_path, 'r') as f:
+                    content = f.read()
+                return jsonify({"success": True, "readme": content})
+            except Exception as file_error:
+                error_message = f"Error reading README file: {str(file_error)}"
+                print(error_message)
+                return jsonify({"success": False, "error": error_message}), 500
+        
+        # If not found in filesystem, try the database
+        try:
+            readme_response = supabase.table('workflows') \
+                .select('readme_content') \
+                .eq('slug', workflow_folder) \
+                .single() \
+                .execute()
+            
+            if readme_response.data and 'readme_content' in readme_response.data:
+                return jsonify({"success": True, "readme": readme_response.data['readme_content']})
+        except Exception as db_error:
+            error_message = f"Error querying database for README: {str(db_error)}"
+            print(error_message)
+            # Continue to return the standard not found error
+        
+        return jsonify({"success": False, "error": "README not found"}), 404
+    except Exception as general_error:
+        error_message = f"Error retrieving README: {str(general_error)}"
+        print(error_message)
+        traceback.print_exc()
+        return jsonify({"success": False, "error": error_message}), 500
 
 @app.route('/api/test-gemini', methods=['GET'])
 def test_gemini_api():
@@ -978,16 +1043,23 @@ def extract_workflow_from_image():
             }), 400
             
         # Read the image file
-        img = Image.open(screenshot_file)
-        
-        # Convert the image to RGB mode if it's not already
-        if img.mode != 'RGB':
-            img = img.convert('RGB')
+        try:
+            img = Image.open(screenshot_file)
             
-        # Save image to buffer
-        img_byte_arr = io.BytesIO()
-        img.save(img_byte_arr, format='JPEG')
-        img_byte_arr.seek(0)
+            # Convert the image to RGB mode if it's not already
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+                
+            # Save image to buffer
+            img_byte_arr = io.BytesIO()
+            img.save(img_byte_arr, format='JPEG')
+            img_byte_arr.seek(0)
+        except Exception as img_error:
+            return jsonify({
+                "success": False,
+                "error": f"Error processing image: {str(img_error)}",
+                "error_type": "image_processing_error"
+            }), 400
         
         # Convert to base64 for Gemini
         encoded_img = base64.b64encode(img_byte_arr.getvalue()).decode('ascii')
@@ -995,7 +1067,14 @@ def extract_workflow_from_image():
         
         # Configure Gemini model for image analysis
         if GEMINI_API_KEY:
-            genai.configure(api_key=GEMINI_API_KEY)
+            try:
+                genai.configure(api_key=GEMINI_API_KEY)
+            except Exception as config_error:
+                return jsonify({
+                    "success": False,
+                    "error": f"Error configuring Gemini API: {str(config_error)}",
+                    "error_type": "api_config_error"
+                }), 500
         else:
             return jsonify({
                 "success": False,
@@ -1004,40 +1083,47 @@ def extract_workflow_from_image():
             }), 500
         
         # Use Gemini Pro Vision to analyze the image
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        
-        # First, check if this is actually an n8n workflow
-        validation_prompt = [
-            "Analyze this image and determine if it contains an n8n workflow diagram.",
-            "An n8n workflow typically has connected nodes with labels for different operations.",
-            "Respond with ONLY 'YES' if it's an n8n workflow or 'NO' if it's not.",
-            {"mime_type": mime_type, "data": encoded_img}
-        ]
-        
-        validation_response = model.generate_content(validation_prompt)
-        validation_text = validation_response.text.strip().upper()
-        
-        if validation_text != "YES":
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            
+            # First, check if this is actually an n8n workflow
+            validation_prompt = [
+                "Analyze this image and determine if it contains an n8n workflow diagram.",
+                "An n8n workflow typically has connected nodes with labels for different operations.",
+                "Respond with ONLY 'YES' if it's an n8n workflow or 'NO' if it's not.",
+                {"mime_type": mime_type, "data": encoded_img}
+            ]
+            
+            validation_response = model.generate_content(validation_prompt)
+            validation_text = validation_response.text.strip().upper()
+            
+            if validation_text != "YES":
+                return jsonify({
+                    "success": False,
+                    "error": "The uploaded image does not appear to be an n8n workflow.",
+                    "error_type": "not_workflow"
+                }), 400
+            
+            # Extract workflow information
+            extraction_prompt = [
+                "You are an expert in extracting n8n workflow configurations from screenshots.",
+                "Analyze this screenshot of an n8n workflow and create a valid JSON workflow that matches it.",
+                "Include all nodes visible in the workflow with their names, types, positions, and connections.",
+                "For each node, identify the type (e.g., 'HTTP Request', 'Set', 'Function', etc.), position, and connections to other nodes.",
+                "Follow the exact n8n format for workflow JSON:",
+                "{\n  \"name\": \"Extracted Workflow\",\n  \"nodes\": [\n    {\"id\": \"1\", \"name\": \"Start\", \"type\": \"n8n-nodes-base.start\", \"position\": [x, y], ...},\n    ...\n  ],\n  \"connections\": {\"Node1\": {\"main\": [[{\"node\": \"Node2\", \"type\": \"main\", \"index\": 0}]]}}\n}",
+                "Respond with ONLY the valid JSON. No explanations or markdown formatting.",
+                {"mime_type": mime_type, "data": encoded_img}
+            ]
+            
+            extraction_response = model.generate_content(extraction_prompt)
+            extraction_text = extraction_response.text.strip()
+        except Exception as api_error:
             return jsonify({
                 "success": False,
-                "error": "The uploaded image does not appear to be an n8n workflow.",
-                "error_type": "not_workflow"
-            }), 400
-        
-        # Extract workflow information
-        extraction_prompt = [
-            "You are an expert in extracting n8n workflow configurations from screenshots.",
-            "Analyze this screenshot of an n8n workflow and create a valid JSON workflow that matches it.",
-            "Include all nodes visible in the workflow with their names, types, positions, and connections.",
-            "For each node, identify the type (e.g., 'HTTP Request', 'Set', 'Function', etc.), position, and connections to other nodes.",
-            "Follow the exact n8n format for workflow JSON:",
-            "{\n  \"name\": \"Extracted Workflow\",\n  \"nodes\": [\n    {\"id\": \"1\", \"name\": \"Start\", \"type\": \"n8n-nodes-base.start\", \"position\": [x, y], ...},\n    ...\n  ],\n  \"connections\": {\"Node1\": {\"main\": [[{\"node\": \"Node2\", \"type\": \"main\", \"index\": 0}]]}}\n}",
-            "Respond with ONLY the valid JSON. No explanations or markdown formatting.",
-            {"mime_type": mime_type, "data": encoded_img}
-        ]
-        
-        extraction_response = model.generate_content(extraction_prompt)
-        extraction_text = extraction_response.text.strip()
+                "error": f"Error calling Gemini API: {str(api_error)}",
+                "error_type": "api_call_error"
+            }), 500
         
         # Try to extract JSON from the response
         try:
@@ -1103,6 +1189,18 @@ def extract_workflow_from_image():
                     else:
                         workflow_json["name"] = "Multi-Step Automation Workflow"
                 
+                # Sanitize JSON to remove any potential HTML content
+                try:
+                    workflow_json_str = json.dumps(workflow_json)
+                    if '<' in workflow_json_str or '>' in workflow_json_str:
+                        print("Potential HTML content found in extracted workflow, sanitizing")
+                        # Additional sanitization for HTML content
+                        workflow_json_str = workflow_json_str.replace('<', '&lt;').replace('>', '&gt;')
+                        # Parse it back into a Python object
+                        workflow_json = json.loads(workflow_json_str)
+                except Exception as sanitize_error:
+                    print(f"Warning during JSON sanitization: {str(sanitize_error)}")
+                
                 # Create a directory name for the workflow
                 base_path = os.path.join(os.path.dirname(__file__), 'automation')
                 
@@ -1110,80 +1208,102 @@ def extract_workflow_from_image():
                 os.makedirs(base_path, exist_ok=True)
                 
                 # Generate a unique ID for this extraction
-                existing_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
-                highest_num = 0
-                for dir_name in existing_dirs:
-                    match = re.match(r'^(\d+)', dir_name)
-                    if match:
-                        num = int(match.group(1))
-                        highest_num = max(highest_num, num)
-                
-                new_num = highest_num + 1
-                dir_name = f"{new_num}-extracted-workflow-{uuid.uuid4().hex[:8]}"
+                try:
+                    existing_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
+                    highest_num = 0
+                    for dir_name in existing_dirs:
+                        match = re.match(r'^(\d+)', dir_name)
+                        if match:
+                            num = int(match.group(1))
+                            highest_num = max(highest_num, num)
+                    
+                    new_num = highest_num + 1
+                    dir_name = f"{new_num}-extracted-workflow-{uuid.uuid4().hex[:8]}"
+                except Exception as dir_error:
+                    return jsonify({
+                        "success": False,
+                        "error": f"Error creating directory name: {str(dir_error)}",
+                        "error_type": "directory_error"
+                    }), 500
                 
                 # Generate an informative README
-                workflow_name = workflow_json.get('name', 'Extracted Workflow')
-                readme_content = f"# {workflow_name}\n\n"
-                readme_content += f"Categories: AI, Extracted\n\n"
-                readme_content += f"This workflow was extracted from a screenshot using AI recognition technology. It provides an automation solution for {workflow_name.lower().replace(' workflow', '')}.\n\n"
-                
-                # Count nodes by type
-                node_types = {}
-                for node in workflow_json.get('nodes', []):
-                    node_type = node.get('type', '').replace('n8n-nodes-base.', '')
-                    if node_type not in node_types:
-                        node_types[node_type] = []
-                    node_types[node_type].append(node.get('name', node_type))
-                
-                if node_types:
-                    readme_content += "## Technical Details\n\n"
-                    readme_content += f"This workflow consists of {len(workflow_json.get('nodes', []))} nodes that work together to automate your process. Here's what it uses:\n\n"
-                    for node_type, nodes in node_types.items():
-                        node_names = ", ".join(nodes)
-                        readme_content += f"- {node_type}: {node_names}\n"
-                    readme_content += "\n"
-                
-                # Add import instructions
-                readme_content += "## Usage\n\n"
-                readme_content += "1. Download the workflow JSON file\n"
-                readme_content += "2. Import it into your n8n instance\n"
-                readme_content += "3. Review and adjust the workflow as needed\n"
-                readme_content += "4. Activate and test the workflow\n\n"
-                
-                # Add a note about extraction
-                readme_content += "## Note\n\n"
-                readme_content += "This workflow was automatically extracted from a screenshot. While we've made every effort to accurately recreate it, some configuration details might need manual adjustment.\n"
+                try:
+                    workflow_name = workflow_json.get('name', 'Extracted Workflow')
+                    readme_content = f"# {workflow_name}\n\n"
+                    readme_content += f"Categories: AI, Extracted\n\n"
+                    readme_content += f"This workflow was extracted from a screenshot using AI recognition technology. It provides an automation solution for {workflow_name.lower().replace(' workflow', '')}.\n\n"
+                    
+                    # Count nodes by type
+                    node_types = {}
+                    for node in workflow_json.get('nodes', []):
+                        node_type = node.get('type', '').replace('n8n-nodes-base.', '')
+                        if node_type not in node_types:
+                            node_types[node_type] = []
+                        node_types[node_type].append(node.get('name', node_type))
+                    
+                    if node_types:
+                        readme_content += "## Technical Details\n\n"
+                        readme_content += f"This workflow consists of {len(workflow_json.get('nodes', []))} nodes that work together to automate your process. Here's what it uses:\n\n"
+                        for node_type, nodes in node_types.items():
+                            node_names = ", ".join(nodes)
+                            readme_content += f"- {node_type}: {node_names}\n"
+                        readme_content += "\n"
+                    
+                    # Add import instructions
+                    readme_content += "## Usage\n\n"
+                    readme_content += "1. Download the workflow JSON file\n"
+                    readme_content += "2. Import it into your n8n instance\n"
+                    readme_content += "3. Review and adjust the workflow as needed\n"
+                    readme_content += "4. Activate and test the workflow\n\n"
+                    
+                    # Add a note about extraction
+                    readme_content += "## Note\n\n"
+                    readme_content += "This workflow was automatically extracted from a screenshot. While we've made every effort to accurately recreate it, some configuration details might need manual adjustment.\n"
+                except Exception as readme_error:
+                    print(f"Error generating README: {str(readme_error)}")
+                    readme_content = f"# Extracted Workflow\n\nThis workflow was extracted from a screenshot using AI technology."
                 
                 # Save the files
-                folder_path = os.path.join(base_path, dir_name)
-                os.makedirs(folder_path, exist_ok=True)
-                
-                # Save workflow.json
-                workflow_path = os.path.join(folder_path, 'workflow.json')
-                with open(workflow_path, 'w') as f:
-                    json.dump(workflow_json, f, indent=2)
-                
-                # Save README.md
-                readme_path = os.path.join(folder_path, 'README.md')
-                with open(readme_path, 'w') as f:
-                    f.write(readme_content)
-                
-                # Save meta.json
-                meta_path = os.path.join(folder_path, 'meta.json')
-                meta_data = {
-                    "categories": ["AI", "Extracted"],
-                    "generated": False,
-                    "extracted": True,
-                    "extraction_date": datetime.datetime.now().isoformat(),
-                    "summary": "Workflow extracted from screenshot",
-                    "published": False
-                }
-                
-                with open(meta_path, 'w') as f:
-                    json.dump(meta_data, f, indent=2)
+                try:
+                    folder_path = os.path.join(base_path, dir_name)
+                    os.makedirs(folder_path, exist_ok=True)
+                    
+                    # Save workflow.json
+                    workflow_path = os.path.join(folder_path, 'workflow.json')
+                    with open(workflow_path, 'w') as f:
+                        json.dump(workflow_json, f, indent=2)
+                    
+                    # Save README.md
+                    readme_path = os.path.join(folder_path, 'README.md')
+                    with open(readme_path, 'w') as f:
+                        f.write(readme_content)
+                    
+                    # Save meta.json
+                    meta_path = os.path.join(folder_path, 'meta.json')
+                    meta_data = {
+                        "categories": ["AI", "Extracted"],
+                        "generated": False,
+                        "extracted": True,
+                        "extraction_date": datetime.datetime.now().isoformat(),
+                        "summary": "Workflow extracted from screenshot",
+                        "published": False
+                    }
+                    
+                    with open(meta_path, 'w') as f:
+                        json.dump(meta_data, f, indent=2)
+                except Exception as save_error:
+                    return jsonify({
+                        "success": False,
+                        "error": f"Error saving workflow files: {str(save_error)}",
+                        "error_type": "file_save_error"
+                    }), 500
                 
                 # Sync the workflow to the database
-                sync_workflow_immediately(dir_name)
+                try:
+                    sync_workflow_immediately(dir_name)
+                except Exception as sync_error:
+                    print(f"Warning: Failed to sync workflow to database: {str(sync_error)}")
+                    # Continue even if sync fails
                 
                 return jsonify({
                     "success": True,
@@ -1198,22 +1318,24 @@ def extract_workflow_from_image():
                     "error": "Could not extract valid workflow JSON from the image",
                     "error_type": "extraction_failed"
                 }), 400
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError as json_error:
             return jsonify({
                 "success": False,
-                "error": f"Invalid JSON format: {str(e)}",
+                "error": f"Invalid JSON format: {str(json_error)}",
                 "error_type": "invalid_json"
             }), 400
-        except Exception as e:
+        except Exception as processing_error:
             return jsonify({
                 "success": False,
-                "error": f"Error processing workflow: {str(e)}",
+                "error": f"Error processing workflow: {str(processing_error)}",
                 "error_type": "processing_error"
             }), 500
-    except Exception as e:
+    except Exception as general_error:
+        print(f"Error processing image extraction request: {str(general_error)}")
+        traceback.print_exc()
         return jsonify({
             "success": False,
-            "error": f"Error processing image: {str(e)}",
+            "error": f"Error processing image: {str(general_error)}",
             "error_type": "general_error"
         }), 500
 
