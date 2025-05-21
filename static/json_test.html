@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JSON Display Test</title>
+    <style>
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-case {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JSON Display Test</h1>
+        
+        <div class="test-case">
+            <h2>Original JSON with HTML entities</h2>
+            <pre id="original-json">{
+  &quot;name&quot;: &quot;Test Workflow&quot;,
+  &quot;nodes&quot;: [
+    {
+      &quot;id&quot;: &quot;1&quot;,
+      &quot;name&quot;: &quot;Start&quot;,
+      &quot;type&quot;: &quot;n8n-nodes-base.start&quot;
+    }
+  ]
+}</pre>
+        </div>
+        
+        <div class="test-case">
+            <h2>JSON using textContent</h2>
+            <pre id="text-content-json"></pre>
+        </div>
+        
+        <div class="test-case">
+            <h2>JSON using safeDisplayJson + innerHTML</h2>
+            <pre id="safe-display-json"></pre>
+        </div>
+        
+        <div class="test-case">
+            <h2>JSON using html.unescape + textContent</h2>
+            <pre id="unescaped-json"></pre>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Original JSON with HTML entities
+            const originalJson = document.getElementById('original-json').textContent;
+            
+            // Display using textContent (will display exactly as is, with HTML entities)
+            document.getElementById('text-content-json').textContent = originalJson;
+            
+            // Create a safeDisplayJson function
+            function safeDisplayJson(jsonText) {
+                try {
+                    // Replace HTML entities with their character equivalents
+                    const unescaped = jsonText
+                        .replace(/&quot;/g, '"')
+                        .replace(/&amp;/g, '&')
+                        .replace(/&lt;/g, '<')
+                        .replace(/&gt;/g, '>')
+                        .replace(/&#039;/g, "'");
+                        
+                    // Now escape only dangerous HTML tags but not quotes
+                    return unescaped
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
+                } catch (error) {
+                    console.error("Error in safeDisplayJson:", error);
+                    return "Error processing JSON";
+                }
+            }
+            
+            // Display using our safeDisplayJson function and innerHTML
+            document.getElementById('safe-display-json').innerHTML = safeDisplayJson(originalJson);
+            
+            // HTML unescape helper (simplified version)
+            function htmlUnescape(text) {
+                const textarea = document.createElement('textarea');
+                textarea.innerHTML = text;
+                return textarea.value;
+            }
+            
+            // Display using html.unescape and textContent
+            document.getElementById('unescaped-json').textContent = htmlUnescape(originalJson);
+        });
+    </script>
+</body>
+</html> 
