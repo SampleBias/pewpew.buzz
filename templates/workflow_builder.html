@@ -354,6 +354,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: formData
             });
             
+            // First check if the request was successful at all
+            if (!response.ok) {
+                const statusText = response.statusText || "Unknown error";
+                console.error(`Server error: ${response.status} ${statusText}`);
+                
+                // Show a user-friendly error message
+                let errorMessage = `Server error (${response.status}): `;
+                if (response.status === 500) {
+                    errorMessage += "The server encountered an internal error. Please try again later.";
+                } else if (response.status === 503) {
+                    errorMessage += "The service is temporarily unavailable. Please try again later.";
+                } else if (response.status === 504) {
+                    errorMessage += "Request timeout - the server took too long to respond.";
+                } else {
+                    errorMessage += statusText;
+                }
+                
+                safeSetHTML(resultMessage, `<div class="text-red-400">${errorMessage}</div>`);
+                
+                // Try to show more details if available
+                try {
+                    const errorText = await response.text();
+                    if (errorText.includes("<!DOCTYPE html>")) {
+                        // HTML error page - extract meaningful content if possible
+                        const titleMatch = errorText.match(/<title>(.*?)<\/title>/i);
+                        if (titleMatch && titleMatch[1]) {
+                            safeSetHTML(resultMessage, `<div class="text-red-400">${errorMessage}<br>Details: ${titleMatch[1]}</div>`);
+                        }
+                        
+                        console.error("Server returned HTML error page:", errorText.substring(0, 500));
+                        jsonResult.textContent = "Server returned an error page instead of workflow data.";
+                    } else {
+                        // Plain text or other format
+                        jsonResult.textContent = errorText.substring(0, 500);
+                    }
+                } catch (textError) {
+                    console.error("Could not read error response:", textError);
+                }
+                
+                jsonError.classList.remove('hidden');
+                resultSection.classList.remove('hidden');
+                extractWorkflowBtn.disabled = false;
+                extractSpinner.classList.add('hidden');
+                return;
+            }
+            
             // Check if the response is valid JSON
             const contentType = response.headers.get('content-type');
             let data;
@@ -364,8 +410,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error("Server returned non-JSON response:", textData);
                 
                 // Show error with raw text content
-                safeSetHTML(resultMessage, `<div class="text-red-400">Server returned non-JSON response</div>`);
-                jsonResult.textContent = textData;
+                safeSetHTML(resultMessage, `<div class="text-red-400">Server returned a non-JSON response</div>`);
+                
+                // Check if it's an HTML page and extract meaningful content if possible
+                if (textData.includes("<!DOCTYPE html>")) {
+                    const titleMatch = textData.match(/<title>(.*?)<\/title>/i);
+                    if (titleMatch && titleMatch[1]) {
+                        safeSetHTML(resultMessage, `<div class="text-red-400">Server error: ${titleMatch[1]}</div>`);
+                    }
+                    
+                    // Extract body content if possible for more details
+                    const bodyMatch = textData.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+                    if (bodyMatch && bodyMatch[1]) {
+                        const bodyText = bodyMatch[1].replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                        if (bodyText) {
+                            jsonResult.textContent = `Error details: ${bodyText.substring(0, 500)}`;
+                        } else {
+                            jsonResult.textContent = textData.substring(0, 500);
+                        }
+                    } else {
+                        jsonResult.textContent = textData.substring(0, 500);
+                    }
+                } else {
+                    jsonResult.textContent = textData.substring(0, 500);
+                }
+                
                 jsonError.classList.remove('hidden');
                 resultSection.classList.remove('hidden');
                 
@@ -375,8 +444,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Parse as JSON
-            data = await response.json();
+            try {
+                // Parse as JSON
+                data = await response.json();
+            } catch (jsonParseError) {
+                console.error("Failed to parse JSON response:", jsonParseError);
+                safeSetHTML(resultMessage, `<div class="text-red-400">Failed to parse server response as JSON</div>`);
+                // Show the raw response for debugging
+                const rawText = await response.text();
+                jsonResult.textContent = rawText.substring(0, 1000);
+                jsonError.classList.remove('hidden');
+                resultSection.classList.remove('hidden');
+                extractWorkflowBtn.disabled = false;
+                extractSpinner.classList.add('hidden');
+                return;
+            }
             
             if (data.success) {
                 // Store the workflow data
@@ -395,6 +477,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     // First try using the safe function
                     const safeJsonContent = safeDisplayJson(data.workflow);
                     jsonResult.textContent = safeJsonContent;
+                    // Hide any previous error messages
+                    jsonError.classList.add('hidden');
                 } catch (jsonError) {
                     // If that fails, use a more aggressive approach
                     console.error("Error with safeDisplayJson, using fallback:", jsonError);
@@ -402,22 +486,34 @@ document.addEventListener('DOMContentLoaded', function() {
                         // As a fallback, stringify and use textContent directly
                         const basicJsonString = JSON.stringify(data.workflow, null, 2);
                         jsonResult.textContent = basicJsonString;
+                        // Hide any previous error messages
+                        jsonError.classList.add('hidden');
                     } catch (fallbackError) {
                         // Last resort - simple error message
                         console.error("Complete JSON display failure:", fallbackError);
                         jsonResult.textContent = "Error displaying workflow JSON. Please try downloading the workflow instead.";
                         // Show the error message
-                        document.getElementById('jsonError').classList.remove('hidden');
+                        jsonError.classList.remove('hidden');
                     }
                 }
                 
-                // Set up download link
-                downloadLink.href = `/download_workflow/${data.path}`;
-                currentWorkflowPath = data.path;
+                // Set up download link with proper URL
+                const downloadPath = data.path || "";
+                if (downloadPath) {
+                    downloadLink.href = `/download_workflow/${downloadPath}`;
+                    downloadLink.classList.remove('hidden');
+                    currentWorkflowPath = downloadPath;
+                } else {
+                    downloadLink.classList.add('hidden');
+                    console.error("No valid path for download link");
+                }
                 
                 // Store README if available
                 if (data.readme) {
                     currentReadmeHtml = data.readme;
+                    viewDetails.classList.remove('hidden');
+                } else {
+                    viewDetails.classList.add('hidden');
                 }
                 
                 // Reset publication options
@@ -430,12 +526,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 publishDetails.classList.add('hidden');
                 
-                workflowCategory.selectedIndex = -1;
-                publishBtn.disabled = false;
-                publishBtn.innerHTML = '<span>Publish to Gallery</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>';
-                publishBtn.classList.remove('bg-green-600');
-                publishBtn.classList.add('bg-gradient-to-r', 'from-pink-500', 'to-purple-500', 'hover:from-pink-400', 'hover:to-purple-400');
-                
                 // Make sure the publish section is visible
                 document.querySelector('.mb-6.p-4.border-2.border-pink-400.border-dashed').classList.remove('hidden');
 
@@ -443,6 +533,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 publishRadios.forEach(radio => {
                     radio.disabled = false;
                 });
+                
+                // Reset publish button
+                publishBtn.disabled = false;
+                publishBtn.innerHTML = '<span>Publish to Gallery</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>';
+                publishBtn.classList.remove('bg-green-600');
+                publishBtn.classList.add('bg-gradient-to-r', 'from-pink-500', 'to-purple-500', 'hover:from-pink-400', 'hover:to-purple-400');
                 
                 resultSection.classList.remove('hidden');
             } else {
@@ -453,14 +549,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.error_type === 'not_workflow') {
                     alert('The uploaded image does not appear to be an n8n workflow. Please upload a clear screenshot of an n8n workflow.');
                 }
+                
+                // Make sure error message is visible
+                jsonError.classList.remove('hidden');
             }
         } catch (error) {
             console.error('Error:', error);
             safeSetHTML(resultMessage, `<div class="text-red-400">An unexpected error occurred: ${error.message}</div>`);
             resultSection.classList.remove('hidden');
-            // Hide JSON display errors in case of API failure
-            jsonResult.textContent = "";
-            jsonError.classList.add('hidden');
+            // Show error with helpful message
+            jsonResult.textContent = "Failed to communicate with the server. Please try again later.";
+            jsonError.classList.remove('hidden');
         } finally {
             // Reset button state
             extractWorkflowBtn.disabled = false;
@@ -553,10 +652,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show/hide modal
     viewDetails.addEventListener('click', function() {
         if (currentReadmeHtml) {
-            readmeContent.innerHTML = formatReadme(currentReadmeHtml);
-            readmeModal.classList.remove('hidden');
+            try {
+                const formattedReadme = formatReadme(currentReadmeHtml);
+                safeSetHTML(readmeContent, formattedReadme);
+                readmeModal.classList.remove('hidden');
+            } catch (error) {
+                console.error("Error formatting README:", error);
+                safeSetHTML(readmeContent, "<p class='text-red-400'>Error formatting README content</p>");
+                readmeModal.classList.remove('hidden');
+            }
         } else if (currentWorkflowPath) {
             fetchReadme(currentWorkflowPath);
+        } else {
+            alert('No workflow details available');
         }
     });
     
@@ -574,6 +682,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Format README markdown as HTML
     function formatReadme(markdown) {
         try {
+            if (!markdown || typeof markdown !== 'string') {
+                return "<p class='text-red-400'>No README content available</p>";
+            }
+            
             // Escape markdown text first to prevent any HTML injection
             const safeMarkdown = markdown
                 .replace(/&/g, '&amp;')
@@ -602,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return match.replace(/\n(?!<\/ul>)/g, '');
                 });
 
-            return formatted;
+            return formatted || "<p class='text-white'>No additional details available</p>";
         } catch (error) {
             console.error("Error formatting README:", error);
             return "<p class='text-red-400'>Error displaying README content</p>";
@@ -611,20 +723,38 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Fetch README from server
     function fetchReadme(workflowPath) {
+        // Show loading indicator
+        safeSetHTML(readmeContent, "<p class='text-white'>Loading workflow details...</p>");
+        readmeModal.classList.remove('hidden');
+        
         fetch(`/api/workflow-readme/${workflowPath}`)
-            .then(response => response.json())
+            .then(response => {
+                // Check if response is OK first
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+                
+                // Check content type
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    return response.text().then(text => {
+                        throw new Error('Server returned non-JSON response: ' + (text.substring(0, 100) + '...'));
+                    });
+                }
+                
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     currentReadmeHtml = data.readme;
                     safeSetHTML(readmeContent, formatReadme(data.readme));
-                    readmeModal.classList.remove('hidden');
                 } else {
-                    alert('Could not load workflow details: ' + (data.error || 'Unknown error'));
+                    throw new Error(data.error || 'Unknown error');
                 }
             })
             .catch(error => {
                 console.error('Error fetching README:', error);
-                alert('Error loading workflow details');
+                safeSetHTML(readmeContent, `<p class='text-red-400'>Error loading workflow details: ${error.message}</p>`);
             });
     }
     
@@ -670,6 +800,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 }),
             });
             
+            // First check if the request was successful at all
+            if (!response.ok) {
+                const statusText = response.statusText || "Unknown error";
+                console.error(`Server error: ${response.status} ${statusText}`);
+                
+                // Show a user-friendly error message
+                let errorMessage = `Server error (${response.status}): `;
+                if (response.status === 500) {
+                    errorMessage += "The server encountered an internal error. Please try again later.";
+                } else if (response.status === 503) {
+                    errorMessage += "The service is temporarily unavailable. Please try again later.";
+                } else if (response.status === 504) {
+                    errorMessage += "Request timeout - the server took too long to respond.";
+                } else {
+                    errorMessage += statusText;
+                }
+                
+                safeSetHTML(resultMessage, `<div class="text-red-400">${errorMessage}</div>`);
+                
+                // Try to show more details if available
+                try {
+                    const errorText = await response.text();
+                    if (errorText.includes("<!DOCTYPE html>")) {
+                        // HTML error page - extract meaningful content if possible
+                        const titleMatch = errorText.match(/<title>(.*?)<\/title>/i);
+                        if (titleMatch && titleMatch[1]) {
+                            safeSetHTML(resultMessage, `<div class="text-red-400">${errorMessage}<br>Details: ${titleMatch[1]}</div>`);
+                        }
+                        
+                        console.error("Server returned HTML error page:", errorText.substring(0, 500));
+                        jsonResult.textContent = "Server returned an error page instead of workflow data.";
+                    } else {
+                        // Plain text or other format
+                        jsonResult.textContent = errorText.substring(0, 500);
+                    }
+                } catch (textError) {
+                    console.error("Could not read error response:", textError);
+                }
+                
+                jsonError.classList.remove('hidden');
+                resultSection.classList.remove('hidden');
+                generateBtn.disabled = false;
+                spinner.classList.add('hidden');
+                return;
+            }
+            
             // Check if the response is valid JSON
             const contentType = response.headers.get('content-type');
             let data;
@@ -680,8 +856,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error("Server returned non-JSON response:", textData);
                 
                 // Show error with raw text content
-                safeSetHTML(resultMessage, `<div class="text-red-400">Server returned non-JSON response</div>`);
-                jsonResult.textContent = textData;
+                safeSetHTML(resultMessage, `<div class="text-red-400">Server returned a non-JSON response</div>`);
+                
+                // Check if it's an HTML page and extract meaningful content if possible
+                if (textData.includes("<!DOCTYPE html>")) {
+                    const titleMatch = textData.match(/<title>(.*?)<\/title>/i);
+                    if (titleMatch && titleMatch[1]) {
+                        safeSetHTML(resultMessage, `<div class="text-red-400">Server error: ${titleMatch[1]}</div>`);
+                    }
+                    
+                    // Extract body content if possible for more details
+                    const bodyMatch = textData.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+                    if (bodyMatch && bodyMatch[1]) {
+                        const bodyText = bodyMatch[1].replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                        if (bodyText) {
+                            jsonResult.textContent = `Error details: ${bodyText.substring(0, 500)}`;
+                        } else {
+                            jsonResult.textContent = textData.substring(0, 500);
+                        }
+                    } else {
+                        jsonResult.textContent = textData.substring(0, 500);
+                    }
+                } else {
+                    jsonResult.textContent = textData.substring(0, 500);
+                }
+                
                 jsonError.classList.remove('hidden');
                 resultSection.classList.remove('hidden');
                 
@@ -691,8 +890,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Parse as JSON
-            data = await response.json();
+            try {
+                // Parse as JSON
+                data = await response.json();
+            } catch (jsonParseError) {
+                console.error("Failed to parse JSON response:", jsonParseError);
+                safeSetHTML(resultMessage, `<div class="text-red-400">Failed to parse server response as JSON</div>`);
+                // Show the raw response for debugging
+                const rawText = await response.text();
+                jsonResult.textContent = rawText.substring(0, 1000);
+                jsonError.classList.remove('hidden');
+                resultSection.classList.remove('hidden');
+                generateBtn.disabled = false;
+                spinner.classList.add('hidden');
+                return;
+            }
             
             if (data.success) {
                 // Store the workflow data
@@ -711,6 +923,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     // First try using the safe function
                     const safeJsonContent = safeDisplayJson(data.workflow);
                     jsonResult.textContent = safeJsonContent;
+                    // Hide any previous error messages
+                    jsonError.classList.add('hidden');
                 } catch (jsonError) {
                     // If that fails, use a more aggressive approach
                     console.error("Error with safeDisplayJson, using fallback:", jsonError);
@@ -718,22 +932,34 @@ document.addEventListener('DOMContentLoaded', function() {
                         // As a fallback, stringify and use textContent directly
                         const basicJsonString = JSON.stringify(data.workflow, null, 2);
                         jsonResult.textContent = basicJsonString;
+                        // Hide any previous error messages
+                        jsonError.classList.add('hidden');
                     } catch (fallbackError) {
                         // Last resort - simple error message
                         console.error("Complete JSON display failure:", fallbackError);
                         jsonResult.textContent = "Error displaying workflow JSON. Please try downloading the workflow instead.";
                         // Show the error message
-                        document.getElementById('jsonError').classList.remove('hidden');
+                        jsonError.classList.remove('hidden');
                     }
                 }
                 
-                // Set up download link
-                downloadLink.href = `/download_workflow/${data.path}`;
-                currentWorkflowPath = data.path;
+                // Set up download link with proper URL
+                const downloadPath = data.path || "";
+                if (downloadPath) {
+                    downloadLink.href = `/download_workflow/${downloadPath}`;
+                    downloadLink.classList.remove('hidden');
+                    currentWorkflowPath = downloadPath;
+                } else {
+                    downloadLink.classList.add('hidden');
+                    console.error("No valid path for download link");
+                }
                 
                 // Store README if available
                 if (data.readme) {
                     currentReadmeHtml = data.readme;
+                    viewDetails.classList.remove('hidden');
+                } else {
+                    viewDetails.classList.add('hidden');
                 }
                 
                 // Make sure the publish section is visible
@@ -752,14 +978,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     jsonResult.textContent = data.raw_text;
                 }
                 resultSection.classList.remove('hidden');
+                jsonError.classList.remove('hidden');
             }
         } catch (error) {
             console.error('Error:', error);
             safeSetHTML(resultMessage, `<div class="text-red-400">An unexpected error occurred: ${error.message}</div>`);
             resultSection.classList.remove('hidden');
             // Hide JSON display errors in case of API failure
-            jsonResult.textContent = "";
-            jsonError.classList.add('hidden');
+            jsonResult.textContent = "Failed to communicate with the server. Please try again later.";
+            jsonError.classList.remove('hidden');
         } finally {
             // Reset button state
             generateBtn.disabled = false;

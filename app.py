@@ -20,6 +20,7 @@ import google.generativeai as genai
 # Import the workflow sync function for immediate synchronization
 from workflow_sync import get_workflow_from_filesystem, sync_workflow_to_database, get_supabase_client
 from functools import wraps
+import traceback
 
 load_dotenv()
 
@@ -557,113 +558,141 @@ def workflow_builder_page():
 
 @app.route('/api/generate-workflow', methods=['POST'])
 def generate_workflow():
-    data = request.json
-    goal = data.get('goal', '')
-    publish_to_gallery = data.get('publish_to_gallery', False)
-    
-    if not goal:
-        return jsonify({"success": False, "error": "No workflow goal provided"}), 400
-    
+    """Generate a workflow based on a user-provided goal"""
     try:
-        # Generate the workflow using asyncio to handle the async call
-        result = asyncio.run(workflow_builder.generate_workflow(goal))
-        
-        if not result["success"]:
-            return jsonify(result), 400
-        
-        # Create a directory name for the workflow
-        # Find the highest number and increment by 1
-        base_path = os.path.join(os.path.dirname(__file__), 'automation')
-        try:
-            # Ensure automation directory exists
-            os.makedirs(base_path, exist_ok=True)
-            
-            existing_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
-            highest_num = 0
-            for dir_name in existing_dirs:
-                match = re.match(r'^(\d+)', dir_name)
-                if match:
-                    num = int(match.group(1))
-                    highest_num = max(highest_num, num)
-            
-            new_num = highest_num + 1
-            dir_name = f"{new_num}-{goal[:30].lower().replace(' ', '-').replace('/', '-')}"
-            
-            try:
-                # Save the workflow with proper JSON handling
-                workflow_path = workflow_builder.save_workflow(result["workflow"], dir_name)
-                
-                # Generate README content
-                readme_content = workflow_builder.generate_readme(result["workflow"], goal, dir_name)
-                
-                # Create a meta.json file that indicates whether the workflow is published
-                meta_path = os.path.join(base_path, dir_name, 'meta.json')
-                meta_data = {
-                    "categories": ["AI", "Engineering"],  # Default categories
-                    "generated": True,
-                    "summary": f"Automated workflow for: {goal[:100]}",
-                    "published": publish_to_gallery,
-                    "published_date": datetime.datetime.now().isoformat() if publish_to_gallery else None,
-                    "published_by": session.get('user', {}).get('email', 'anonymous') if publish_to_gallery else None
-                }
-                
-                with open(meta_path, 'w') as f:
-                    json.dump(meta_data, f, indent=2)
-                
-                # Make sure we're handling potential HTML content in the response
-                # Check if the workflow JSON contains any potential HTML by looking for '<' character
-                workflow_json_str = json.dumps(result["workflow"])
-                if '<' in workflow_json_str:
-                    print("Warning: Potential HTML content found in workflow JSON, sanitizing")
-                    # Additional sanitization for HTML content
-                    # This is already handled in workflow_builder.py, but just to be sure
-                    workflow_json_str = workflow_json_str.replace('<', '&lt;').replace('>', '&gt;')
-                    # Parse it back into a Python object
-                    try:
-                        sanitized_workflow = json.loads(workflow_json_str)
-                        result["workflow"] = sanitized_workflow
-                    except json.JSONDecodeError:
-                        print("Warning: Couldn't parse sanitized JSON, returning original")
-                
-                response_data = {
-                    "success": True, 
-                    "message": "Workflow generated successfully", 
-                    "workflow": result["workflow"],
-                    "path": dir_name,
-                    "readme": readme_content
-                }
-                
-                # Add warning if present in the result
-                if "warning" in result:
-                    response_data["warning"] = result["warning"]
-                
-                # Sync the workflow to the database
-                sync_workflow_immediately(dir_name)
-                
-                return jsonify(response_data)
-            except json.JSONDecodeError as e:
-                print(f"JSON error with workflow: {str(e)}")
-                return jsonify({
-                    "success": False, 
-                    "error": f"Invalid JSON format in workflow: {str(e)}"
-                }), 500
-            except Exception as e:
-                print(f"Error saving workflow: {str(e)}")
-                return jsonify({
-                    "success": False, 
-                    "error": f"Error saving workflow: {str(e)}"
-                }), 500
-        except Exception as e:
-            print(f"Directory error: {str(e)}")
+        data = request.json
+        if not data:
             return jsonify({
                 "success": False, 
-                "error": f"Error creating workflow directory: {str(e)}"
+                "error": "No JSON data received in request"
+            }), 400
+            
+        goal = data.get('goal', '')
+        publish_to_gallery = data.get('publish_to_gallery', False)
+        
+        if not goal:
+            return jsonify({
+                "success": False, 
+                "error": "No workflow goal provided"
+            }), 400
+        
+        try:
+            # Generate the workflow using asyncio to handle the async call
+            result = asyncio.run(workflow_builder.generate_workflow(goal))
+            
+            if not result["success"]:
+                return jsonify(result), 400
+            
+            # Create a directory name for the workflow
+            # Find the highest number and increment by 1
+            base_path = os.path.join(os.path.dirname(__file__), 'automation')
+            try:
+                # Ensure automation directory exists
+                os.makedirs(base_path, exist_ok=True)
+                
+                existing_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
+                highest_num = 0
+                for dir_name in existing_dirs:
+                    match = re.match(r'^(\d+)', dir_name)
+                    if match:
+                        num = int(match.group(1))
+                        highest_num = max(highest_num, num)
+                
+                new_num = highest_num + 1
+                dir_name = f"{new_num}-{goal[:30].lower().replace(' ', '-').replace('/', '-')}"
+                
+                try:
+                    # Save the workflow with proper JSON handling
+                    workflow_path = workflow_builder.save_workflow(result["workflow"], dir_name)
+                    
+                    # Generate README content
+                    readme_content = workflow_builder.generate_readme(result["workflow"], goal, dir_name)
+                    
+                    # Create a meta.json file that indicates whether the workflow is published
+                    meta_path = os.path.join(base_path, dir_name, 'meta.json')
+                    meta_data = {
+                        "categories": ["AI", "Engineering"],  # Default categories
+                        "generated": True,
+                        "summary": f"Automated workflow for: {goal[:100]}",
+                        "published": publish_to_gallery,
+                        "published_date": datetime.datetime.now().isoformat() if publish_to_gallery else None,
+                        "published_by": session.get('user', {}).get('email', 'anonymous') if publish_to_gallery else None
+                    }
+                    
+                    with open(meta_path, 'w') as f:
+                        json.dump(meta_data, f, indent=2)
+                    
+                    # Make sure we're handling potential HTML content in the response
+                    # Check if the workflow JSON contains any potential HTML by looking for '<' character
+                    workflow_json_str = json.dumps(result["workflow"])
+                    if '<' in workflow_json_str:
+                        print("Warning: Potential HTML content found in workflow JSON, sanitizing")
+                        # Additional sanitization for HTML content
+                        # This is already handled in workflow_builder.py, but just to be sure
+                        workflow_json_str = workflow_json_str.replace('<', '&lt;').replace('>', '&gt;')
+                        # Parse it back into a Python object
+                        try:
+                            sanitized_workflow = json.loads(workflow_json_str)
+                            result["workflow"] = sanitized_workflow
+                        except json.JSONDecodeError:
+                            print("Warning: Couldn't parse sanitized JSON, returning original")
+                    
+                    response_data = {
+                        "success": True, 
+                        "message": "Workflow generated successfully", 
+                        "workflow": result["workflow"],
+                        "path": dir_name,
+                        "readme": readme_content
+                    }
+                    
+                    # Add warning if present in the result
+                    if "warning" in result:
+                        response_data["warning"] = result["warning"]
+                    
+                    # Sync the workflow to the database
+                    try:
+                        sync_workflow_immediately(dir_name)
+                    except Exception as sync_error:
+                        print(f"Warning: Failed to sync workflow to database: {str(sync_error)}")
+                        response_data["warning"] = f"Workflow saved but not synced to database: {str(sync_error)}"
+                    
+                    return jsonify(response_data)
+                except json.JSONDecodeError as e:
+                    error_msg = f"Invalid JSON format in workflow: {str(e)}"
+                    print(error_msg)
+                    return jsonify({
+                        "success": False, 
+                        "error": error_msg
+                    }), 400
+                except Exception as e:
+                    error_msg = f"Error saving workflow: {str(e)}"
+                    print(error_msg)
+                    return jsonify({
+                        "success": False, 
+                        "error": error_msg
+                    }), 500
+            except Exception as e:
+                error_msg = f"Error creating workflow directory: {str(e)}"
+                print(error_msg)
+                return jsonify({
+                    "success": False, 
+                    "error": error_msg
+                }), 500
+        except Exception as e:
+            error_msg = f"Error generating workflow: {str(e)}"
+            print(error_msg)
+            traceback.print_exc()
+            return jsonify({
+                "success": False, 
+                "error": error_msg
             }), 500
     except Exception as e:
-        print(f"Error generating workflow: {str(e)}")
+        error_msg = f"Unexpected server error: {str(e)}"
+        print(error_msg)
+        traceback.print_exc()
         return jsonify({
             "success": False, 
-            "error": f"An unexpected error occurred: {str(e)}"
+            "error": error_msg
         }), 500
 
 @app.route('/api/workflow-readme/<workflow_folder>', methods=['GET'])
