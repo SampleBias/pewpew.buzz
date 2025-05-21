@@ -1169,8 +1169,14 @@ def extract_workflow_from_image():
             if start_idx >= 0 and end_idx >= 0 and start_idx < end_idx:
                 extraction_text = extraction_text[start_idx:end_idx+1]
                 
+                # Clean JSON text to replace HTML entities
+                extraction_text = workflow_builder._clean_json_format(extraction_text)
+                
                 # Parse the JSON
                 workflow_json = json.loads(extraction_text)
+                
+                # Standardize the workflow format
+                workflow_json = workflow_builder._standardize_workflow_format(workflow_json, "Extracted Workflow")
                 
                 # Make sure the workflow has a proper name
                 if "name" not in workflow_json or not workflow_json["name"] or workflow_json["name"] == "Extracted Workflow":

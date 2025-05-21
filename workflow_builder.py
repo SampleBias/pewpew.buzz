@@ -323,59 +323,15 @@ Follow these guidelines:
                         if start_idx >= 0 and end_idx >= 0 and start_idx < end_idx:
                             workflow_json_text = workflow_json_text[start_idx:end_idx+1]
                             
-                            # 3. Try to parse as JSON
+                            # 3. Clean the JSON text to replace HTML entities
+                            workflow_json_text = self._clean_json_format(workflow_json_text)
+                            
+                            # 4. Try to parse as JSON
                             try:
                                 workflow_json = json.loads(workflow_json_text)
                                 
-                                # Ensure required fields exist
-                                if not isinstance(workflow_json, dict):
-                                    print("Invalid workflow: not a dictionary")
-                                    workflow_json = {}
-                                    
-                                # 7. Sanitize all string values in the JSON object
-                                def sanitize_dict(d):
-                                    if isinstance(d, dict):
-                                        for key, value in list(d.items()):
-                                            if isinstance(value, str):
-                                                # Escape and remove HTML tags from string values
-                                                clean_value = html.escape(value)
-                                                clean_value = re.sub(r'<[^>]*>', '', clean_value)
-                                                d[key] = clean_value
-                                            elif isinstance(value, (dict, list)):
-                                                sanitize_dict(value)
-                                    elif isinstance(d, list):
-                                        for i, item in enumerate(d):
-                                            if isinstance(item, str):
-                                                # Escape and remove HTML tags from string values
-                                                clean_item = html.escape(item)
-                                                clean_item = re.sub(r'<[^>]*>', '', clean_item)
-                                                d[i] = clean_item
-                                            elif isinstance(item, (dict, list)):
-                                                sanitize_dict(item)
-                                    return d
-                                        
-                                # Apply sanitization to all values in the workflow JSON
-                                workflow_json = sanitize_dict(workflow_json)
-                                
-                                # Ensure the workflow has a name, using our generated one if missing
-                                if "name" not in workflow_json or not workflow_json["name"]:
-                                    workflow_json["name"] = workflow_name
-                                    
-                                # Make sure we have required fields
-                                if "nodes" not in workflow_json:
-                                    workflow_json["nodes"] = []
-                                if "connections" not in workflow_json:
-                                    workflow_json["connections"] = {}
-                                    
-                                # Ensure we have at least a manual trigger node
-                                if not workflow_json["nodes"]:
-                                    workflow_json["nodes"].append({
-                                        "parameters": {},
-                                        "id": "1",
-                                        "name": "Manual Trigger", 
-                                        "type": "n8n-nodes-base.manualTrigger",
-                                        "position": [100, 300]
-                                    })
+                                # 5. Sanitize and standardize the JSON structure
+                                workflow_json = self._standardize_workflow_format(workflow_json, workflow_name)
                                     
                                 return {"success": True, "workflow": workflow_json}
                             except json.JSONDecodeError as e:
@@ -386,14 +342,11 @@ Follow these guidelines:
                                 clean_text = re.sub(r'[\n\r\t]', ' ', workflow_json_text)
                                 clean_text = re.sub(r'\s+', ' ', clean_text)
                                 clean_text = re.sub(r'<[^{}\[\]"\']*?>', '', clean_text)
+                                clean_text = self._clean_json_format(clean_text)
                                 
                                 try:
                                     workflow_json = json.loads(clean_text)
-                                    
-                                    # Ensure the workflow has a name, using our generated one if missing
-                                    if "name" not in workflow_json or not workflow_json["name"]:
-                                        workflow_json["name"] = workflow_name
-                                        
+                                    workflow_json = self._standardize_workflow_format(workflow_json, workflow_name)
                                     return {"success": True, "workflow": workflow_json}
                                 except:
                                     pass
@@ -436,6 +389,67 @@ Follow these guidelines:
                 "warning": f"Error generating workflow: {str(e)}"
             }
     
+    def _clean_json_format(self, json_text):
+        """Clean JSON text by replacing HTML entities with proper characters"""
+        # Replace common HTML entities
+        replacements = {
+            '&quot;': '"',
+            '&amp;': '&',
+            '&lt;': '<',
+            '&gt;': '>',
+            '&apos;': "'",
+            '&#x27;': "'",
+            '&#34;': '"',
+            '&#39;': "'",
+            '&#60;': '<',
+            '&#62;': '>'
+        }
+        
+        for entity, char in replacements.items():
+            json_text = json_text.replace(entity, char)
+            
+        return json_text
+
+    def _standardize_workflow_format(self, workflow_json, workflow_name):
+        """Standardize the workflow JSON format to match n8n requirements"""
+        # Ensure the workflow has a name
+        if "name" not in workflow_json or not workflow_json["name"]:
+            workflow_json["name"] = workflow_name
+            
+        # Ensure basic structure
+        if "nodes" not in workflow_json:
+            workflow_json["nodes"] = []
+        if "connections" not in workflow_json:
+            workflow_json["connections"] = {}
+            
+        # Remove description if present (it's not in the standard format)
+        if "description" in workflow_json:
+            # We could move important info from description to node notes
+            # For now, just remove it to match the standard format
+            del workflow_json["description"]
+            
+        # Add typeVersion to nodes if missing
+        for node in workflow_json["nodes"]:
+            if "typeVersion" not in node:
+                node["typeVersion"] = 1
+                
+        # Ensure the workflow has at least a manual trigger node
+        if not workflow_json["nodes"]:
+            workflow_json["nodes"].append({
+                "parameters": {},
+                "id": "1",
+                "name": "Manual Trigger", 
+                "type": "n8n-nodes-base.manualTrigger",
+                "position": [100, 300],
+                "typeVersion": 1
+            })
+        
+        # If no version field, add it
+        if "version" not in workflow_json:
+            workflow_json["version"] = 1
+            
+        return workflow_json
+            
     def _create_fallback_workflow(self, goal, name=None):
         """Create a basic valid workflow as a fallback"""
         if name is None:
@@ -456,7 +470,8 @@ Follow these guidelines:
                     "id": "1",
                     "name": "Manual Trigger", 
                     "type": "n8n-nodes-base.manualTrigger",
-                    "position": [100, 300]
+                    "position": [100, 300],
+                    "typeVersion": 1
                 },
                 {
                     "parameters": {
@@ -468,7 +483,8 @@ Follow these guidelines:
                     "id": "2",
                     "name": "Set", 
                     "type": "n8n-nodes-base.set",
-                    "position": [300, 300]
+                    "position": [300, 300],
+                    "typeVersion": 1
                 }
             ],
             "connections": {
@@ -477,7 +493,8 @@ Follow these guidelines:
                         {"node": "Set", "type": "main", "index": 0}
                     ]]
                 }
-            }
+            },
+            "version": 1
         }
             
     def extract_workflow_steps(self, goal):
