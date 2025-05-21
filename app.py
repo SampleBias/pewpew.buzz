@@ -393,8 +393,9 @@ def dashboard():
     def extract_numeric(automation):
         match = re.match(r'^(\d+)', automation['id'])
         return int(match.group(1)) if match else float('inf')
-        
-    automations = sorted(automations, key=extract_numeric)
+    
+    # Sort workflows by upvotes in descending order (most liked at the top)
+    automations = sorted(automations, key=lambda x: (-x['upvotes'], extract_numeric(x)))
     
     # Create the categories list for the sidebar
     categories_list = [(cat, categories_count.get(cat, 0)) for cat in COMMON_CATEGORIES if categories_count.get(cat, 0) > 0]

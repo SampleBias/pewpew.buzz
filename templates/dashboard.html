@@ -33,9 +33,19 @@
             {% endif %}
             <button type="submit" class="bg-pink-500 hover:bg-pink-400 text-white px-4 py-2 rounded-lg font-bold shadow-md transition">Search</button>
         </form>
+        <div class="mb-4 flex items-center justify-between">
+            <h2 class="text-xl font-bold text-pink-300">Automations <span class="text-sm font-normal">(sorted by most likes)</span></h2>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for automation in automations %}
-            <div class="bg-[#1a0025] border-2 border-pink-500 rounded-2xl shadow-xl p-6 flex flex-col justify-between transform hover:scale-105 transition-transform duration-200">
+            <div class="{% if loop.first %}bg-gradient-to-br from-[#1a0025] to-[#300050] border-2 border-yellow-400 relative{% elif loop.index == 2 %}bg-[#1a0025] border-2 border-pink-300 relative{% elif loop.index == 3 %}bg-[#1a0025] border-2 border-pink-300 relative{% else %}bg-[#1a0025] border-2 border-pink-500{% endif %} rounded-2xl shadow-xl p-6 flex flex-col justify-between transform hover:scale-105 transition-transform duration-200">
+                {% if loop.first %}
+                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-pink-900 text-xs font-bold px-3 py-1 rounded-full">Most Popular</div>
+                {% elif loop.index == 2 %}
+                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-pink-300 text-pink-900 text-xs font-bold px-3 py-1 rounded-full">2nd Most Popular</div>
+                {% elif loop.index == 3 %}
+                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-pink-300 text-pink-900 text-xs font-bold px-3 py-1 rounded-full">3rd Most Popular</div>
+                {% endif %}
                 <div>
                     <div class="flex justify-between items-start mb-1">
                         <h2 class="text-2xl font-bold neon mb-1 break-words">{{ automation.title }}</h2>
