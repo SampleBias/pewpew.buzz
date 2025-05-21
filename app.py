@@ -68,6 +68,16 @@ app.config['AUTH0_CLIENT_SECRET'] = os.environ.get('AUTH0_CLIENT_SECRET')
 app.config['AUTH0_DOMAIN'] = os.environ.get('AUTH0_DOMAIN')
 app.config['AUTH0_CALLBACK_URL'] = os.environ.get('AUTH0_CALLBACK_URL')
 
+# Global sync status variable
+sync_status = {
+    "complete": False,
+    "stats": {
+        "total": 0,
+        "local_to_db": 0,
+        "db_to_local": 0
+    }
+}
+
 # Supabase config
 SUPABASE_URL = os.environ.get('SUPABASE_URL')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
@@ -1597,12 +1607,20 @@ def sync_workflow_immediately(workflow_dir):
         print(f"Found workflow files in: {workflow_path}")
         
         # Load workflow data
-        with open(workflow_json_path, 'r') as f:
-            workflow_data = json.load(f)
+        try:
+            with open(workflow_json_path, 'r') as f:
+                workflow_data = json.load(f)
+        except Exception as json_error:
+            print(f"Error loading workflow JSON: {str(json_error)}")
+            return
             
         # Load README content
-        with open(readme_path, 'r') as f:
-            readme_content = f.read()
+        try:
+            with open(readme_path, 'r') as f:
+                readme_content = f.read()
+        except Exception as readme_error:
+            print(f"Error loading README: {str(readme_error)}")
+            readme_content = f"# {workflow_dir}\n\nNo description available."
             
         # Parse name from path (remove number prefix if exists)
         name_parts = workflow_dir.split('-', 1)
@@ -1617,6 +1635,7 @@ def sync_workflow_immediately(workflow_dir):
         is_published = False
         is_generated = True
         is_extracted = False
+        author_name = 'James Utley PhD'  # Default author
         
         if os.path.exists(meta_path):
             try:
@@ -1627,6 +1646,7 @@ def sync_workflow_immediately(workflow_dir):
                     is_published = meta_data.get('published', False)
                     is_generated = meta_data.get('generated', True)
                     is_extracted = meta_data.get('extracted', False)
+                    author_name = meta_data.get('author', author_name)
                 print(f"Meta data loaded. Published status: {is_published}, Categories: {categories}")
             except Exception as meta_error:
                 print(f"Error loading meta data from: {meta_path}, Error: {str(meta_error)}")
@@ -1654,7 +1674,9 @@ def sync_workflow_immediately(workflow_dir):
             description = description[:147] + "..."
             
         # Get current user as author (if authenticated)
-        author_name = session.get('user', {}).get('email', 'anonymous')
+        current_user = session.get('user', {}).get('email', author_name)
+        if current_user != author_name:
+            author_name = current_user
         
         print(f"Syncing workflow to database: {workflow_dir}, Title: {workflow_name}, Published: {is_published}")
         
@@ -1680,6 +1702,22 @@ def sync_workflow_immediately(workflow_dir):
             
             print(f"Successfully synchronized workflow to database: {workflow_dir}, published: {is_published}")
             
+            # Ensure the workflow has a ratings entry
+            try:
+                # Check if ratings entry exists
+                ratings_response = supabase.table('workflow_ratings').select('id').eq('workflow_id', workflow_dir).execute()
+                
+                if not ratings_response.data or len(ratings_response.data) == 0:
+                    # Create initial ratings entry
+                    print(f"Creating initial ratings entry for {workflow_dir}")
+                    supabase.table('workflow_ratings').insert({
+                        'workflow_id': workflow_dir,
+                        'upvotes': 0,
+                        'downvotes': 0
+                    }).execute()
+            except Exception as ratings_error:
+                print(f"Error checking/creating ratings for {workflow_dir}: {str(ratings_error)}")
+            
             # Ensure meta file is updated with the correct published status
             if os.path.exists(meta_path):
                 try:
@@ -1694,6 +1732,26 @@ def sync_workflow_immediately(workflow_dir):
                     print(f"Updated meta file with published status: {is_published}")
                 except Exception as e:
                     print(f"Error updating meta file: {str(e)}")
+            else:
+                # Create meta file if it doesn't exist
+                try:
+                    meta_data = {
+                        "categories": categories,
+                        "generated": is_generated,
+                        "extracted": is_extracted,
+                        "submitted": is_published,
+                        "author": author_name,
+                        "summary": description,
+                        "published": is_published,
+                        "published_date": datetime.datetime.now().isoformat() if is_published else None,
+                        "published_by": author_name if is_published else None
+                    }
+                    
+                    with open(meta_path, 'w') as f:
+                        json.dump(meta_data, f, indent=2)
+                    print(f"Created new meta file with published status: {is_published}")
+                except Exception as e:
+                    print(f"Error creating meta file: {str(e)}")
                     
         except Exception as e:
             print(f"Error syncing workflow to database: {str(e)}")
@@ -1705,6 +1763,131 @@ def sync_workflow_immediately(workflow_dir):
         traceback.print_exc()
 
 # TODO: Add download route, meme animation, and user upload logic
+
+def sync_all_workflows():
+    """
+    Synchronize all workflows between filesystem and database at application startup.
+    This ensures consistency between both storage systems and prevents workflow loss on restart.
+    """
+    global sync_status
+    sync_status = {
+        "complete": False,
+        "stats": {
+            "total": 0,
+            "local_to_db": 0,
+            "db_to_local": 0
+        }
+    }
+    
+    print("Starting application-wide workflow synchronization...")
+    
+    # STEP 1: Get all workflows from the filesystem
+    base_path = os.path.join(os.path.dirname(__file__), 'automation')
+    local_workflows = set()
+    
+    try:
+        if os.path.exists(base_path):
+            folders = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
+            
+            for folder in folders:
+                workflow_json_path = os.path.join(base_path, folder, 'workflow.json')
+                if os.path.exists(workflow_json_path):
+                    local_workflows.add(folder)
+                    
+            print(f"Found {len(local_workflows)} workflows in local filesystem")
+        else:
+            print("Automation directory doesn't exist, creating it")
+            os.makedirs(base_path, exist_ok=True)
+    except Exception as e:
+        print(f"Error accessing filesystem workflows: {str(e)}")
+        
+    # STEP 2: Get all workflows from the database
+    db_workflows = {}
+    try:
+        workflows_response = supabase.table('workflows').select(
+            'id, slug, title, description, author_name, is_generated, is_submitted, is_extracted, readme_content, json_content'
+        ).execute()
+        
+        if workflows_response.data:
+            for workflow in workflows_response.data:
+                slug = workflow['slug']
+                db_workflows[slug] = workflow
+            
+            print(f"Found {len(db_workflows)} workflows in database")
+    except Exception as e:
+        print(f"Error accessing database workflows: {str(e)}")
+    
+    # STEP 3: Sync filesystem workflows to database
+    local_to_db_count = 0
+    for local_wf in local_workflows:
+        try:
+            if local_wf not in db_workflows:
+                print(f"Syncing local workflow to database: {local_wf}")
+                sync_workflow_immediately(local_wf)
+                local_to_db_count += 1
+                sync_status["stats"]["local_to_db"] += 1
+            else:
+                print(f"Workflow already exists in database: {local_wf}")
+        except Exception as e:
+            print(f"Error syncing local workflow {local_wf} to database: {str(e)}")
+    
+    # STEP 4: Sync database workflows to filesystem
+    db_to_local_count = 0
+    for db_slug, workflow in db_workflows.items():
+        if db_slug not in local_workflows:
+            try:
+                print(f"Downloading database workflow to filesystem: {db_slug}")
+                
+                # Create the directory
+                workflow_dir = os.path.join(base_path, db_slug)
+                os.makedirs(workflow_dir, exist_ok=True)
+                
+                # Save workflow.json
+                with open(os.path.join(workflow_dir, 'workflow.json'), 'w') as f:
+                    json.dump(workflow['json_content'], f, indent=2)
+                
+                # Save README.md
+                with open(os.path.join(workflow_dir, 'README.md'), 'w') as f:
+                    f.write(workflow['readme_content'])
+                
+                # Get categories
+                try:
+                    categories_response = supabase.table('workflow_categories').select('category').eq('workflow_id', workflow['id']).execute()
+                    categories = [item['category'] for item in categories_response.data] if categories_response.data else ["Uncategorized"]
+                except Exception as cat_error:
+                    print(f"Error fetching categories for {db_slug}: {str(cat_error)}")
+                    categories = ["Uncategorized"]
+                
+                # Create meta.json
+                meta_data = {
+                    "categories": categories,
+                    "generated": workflow['is_generated'],
+                    "extracted": workflow['is_extracted'],
+                    "submitted": workflow['is_submitted'],
+                    "author": workflow['author_name'],
+                    "summary": workflow['description'],
+                    "published": True,
+                    "published_date": datetime.datetime.now().isoformat(),
+                    "published_by": workflow['author_name']
+                }
+                
+                with open(os.path.join(workflow_dir, 'meta.json'), 'w') as f:
+                    json.dump(meta_data, f, indent=2)
+                
+                db_to_local_count += 1
+                sync_status["stats"]["db_to_local"] += 1
+                    
+            except Exception as e:
+                print(f"Error downloading workflow {db_slug} from database: {str(e)}")
+    
+    total_synced = local_to_db_count + db_to_local_count
+    sync_status["stats"]["total"] = total_synced
+    sync_status["complete"] = True
+    
+    print(f"Workflow synchronization complete! {total_synced} workflows synced ({local_to_db_count} to database, {db_to_local_count} to filesystem)")
+
+# Run the sync at application startup
+sync_all_workflows()
 
 # Create Heroku-compatible app
 if __name__ == '__main__':
@@ -1933,4 +2116,9 @@ def delete_automation():
     if db_deleted or fs_deleted:
         return redirect('/admin?status=success&message=Automation+successfully+deleted')
     else:
-        return redirect('/admin?status=error&message=Failed+to+delete+automation') 
+        return redirect('/admin?status=error&message=Failed+to+delete+automation')
+
+@app.route('/api/sync-status', methods=['GET'])
+def get_sync_status():
+    """API endpoint to get the current sync status"""
+    return jsonify(sync_status)

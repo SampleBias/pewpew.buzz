@@ -1,0 +1,292 @@
+{
+  "name": "Extract Text from PDF or Image",
+  "nodes": [
+    {
+      "id": "uploadArchitecturePattern",
+      "name": "Upload Architecture pattern",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        100,
+        100
+      ],
+      "credentials": {
+        "googleDriveApi": "YOUR_GOOGLE_DRIVE_API_CREDENTIALS"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "routerBasedAgent",
+      "name": "Router Based Agent",
+      "type": "n8n-nodes-base.router",
+      "position": [
+        300,
+        100
+      ],
+      "typeVersion": 1
+    },
+    {
+      "id": "downloadPDF",
+      "name": "Download PDF",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        500,
+        50
+      ],
+      "credentials": {
+        "googleDriveApi": "YOUR_GOOGLE_DRIVE_API_CREDENTIALS"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "downloadImage",
+      "name": "Download Image",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        500,
+        200
+      ],
+      "credentials": {
+        "googleDriveApi": "YOUR_GOOGLE_DRIVE_API_CREDENTIALS"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "vertexAIextractPDF",
+      "name": "Vertex AI extract",
+      "type": "n8n-nodes-base.vertexAI",
+      "position": [
+        700,
+        50
+      ],
+      "credentials": {
+        "vertexAI": "YOUR_VERTEX_AI_CREDENTIALS"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "outputParserPDF",
+      "name": "Output Parser",
+      "type": "n8n-nodes-base.outputParser",
+      "position": [
+        800,
+        50
+      ],
+      "typeVersion": 1
+    },
+    {
+      "id": "convertToTextFilePDF",
+      "name": "Convert to Text file1",
+      "type": "n8n-nodes-base.convert",
+      "position": [
+        900,
+        50
+      ],
+      "typeVersion": 1
+    },
+    {
+      "id": "uploadToGoogleDrivePDF",
+      "name": "Upload to Google Drive1",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        1000,
+        50
+      ],
+      "credentials": {
+        "googleDriveApi": "YOUR_GOOGLE_DRIVE_API_CREDENTIALS"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "googleGeminiChatModelPDF",
+      "name": "Google Gemini Chat Model1",
+      "type": "n8n-nodes-base.googleGemini",
+      "position": [
+        700,
+        150
+      ],
+      "credentials": {
+        "googleGemini": "YOUR_GOOGLE_GEMINI_CREDENTIALS"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "vertexAIextractImage",
+      "name": "Vertex AI extract text",
+      "type": "n8n-nodes-base.vertexAI",
+      "position": [
+        700,
+        200
+      ],
+      "credentials": {
+        "vertexAI": "YOUR_VERTEX_AI_CREDENTIALS"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "outputParserImage",
+      "name": "Output Parser",
+      "type": "n8n-nodes-base.outputParser",
+      "position": [
+        800,
+        200
+      ],
+      "typeVersion": 1
+    },
+    {
+      "id": "convertToTextFileImage",
+      "name": "Convert to Text file",
+      "type": "n8n-nodes-base.convert",
+      "position": [
+        900,
+        200
+      ],
+      "typeVersion": 1
+    },
+    {
+      "id": "uploadToGoogleDriveImage",
+      "name": "Upload to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        1000,
+        200
+      ],
+      "credentials": {
+        "googleDriveApi": "YOUR_GOOGLE_DRIVE_API_CREDENTIALS"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "googleGeminiChatModelImage",
+      "name": "Google Gemini Chat Model",
+      "type": "n8n-nodes-base.googleGemini",
+      "position": [
+        700,
+        300
+      ],
+      "credentials": {
+        "googleGemini": "YOUR_GOOGLE_GEMINI_CREDENTIALS"
+      },
+      "typeVersion": 1
+    }
+  ],
+  "version": 1,
+  "connections": {
+    "downloadPDF": {
+      "main": [
+        [
+          {
+            "node": "vertexAIextractPDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "downloadImage": {
+      "main": [
+        [
+          {
+            "node": "vertexAIextractImage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "outputParserPDF": {
+      "main": [
+        [
+          {
+            "node": "convertToTextFilePDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "routerBasedAgent": {
+      "main": [
+        [
+          {
+            "node": "downloadPDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "downloadImage",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "outputParserImage": {
+      "main": [
+        [
+          {
+            "node": "convertToTextFileImage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "vertexAIextractPDF": {
+      "main": [
+        [
+          {
+            "node": "outputParserPDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convertToTextFilePDF": {
+      "main": [
+        [
+          {
+            "node": "uploadToGoogleDrivePDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "vertexAIextractImage": {
+      "main": [
+        [
+          {
+            "node": "outputParserImage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convertToTextFileImage": {
+      "main": [
+        [
+          {
+            "node": "uploadToGoogleDriveImage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "uploadArchitecturePattern": {
+      "main": [
+        [
+          {
+            "node": "routerBasedAgent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

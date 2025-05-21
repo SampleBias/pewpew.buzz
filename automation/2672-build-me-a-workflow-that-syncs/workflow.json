@@ -1,0 +1,46 @@
+{
+  "name": "Workflow for Build me a workflow that syncs all of th",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        100,
+        300
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "2",
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        300,
+        300
+      ],
+      "parameters": {
+        "mode": "manually",
+        "text": {
+          "value": "# Workflow for Build me a workflow that syncs all of th\n\nThis is a starter workflow for: Build me a workflow that syncs all of the outlook calendars for 5 employees\n\nPlease customize it according to your needs."
+        }
+      },
+      "typeVersion": 1
+    }
+  ],
+  "version": 1,
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

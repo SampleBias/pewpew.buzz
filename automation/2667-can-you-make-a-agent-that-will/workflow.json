@@ -1,0 +1,210 @@
+{
+  "name": "Extract Text from Image and Send Email",
+  "nodes": [
+    {
+      "id": "e7d6d56a-3f5b-4a2c-9b8f-7a8e6b9c2d1a",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "a8b7c65d-4e3f-4b1a-8c9d-6e5f7a3b2c4d",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "notes": "Downloads the image from the provided URL.",
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "url": "={{$json.url}}",
+        "options": {},
+        "responseFormat": "file"
+      },
+      "description": "Downloads the image from the provided URL. The URL should be passed in the 'url' field of the incoming JSON data.",
+      "typeVersion": 1,
+      "continueOnFail": true
+    },
+    {
+      "id": "b9c8d74e-5a2b-4c3d-9e4f-8b1a2c3d4e5f",
+      "name": "OCR",
+      "type": "n8n-nodes-base.ocr",
+      "notes": "Extracts text from the downloaded image using OCR.  Assumes the image is in English.",
+      "position": [
+        720,
+        300
+      ],
+      "parameters": {
+        "engine": "tesseract",
+        "options": "",
+        "language": "eng",
+        "dataPropertyName": "text"
+      },
+      "description": "Extracts text from the downloaded image using OCR. Sets the 'text' property in the output.",
+      "typeVersion": 1,
+      "continueOnFail": true
+    },
+    {
+      "id": "c1d2e34f-6b5a-4c4d-8e3f-9a2b1c3d4e5f",
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "notes": "Sends an email with the extracted text. Replace 'your_email@example.com' and 'recipient@example.com' with actual email addresses, and configure Gmail OAuth2 credentials.",
+      "position": [
+        960,
+        300
+      ],
+      "parameters": {
+        "text": "Here is the extracted text from the image:\n\n{{$json[\"text\"]}}",
+        "options": {},
+        "subject": "Extracted Text from Image",
+        "toEmail": "recipient@example.com",
+        "fromEmail": "your_email@example.com"
+      },
+      "credentials": {
+        "gmailOAuth2Api": "yourGmailOAuth2ApiCredential"
+      },
+      "description": "Sends an email with the extracted text as the email body.",
+      "typeVersion": 1,
+      "continueOnFail": true
+    },
+    {
+      "id": "5a2d8b7c-89ef-4012-a0b3-2468ace90123",
+      "name": "No Image Data Check",
+      "type": "n8n-nodes-base.if",
+      "notes": "Check if the HTTP Request node failed to download the image. If so, stop the workflow and log an error.",
+      "position": [
+        480,
+        450
+      ],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"HTTP Request\"].json.body}}",
+              "value2": "",
+              "operation": "isEmpty"
+            }
+          ]
+        }
+      },
+      "description": "Check if the HTTP Request node failed to download the image. If so, stop the workflow and log an error.",
+      "typeVersion": 1
+    },
+    {
+      "id": "b6789012-3456-789a-bcde-f01234567890",
+      "name": "Error Log",
+      "type": "n8n-nodes-base.executionError",
+      "notes": "Logs an error message if the HTTP Request node fails to download the image.",
+      "position": [
+        720,
+        450
+      ],
+      "parameters": {
+        "message": "HTTP Request failed, no image available."
+      },
+      "description": "Logs an error message if the HTTP Request node fails to download the image.",
+      "typeVersion": 1
+    },
+    {
+      "id": "cdef0123-4567-89ab-cdef-0123456789ab",
+      "name": "No Text Check",
+      "type": "n8n-nodes-base.if",
+      "notes": "Check if the OCR node failed to extract any text from the image. If so, stop the workflow and log an error.",
+      "position": [
+        720,
+        150
+      ],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"OCR\"].json.text}}",
+              "value2": "",
+              "operation": "isEmpty"
+            }
+          ]
+        }
+      },
+      "description": "Check if the OCR node failed to extract any text from the image. If so, stop the workflow and log an error.",
+      "typeVersion": 1
+    },
+    {
+      "id": "d0123456-789a-bcde-f012-34567890abcd",
+      "name": "OCR Error Log",
+      "type": "n8n-nodes-base.executionError",
+      "notes": "Logs an error message if the OCR node fails to extract any text from the image.",
+      "position": [
+        960,
+        150
+      ],
+      "parameters": {
+        "message": "OCR failed, no text extracted."
+      },
+      "description": "Logs an error message if the OCR node fails to extract any text from the image.",
+      "typeVersion": 1
+    }
+  ],
+  "version": 1,
+  "connections": {
+    "OCR": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "OCR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Text Check": {
+      "main": [
+        [
+          {
+            "node": "OCR Error Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Image Data Check": {
+      "main": [
+        [
+          {
+            "node": "Error Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

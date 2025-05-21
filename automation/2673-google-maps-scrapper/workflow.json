@@ -1,0 +1,396 @@
+{
+  "id": "MV959wT4AXmBXM0z",
+  "meta": {
+    "instanceId": "5d3f9c168cb79d47154e577bbdea4eae8951d5e8c81174e4a0d6405ea33728c4",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Scrape Google Maps",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "8a26b092-2eb6-4fc3-af8f-80977f7c4747",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "af3fcc0a-a248-4273-96ec-3e83dface450",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "url": "=https://www.google.com/maps/search/{{ $json.query }}",
+        "options": {}
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "a6ffb6fc-a0a6-4904-b12b-acd125188a19",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "onError": "continueRegularOutput",
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const data = $input.first().json.data;\n\nconst regex = /https?:\\/\\/[^\\s]+/g;\n\nurls = data.match(regex);\n\nreturn urls.map(url => ({ json: { url: url } }));"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "29bcf8eb-f710-4555-b3f1-1f2996c7fa3d",
+      "name": "Filter",
+      "type": "n8n-nodes-base.filter",
+      "onError": "continueRegularOutput",
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "options": {},
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "be428d9f-9cf8-4cc9-b552-4fca6583c2f9",
+              "operator": {
+                "type": "string",
+                "operation": "notRegex"
+              },
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "(google|gstatic|ggpht|schema|example)"
+            }
+          ]
+        }
+      },
+      "typeVersion": 2.2
+    },
+    {
+      "id": "26fe5b70-9f94-4162-9403-41fd74129266",
+      "name": "Remove Duplicates",
+      "type": "n8n-nodes-base.removeDuplicates",
+      "onError": "continueRegularOutput",
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "390327bc-6235-42d9-ab06-00f220ac89fa",
+      "name": "HTTP Request1",
+      "type": "n8n-nodes-base.httpRequest",
+      "onError": "continueErrorOutput",
+      "position": [
+        1380,
+        -20
+      ],
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "e4376739-0104-448f-aa32-1e4d0656cf61",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "onError": "continueErrorOutput",
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "options": {},
+        "batchSize": 10000
+      },
+      "typeVersion": 3
+    },
+    {
+      "id": "3c08eb59-9dad-48c4-8b77-d962a888d37b",
+      "name": "Loop Over Items1",
+      "type": "n8n-nodes-base.splitInBatches",
+      "onError": "continueErrorOutput",
+      "position": [
+        860,
+        240
+      ],
+      "parameters": {
+        "options": {},
+        "batchSize": 100
+      },
+      "typeVersion": 3
+    },
+    {
+      "id": "3c92b3b1-6272-48cf-9db3-5b9c5678da8d",
+      "name": "Aggregate",
+      "type": "n8n-nodes-base.aggregate",
+      "onError": "continueRegularOutput",
+      "position": [
+        1240,
+        180
+      ],
+      "parameters": {
+        "options": {
+          "mergeLists": true
+        },
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "emails"
+            }
+          ]
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "cef24bd3-8a8c-4739-acd9-14ab1093c317",
+      "name": "Code1",
+      "type": "n8n-nodes-base.code",
+      "onError": "continueErrorOutput",
+      "position": [
+        1040,
+        380
+      ],
+      "parameters": {
+        "jsCode": "const data = $input.first().json.data;\n\nconst emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.(?!png|jpg|gif|jpeg)[a-zA-Z]{2,}/g;\n\nconst emails = data.match(emailRegex);\n\nconsole.log(emails);\n\nreturn { json: { emails: emails } };"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "283c1c12-5ac2-4d8c-9663-ccbc71622b30",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.splitOut",
+      "onError": "continueRegularOutput",
+      "position": [
+        1460,
+        180
+      ],
+      "parameters": {
+        "options": {},
+        "fieldToSplitOut": "emails"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "93c0a74d-ed51-4883-b00d-06a290d1c2e9",
+      "name": "Remove Duplicates1",
+      "type": "n8n-nodes-base.removeDuplicates",
+      "onError": "continueRegularOutput",
+      "position": [
+        1680,
+        180
+      ],
+      "parameters": {
+        "compare": "={{ $json.emails }}",
+        "options": {}
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "9935a523-6687-45dc-a270-097a600cb594",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "onError": "continueRegularOutput",
+      "position": [
+        1900,
+        180
+      ],
+      "parameters": {
+        "options": {},
+        "resource": "spreadsheet"
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "du29szLnLjOfDtq3",
+          "name": "Google Sheets account"
+        }
+      },
+      "typeVersion": 4.5
+    }
+  ],
+  "active": false,
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "query": "Tennessee+real+estate"
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "10e4a0bd-c0c5-48f3-8424-09a60d857ab3",
+  "connections": {
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates1": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

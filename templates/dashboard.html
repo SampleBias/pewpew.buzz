@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
+<div class="sync-status bg-[#2d006e] border-b border-pink-500 py-2 px-4 text-center mb-4">
+    <p id="sync-status-text" class="text-pink-200 text-sm"><span class="inline-block animate-pulse">⟳</span> Synchronizing workflows between database and filesystem...</p>
+</div>
 <div class="flex flex-col md:flex-row gap-8 container mx-auto py-8">
     <!-- Sidebar -->
     <aside class="w-full md:w-72 mb-8 md:mb-0">
@@ -180,6 +183,42 @@ function rateWorkflow(workflowId, voteType) {
         button.classList.remove('opacity-50');
         alert('Error submitting your rating. Please try again.');
     });
+}
+
+// Check sync status after page load
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(checkSyncStatus, 1000); // Check after 1 second
+});
+
+function checkSyncStatus() {
+    fetch('/api/sync-status')
+        .then(response => response.json())
+        .then(data => {
+            const statusEl = document.getElementById('sync-status-text');
+            
+            if (data.complete) {
+                statusEl.innerHTML = '<span class="text-green-400">✓</span> Workflow synchronization complete! <span class="text-xs">' + 
+                    data.stats.total + ' workflows synced (' + 
+                    data.stats.local_to_db + ' to database, ' + 
+                    data.stats.db_to_local + ' to filesystem)</span>';
+                
+                setTimeout(() => {
+                    document.querySelector('.sync-status').classList.add('opacity-0', 'transition-opacity', 'duration-1000');
+                    setTimeout(() => {
+                        document.querySelector('.sync-status').classList.add('hidden');
+                    }, 1000);
+                }, 5000);
+            } else {
+                statusEl.innerHTML = '<span class="inline-block animate-pulse">⟳</span> Synchronizing workflows between database and filesystem...';
+                setTimeout(checkSyncStatus, 1000); // Check again in 1 second
+            }
+        })
+        .catch(error => {
+            console.error('Error checking sync status:', error);
+            const statusEl = document.getElementById('sync-status-text');
+            statusEl.textContent = 'Error checking sync status. Workflows may not be fully synchronized.';
+            statusEl.classList.add('text-red-400');
+        });
 }
 </script>
 <style>

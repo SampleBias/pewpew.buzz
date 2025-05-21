@@ -1,0 +1,252 @@
+{
+  "name": "When Executed By Another Workflow To Create Event And Update Event Workflow",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.trigger.executemany",
+      "position": [
+        100,
+        100
+      ],
+      "settings": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "2",
+      "name": "OpenAI Chat Model",
+      "type": "n8n-nodes-base.openai.openai",
+      "position": [
+        200,
+        200
+      ],
+      "settings": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "3",
+      "name": "Calendar Agent",
+      "type": "n8n-nodes-base.calendaragent",
+      "position": [
+        400,
+        100
+      ],
+      "settings": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "4",
+      "name": "Create Event",
+      "type": "n8n-nodes-base.googlecalendar.googlecalendar",
+      "position": [
+        600,
+        200
+      ],
+      "settings": {
+        "operation": "create"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "5",
+      "name": "Update Event",
+      "type": "n8n-nodes-base.googlecalendar.googlecalendar",
+      "position": [
+        600,
+        300
+      ],
+      "settings": {
+        "operation": "update"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "6",
+      "name": "Delete Event",
+      "type": "n8n-nodes-base.googlecalendar.googlecalendar",
+      "position": [
+        600,
+        400
+      ],
+      "settings": {
+        "operation": "delete"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "7",
+      "name": "Get Events",
+      "type": "n8n-nodes-base.googlecalendar.googlecalendar",
+      "position": [
+        600,
+        500
+      ],
+      "settings": {
+        "operation": "getAll"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "8",
+      "name": "Create Event with Attendee",
+      "type": "n8n-nodes-base.googlecalendar.googlecalendar",
+      "position": [
+        600,
+        600
+      ],
+      "settings": {
+        "operation": "create"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "9",
+      "name": "Success",
+      "type": "n8n-nodes-base.end",
+      "position": [
+        800,
+        100
+      ],
+      "settings": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "10",
+      "name": "Try Again",
+      "type": "n8n-nodes-base.end",
+      "position": [
+        800,
+        200
+      ],
+      "settings": {},
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "1": {
+      "main": [
+        [
+          {
+            "node": "2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2": {
+      "main": [
+        [
+          {
+            "node": "3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3": {
+      "main": [
+        [
+          {
+            "node": "4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "5",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "6",
+            "type": "main",
+            "index": 2
+          }
+        ],
+        [
+          {
+            "node": "7",
+            "type": "main",
+            "index": 3
+          }
+        ],
+        [
+          {
+            "node": "8",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4": {
+      "main": [
+        [
+          {
+            "node": "9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5": {
+      "main": [
+        [
+          {
+            "node": "9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6": {
+      "main": [
+        [
+          {
+            "node": "9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7": {
+      "main": [
+        [
+          {
+            "node": "9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "8": {
+      "main": [
+        [
+          {
+            "node": "9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
