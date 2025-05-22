@@ -240,5 +240,14 @@ function checkSyncStatus() {
     button.text-red-400:hover svg {
         filter: drop-shadow(0 0 3px rgba(248, 113, 113, 0.7));
     }
+
+    /* Prevent automation title overflow */
+    .neon {
+        display: block;
+        max-width: 90%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 </style>
 {% endblock %} 
