@@ -3,10 +3,10 @@
 <div class="sync-status bg-[#2d006e] border-b border-pink-500 py-2 px-4 text-center mb-4">
     <p id="sync-status-text" class="text-pink-200 text-sm"><span class="inline-block animate-pulse">⟳</span> Synchronizing workflows between database and filesystem...</p>
 </div>
-<div class="flex flex-col md:flex-row gap-8 container mx-auto py-8">
+<div class="flex flex-col md:flex-row gap-8 container mx-auto py-8 px-2 sm:px-4">
     <!-- Sidebar -->
-    <aside class="w-full md:w-72 mb-8 md:mb-0">
-        <div class="bg-[#1a0025] border-2 border-pink-400 rounded-2xl shadow-xl p-6">
+    <aside class="w-full md:w-72 mb-8 md:mb-0 order-2 md:order-1">
+        <div class="bg-[#1a0025] border-2 border-pink-400 rounded-2xl shadow-xl p-4 sm:p-6">
             <h2 class="text-2xl font-bold neon-pink mb-6 flex items-center gap-2">
                 <span>✨</span> Categories
             </h2>
@@ -28,20 +28,20 @@
         </div>
     </aside>
     <!-- Main Content -->
-    <section class="flex-1">
-        <form method="get" action="/dashboard" class="mb-8 flex gap-2">
+    <section class="flex-1 order-1 md:order-2">
+        <form method="get" action="/dashboard" class="mb-8 flex flex-col sm:flex-row gap-2">
             <input type="text" name="search" value="{{ search_query }}" placeholder="Search automations..." class="w-full px-4 py-2 rounded-lg border-2 border-pink-500 bg-[#1a0025] text-white focus:outline-none focus:border-pink-400" />
             {% if selected_category %}
                 <input type="hidden" name="category" value="{{ selected_category }}" />
             {% endif %}
             <button type="submit" class="bg-pink-500 hover:bg-pink-400 text-white px-4 py-2 rounded-lg font-bold shadow-md transition">Search</button>
         </form>
-        <div class="mb-4 flex items-center justify-between">
+        <div class="mb-4 flex items-center justify-between flex-col sm:flex-row gap-2">
             <h2 class="text-xl font-bold text-pink-300">Automations <span class="text-sm font-normal">(sorted by most likes)</span></h2>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
             {% for automation in automations %}
-            <div class="{% if loop.first %}bg-gradient-to-br from-[#1a0025] to-[#300050] border-2 border-yellow-400 relative{% elif loop.index == 2 %}bg-[#1a0025] border-2 border-pink-300 relative{% elif loop.index == 3 %}bg-[#1a0025] border-2 border-pink-300 relative{% else %}bg-[#1a0025] border-2 border-pink-500{% endif %} rounded-2xl shadow-xl p-6 flex flex-col justify-between transform hover:scale-105 transition-transform duration-200">
+            <div class="{% if loop.first %}bg-gradient-to-br from-[#1a0025] to-[#300050] border-2 border-yellow-400 relative{% elif loop.index == 2 %}bg-[#1a0025] border-2 border-pink-300 relative{% elif loop.index == 3 %}bg-[#1a0025] border-2 border-pink-300 relative{% else %}bg-[#1a0025] border-2 border-pink-500{% endif %} rounded-2xl shadow-xl p-4 sm:p-6 flex flex-col justify-between transform hover:scale-105 transition-transform duration-200">
                 {% if loop.first %}
                 <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-pink-900 text-xs font-bold px-3 py-1 rounded-full">Most Popular</div>
                 {% elif loop.index == 2 %}
@@ -71,21 +71,13 @@
                                     title="Downvote this workflow"
                                 >
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.105-1.79l-.05-.025A4 4 0 0011.055 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z"></path>
+                                        <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z"></path>
                                     </svg>
                                 </button>
-                                <span id="downvotes-{{ automation.id }}" class="text-red-400 font-bold ml-1">{{ automation.downvotes }}</span>
                             </div>
                         </div>
                     </div>
-                    <p class="mb-4 text-pink-200 line-clamp-4 break-words">{{ automation.description }}</p>
-                    {% if automation.categories %}
-                    <div class="flex flex-wrap gap-2 mb-2">
-                        {% for tag in automation.categories %}
-                        <span class="bg-pink-200 text-pink-800 text-xs font-semibold px-2 py-1 rounded-full">{{ tag }}</span>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
+                    <div class="text-pink-200 text-sm mb-2 break-words">{{ automation.description }}</div>
                 </div>
                 <div class="flex items-center justify-between mt-4 gap-2 flex-wrap">
                     <span class="text-sm text-pink-400 font-semibold break-words">By {{ automation.author }}</span>
@@ -249,4 +241,5 @@ function checkSyncStatus() {
         white-space: normal;
     }
 </style>
+{% endblock %} 
 {% endblock %} 

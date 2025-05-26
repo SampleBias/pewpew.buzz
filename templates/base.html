@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>pewpew.buzz</title>
     <link rel="icon" type="image/svg+xml" href="/static/images/96d3be855dc7a637cec3cfb52050f1349039a39a6ecefdfb985c99be5541a6a3.svg">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -43,15 +43,27 @@
             cursor: pointer;
             font-size: 18px;
         }
+        @media (max-width: 640px) {
+            .pewpew-widget {
+                right: 8px;
+                left: 8px;
+                bottom: 8px;
+                max-width: 98vw;
+                padding: 8px;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
-    <header class="flex items-center justify-between px-6 py-4 bg-transparent">
+    <header class="flex items-center justify-between px-4 py-3 bg-transparent flex-wrap">
         <div class="flex items-center gap-3">
-            <img src="/static/images/96d3be855dc7a637cec3cfb52050f1349039a39a6ecefdfb985c99be5541a6a3.svg" alt="pewpew meme" class="w-12 h-12 rounded-full border-2 border-pink-500 shadow-lg">
-            <span class="text-3xl font-bold neon-pink">pewpew.buzz</span>
+            <img src="/static/images/96d3be855dc7a637cec3cfb52050f1349039a39a6ecefdfb985c99be5541a6a3.svg" alt="pewpew meme" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-pink-500 shadow-lg">
+            <span class="text-2xl sm:text-3xl font-bold neon-pink">pewpew.buzz</span>
         </div>
-        <nav class="flex gap-6 text-lg">
+        <button class="sm:hidden text-pink-400 focus:outline-none" onclick="toggleMobileNav()">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <nav id="mainNav" class="flex-col sm:flex-row flex gap-4 sm:gap-6 text-lg w-full sm:w-auto mt-2 sm:mt-0 sm:flex hidden sm:flex">
             <a href="/" class="hover:text-pink-400 transition">Home</a>
             <a href="/dashboard" class="hover:text-pink-400 transition">Automations</a>
             <a href="/builder" class="hover:text-pink-400 transition">Workflow Builder</a>
@@ -145,6 +157,12 @@
                 });
             }
         });
+
+        // Mobile nav toggle
+        function toggleMobileNav() {
+            const nav = document.getElementById('mainNav');
+            nav.classList.toggle('hidden');
+        }
     </script>
 </body>
 </html> 
