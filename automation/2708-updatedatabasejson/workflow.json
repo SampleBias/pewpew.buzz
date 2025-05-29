@@ -1,0 +1,203 @@
+{
+  "id": "Yk0RHxepd0CbI67y",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "\u2699\ufe0fUpdate Database",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "5f602019-051a-4767-996c-e5a0bbcb4b7d",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        680,
+        360
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "8149e180-d28c-426b-a6e1-c830899285e7",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        1220,
+        360
+      ],
+      "parameters": {
+        "columns": {
+          "value": {
+            "Notes": "={{ $json.message.content.Notes }}",
+            "Status": "={{ $json.message.content.Status }}",
+            "Project": "={{ $json.message.content['Project Name'] }}"
+          },
+          "schema": [
+            {
+              "id": "Project",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "Project",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notes",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "Notes",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "Status",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "Project"
+          ]
+        },
+        "options": {},
+        "operation": "appendOrUpdate",
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17rTnGg9telKLqqWrNlyzngatwyVYUwn9eXkQLBtJ-Ys/edit#gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "17rTnGg9telKLqqWrNlyzngatwyVYUwn9eXkQLBtJ-Ys",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17rTnGg9telKLqqWrNlyzngatwyVYUwn9eXkQLBtJ-Ys/edit?usp=drivesdk",
+          "cachedResultName": "Projects"
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aPQtIe3eSZO3y19h",
+          "name": "Google Sheets account 3"
+        }
+      },
+      "typeVersion": 4.5
+    },
+    {
+      "id": "cbb755cf-6e50-4ee9-855d-879fded6b6d8",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1440,
+        360
+      ],
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "204fa3af-6ec3-45f7-a7ac-781e3e0d7e47",
+              "name": "response",
+              "type": "string",
+              "value": "done"
+            }
+          ]
+        }
+      },
+      "typeVersion": 3.4
+    },
+    {
+      "id": "af15d9be-920c-4714-a5c7-1289903bca64",
+      "name": "OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        840,
+        360
+      ],
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o",
+          "cachedResultName": "GPT-4O"
+        },
+        "options": {},
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=Based on the JSON query:  {{ $json.query }}\nYou need to identify and output the following fields separately:\n\nProject Name:\nNotes:\nStatus:\n"
+            }
+          ]
+        },
+        "jsonOutput": true
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "bEw2RFKI3MP4M94t",
+          "name": "OpenAi account 3"
+        }
+      },
+      "typeVersion": 1.5
+    }
+  ],
+  "active": false,
+  "pinData": {
+    "Execute Workflow Trigger": [
+      {
+        "json": {
+          "query": "update the AI Tool project status and notes to Complete"
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f0c0b5b2-7678-42c8-864c-0500373266fb",
+  "connections": {
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

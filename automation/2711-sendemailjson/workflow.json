@@ -1,0 +1,157 @@
+{
+  "id": "UMBzPLICUxFY2x6l",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "\u2699\ufe0fSendEmail",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "122a1d1e-68d4-4a35-8984-08a8e4b22e62",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        620,
+        320
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "0a3354e6-fe59-4eb6-83e2-4331e0dd0c55",
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        1160,
+        320
+      ],
+      "parameters": {
+        "sendTo": "={{ $json.message.content.sendTo }}",
+        "message": "={{ $json.message.content.message }}",
+        "options": {
+          "senderName": "Nate",
+          "appendAttribution": false
+        },
+        "subject": "={{ $json.message.content.subject }}",
+        "emailType": "text"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tTM3T5akyzZzFT2R",
+          "name": "Gmail account 2"
+        }
+      },
+      "typeVersion": 2.1
+    },
+    {
+      "id": "79b54f01-92c7-496a-ae89-3ef3d45073d0",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1380,
+        320
+      ],
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "99d77b1d-9e3a-4abc-852c-886e072368ac",
+              "name": "response",
+              "type": "string",
+              "value": "Sent"
+            }
+          ]
+        }
+      },
+      "typeVersion": 3.4
+    },
+    {
+      "id": "532099d8-101f-40dc-9df3-184ada75b6f2",
+      "name": "OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        820,
+        320
+      ],
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o",
+          "cachedResultName": "GPT-4O"
+        },
+        "options": {},
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "parse the 'query' and output the following parameters separately. \n\nsendTo:\nsubject:\nemailType:\nmessage:\nappendAttribution:\nbccList:\nccList:\nsenderName:\n\nat the end of the \"message\" field, please sign off the email with something like \"Cheers, Nate\" or \"Best regards, Nate\". Never include something like \"[Your Name]"
+            },
+            {
+              "content": "={{ JSON.stringify($json.query) }}"
+            }
+          ]
+        },
+        "jsonOutput": true
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "bEw2RFKI3MP4M94t",
+          "name": "OpenAi account 3"
+        }
+      },
+      "typeVersion": 1.4
+    }
+  ],
+  "active": false,
+  "pinData": {
+    "Execute Workflow Trigger": [
+      {
+        "json": {
+          "query": "sendTo=&subject=&emailType=text&message=&appendAttribution=false&bccList=&ccList=&senderName="
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0a25ee3a-a1d3-4cd8-a729-2b84a90db00c",
+  "connections": {
+    "Gmail": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,470 @@
+{
+  "id": "p9tPjNO9qaMomqOT",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Routing",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "5adbe3b1-bb51-4b62-9405-c9e4d52d1237",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -620,
+        -100
+      ],
+      "parameters": {
+        "color": 5,
+        "width": 880,
+        "height": 280,
+        "content": "# Routing\n\u2705 Optimized Response Handling \u2013 Ensures the right AI agent processes the query instead of a single generalist AI.\n\n\u2705 Scalable & Modular \u2013 New AI agents can be added to handle additional topics.\n\n\u2705 Faster & More Efficient \u2013 Reduces unnecessary LLM calls and improves response speed.\n\n\u2705 Human Escalation for Critical Issues \u2013 Ensures urgent problems are handled by real support staff.\n\n\u2705 Better User Experience \u2013 More accurate and relevant responses tailored to the customer\u2019s needs."
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "4e23a1e6-e451-4962-b62b-f4c587f1cf24",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "position": [
+        -200,
+        320
+      ],
+      "parameters": {
+        "simple": false,
+        "filters": {
+          "labelIds": []
+        },
+        "options": {},
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MHutgNQIvAz7qMgP",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "6e285303-cb30-4269-ba5b-e6b7731700d3",
+      "name": "High Priority",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        400,
+        -20
+      ],
+      "webhookId": "c2817f4a-2f52-4ae7-8cd0-16ee702b7c22",
+      "parameters": {
+        "messageId": "={{ $json.id }}",
+        "operation": "addLabels"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MHutgNQIvAz7qMgP",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 2.1
+    },
+    {
+      "id": "16b2affa-62cd-44b8-90f4-3f56137408a7",
+      "name": "Customer Support",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        400,
+        200
+      ],
+      "webhookId": "00c21fcb-fdf2-47d1-96fd-f61c83181bab",
+      "parameters": {
+        "messageId": "={{ $json.id }}",
+        "operation": "addLabels"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MHutgNQIvAz7qMgP",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 2.1
+    },
+    {
+      "id": "57e7793b-1c79-407b-a88c-6b32523ad3fb",
+      "name": "Promotion",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        400,
+        440
+      ],
+      "webhookId": "1e06eea2-bead-419e-b14c-c2ccabfa736a",
+      "parameters": {
+        "messageId": "={{ $json.id }}",
+        "operation": "addLabels"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MHutgNQIvAz7qMgP",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 2.1
+    },
+    {
+      "id": "5e4850b5-4924-4a2d-bedf-524e2f434780",
+      "name": "Finance/Billing",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        400,
+        640
+      ],
+      "webhookId": "f3181ea4-b320-4e02-8518-47911e4978ac",
+      "parameters": {
+        "messageId": "={{ $json.id }}",
+        "operation": "addLabels"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MHutgNQIvAz7qMgP",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 2.1
+    },
+    {
+      "id": "93deba51-0a68-489e-addb-ea7a44293532",
+      "name": "Email Classifier",
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "position": [
+        0,
+        320
+      ],
+      "parameters": {
+        "options": {
+          "systemPromptTemplate": "Please classify the text provided by the user into one of the following categories: {categories}, and use the provided formatting instructions below. Don't explain, and only output the json."
+        },
+        "inputText": "={{ $json.text }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "High Priority",
+              "description": "Emails requiring immediate attention or action, typically from key stakeholders, clients, or decision-makers. These emails often contain time-sensitive requests, deadlines, or escalated issues. Keywords: urgent, ASAP, immediate, deadline, action required, high priority"
+            },
+            {
+              "category": "Customer Support",
+              "description": "Emails related to ongoing communication with current clients or customers, including service requests, feedback, support tickets, and inquiries. Keywords: request, inquiry, support, question, follow-up, feedback"
+            },
+            {
+              "category": "Promotions",
+              "description": "Emails related to marketing campaigns, promotional offers, newsletters, or business updates from partners. Typically these emails contain content aimed at engaging your audience or updating on promotions. Keywords: newsletter, promotion, offer, sale, campaign, marketing, launch"
+            },
+            {
+              "category": "Finance/Billing",
+              "description": " Description: Emails related to financial matters, such as invoices, billing statements, payment reminders, or expense reports. Anything involving transactions or accounting should fall under this label.  Keywords: invoice, payment, billing, receipt, financial, expense, account"
+            }
+          ]
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "9d01c728-050a-4aa0-ba31-ad6665473346",
+      "name": "4o mini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        40,
+        620
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "BP9v81AwJlpYGStD",
+          "name": "OpenAi account"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "a74a5e3f-4046-4a13-94eb-fc2ee0cc8865",
+      "name": "High Priority Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        620,
+        -20
+      ],
+      "parameters": {
+        "text": "=Email from: {{ $('Gmail Trigger').item.json.to.value[0].name }}\n\nHere is the Email: \n{{ $('Gmail Trigger').item.json.text }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are an agent in charge of high priority emails. Your job is to summarize incoming emails and escalate them to the human.\n\n## Tools\nTelegram - Use this tool to escalate to a human. Send over the summary of the email."
+        },
+        "promptType": "define"
+      },
+      "typeVersion": 1.7
+    },
+    {
+      "id": "0c672fad-26f8-4fae-8b19-811d722e26ee",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegramTool",
+      "position": [
+        1040,
+        260
+      ],
+      "webhookId": "4a005847-6ed4-48c6-99bd-d09e9d7271af",
+      "parameters": {
+        "text": "=Urgent Email: \n{{ $fromAI(\"summary\") }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "9jQWan3cOz3tE62s",
+          "name": "Telegram account 2"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "23bfd8f4-1976-4520-948b-659421b0b1f5",
+      "name": "Customer Support Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        620,
+        200
+      ],
+      "parameters": {
+        "text": "=Email from: {{ $('Gmail Trigger').item.json.to.value[0].name }}\n\nEmail: {{ $('Gmail Trigger').item.json.text }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are a customer support representitive named Kelly. Your job is to respond to customer inquiries in a friendly and professional manner. \n\n## Tools\nEmail Draft - Use this to send an email reply to a customer. Always sign off as Kelly from ABC Corp."
+        },
+        "promptType": "define"
+      },
+      "typeVersion": 1.7
+    },
+    {
+      "id": "6d93ee1c-777b-44a7-ae88-c34f1283834d",
+      "name": "Promotion Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        620,
+        440
+      ],
+      "parameters": {
+        "text": "=Email from: {{ $('Gmail Trigger').item.json.to.value[0].name }}\n\nEmail: {{ $('Gmail Trigger').item.json.text }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are in charge of promotional opportunities. Your job is to respond to inquiries in a friendly and professional manner. \n\n## Tools\nEmail Draft - Use this to send an email reply to a customer. Always sign off as Meredith from ABC Corp."
+        },
+        "promptType": "define"
+      },
+      "typeVersion": 1.7
+    },
+    {
+      "id": "172b5671-a85d-4c8a-bd6a-2fb2b94284b4",
+      "name": "Finance Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        620,
+        640
+      ],
+      "parameters": {
+        "text": "=Email from: {{ $('Gmail Trigger').item.json.to.value[0].name }}\n\nEmail: {{ $('Gmail Trigger').item.json.text }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are in charge of finacnes. Your job is to respond to inquiries in a friendly and professional manner. \n\n## Tools\nEmail Draft - Use this to send an email reply to a customer. Always sign off as Angela from ABC Corp."
+        },
+        "promptType": "define"
+      },
+      "typeVersion": 1.7
+    },
+    {
+      "id": "2c7e251a-e102-4c41-8d35-730357196f46",
+      "name": "Email Draft",
+      "type": "n8n-nodes-base.gmailTool",
+      "position": [
+        1040,
+        520
+      ],
+      "webhookId": "5d8537bc-efa2-4889-82bb-cc44dc383ace",
+      "parameters": {
+        "message": "={{ $fromAI(\"emailBody\") }}",
+        "options": {
+          "threadId": "={{ $('Gmail Trigger').item.json.threadId }}"
+        },
+        "subject": "={{ $fromAI(\"subject\") }}",
+        "resource": "draft"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MHutgNQIvAz7qMgP",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 2.1
+    }
+  ],
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "90017b0c-7997-4d13-a310-86ed7425dfd5",
+  "connections": {
+    "4o mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "High Priority Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Customer Support Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Promotion Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Finance Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "ai_tool": [
+        [
+          {
+            "node": "High Priority Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Promotion": {
+      "main": [
+        [
+          {
+            "node": "Promotion Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Draft": {
+      "ai_tool": [
+        [
+          {
+            "node": "Customer Support Agent",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Finance Agent",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "Promotion Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Email Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High Priority": {
+      "main": [
+        [
+          {
+            "node": "High Priority Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finance/Billing": {
+      "main": [
+        [
+          {
+            "node": "Finance Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Support": {
+      "main": [
+        [
+          {
+            "node": "Customer Support Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Classifier": {
+      "main": [
+        [
+          {
+            "node": "High Priority",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Customer Support",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Promotion",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Finance/Billing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

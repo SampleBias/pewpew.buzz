@@ -1,0 +1,140 @@
+{
+  "id": "Zggf70xgOWq1NhRg",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "n8n Masterclass: Customer Orders",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "dc7c20da-e9d0-4c82-9e98-51fa6b7b4eb5",
+      "name": "Google Sheets Trigger",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "position": [
+        940,
+        400
+      ],
+      "parameters": {
+        "options": {},
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DY1SukNd5CouGjCkzDSwkF5M56SdYl7T4PngiD0NlFk/edit#gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1DY1SukNd5CouGjCkzDSwkF5M56SdYl7T4PngiD0NlFk",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DY1SukNd5CouGjCkzDSwkF5M56SdYl7T4PngiD0NlFk/edit?usp=drivesdk",
+          "cachedResultName": "Customer Orders"
+        }
+      },
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "Ah6vsd39m0I0Gxli",
+          "name": "Google Sheets Trigger account 2"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "fb683a67-2d94-438f-9e26-4225d6865372",
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        1520,
+        400
+      ],
+      "parameters": {
+        "sendTo": "nateherk88@gmail.com",
+        "message": "={{ $json.message.content['Email Body'] }}",
+        "options": {
+          "appendAttribution": false
+        },
+        "subject": "={{ $json.message.content['Email Subject'] }}",
+        "emailType": "text"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "yLnGZmLEbOY4mFau",
+          "name": "Gmail account 2"
+        }
+      },
+      "typeVersion": 2.1
+    },
+    {
+      "id": "1ebde312-8b54-40c2-9e9d-2aba467d4647",
+      "name": "Summarize",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        1160,
+        400
+      ],
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o",
+          "cachedResultName": "GPT-4O"
+        },
+        "options": {},
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=You are in charge of client orders. Your job is to take incoming information regarding new orders and give a nice summary that will be emailed to the team. The email should be signed off from \"Customer Success Team\".\n\nHere is the information on client orders.\nOrder ID: {{ $json.OrderID }}\nCustomer Name:{{ $json.CustomerName }}\nProduct:{{ $json.Product }}\nQuantity:{{ $json.Quantity }}\nPrice:{{ $json.Price }}\nOrder Date:{{ $json.OrderDate }}\nStatus:{{ $json.Status }}\n\nPlease output the following parameters:\nEmail Subject\nEmail Body "
+            }
+          ]
+        },
+        "jsonOutput": true
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "wPgAvQdKmd42DADX",
+          "name": "Demo"
+        }
+      },
+      "typeVersion": 1.5
+    }
+  ],
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e0b9fe30-9ecf-4d3b-bb98-2fd58745da71",
+  "connections": {
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

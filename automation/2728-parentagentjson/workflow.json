@@ -1,0 +1,161 @@
+{
+  "id": "UEsk1KkxAUKK48Qb",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Parent Agent",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "ceb6fd4f-2548-4670-8d73-dd662acdec30",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "da0e0c21-ff74-4b71-ae53-bd70b61bcec5",
+      "parameters": {
+        "options": {}
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "ab6e2b98-1ab7-402c-b77b-20a2f9776d3c",
+      "name": "Flash 2.0",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        120,
+        220
+      ],
+      "parameters": {
+        "options": {},
+        "modelName": "models/gemini-2.0-flash"
+      },
+      "credentials": {
+        "googlePalmApi": {
+          "id": "DW8owDXDeMHnr1rA",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "dd15fa0c-2cc5-4e9b-9897-7c9caa736e4f",
+      "name": "Story Agent",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "position": [
+        380,
+        220
+      ],
+      "parameters": {
+        "name": "storyAgent",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "z0CvIgZ57tA2Deqg",
+          "cachedResultName": "Story Agent #2"
+        },
+        "description": "call this tool to create a story about a person",
+        "workflowInputs": {
+          "value": {
+            "setting": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('setting', ``, 'string') }}",
+            "adventure": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('adventure', ``, 'string') }}",
+            "mainCharacter": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('mainCharacter', ``, 'string') }}"
+          },
+          "schema": [
+            {
+              "id": "setting",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "setting",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mainCharacter",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "mainCharacter",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "adventure",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "adventure",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "854e9a87-a6ac-4da0-8eb5-f697d753e454",
+      "name": "Parent Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "options": {
+          "systemMessage": "=# Overview\nYou assist users in creating stories. Your job is to send the incoming story details to the 'storyAgent' tool.\n\n## Tools\nstoryAgent - Use this tool to create a story. You must send this tool information about the story it needs to create.\n\n## Rules\nYou will send over the following parameters to the storyAgent\n- setting\n- mainCharacter\n- adventure\nIf a parameter wasn't given, just send over 'none provided' for that parameter\nOnly output the title of the story, and then the story."
+        }
+      },
+      "typeVersion": 1.7
+    }
+  ],
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "aeef5a15-2981-4bc7-8685-0bb12fc0d388",
+  "connections": {
+    "Flash 2.0": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Parent Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Story Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Parent Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Parent Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

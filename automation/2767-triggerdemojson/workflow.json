@@ -1,0 +1,144 @@
+{
+  "id": "D6cImN5T8IE4xiWy",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "\ud83d\udee0\ufe0fTrigger Demo",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "0e3abd81-b5b9-40f5-ae7d-7cb57fa38d6e",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        640,
+        280
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "typeVersion": 3
+    },
+    {
+      "id": "d8d202b7-8688-44c6-ae5f-7d7d24a414ab",
+      "name": "Execute Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "onError": "continueRegularOutput",
+      "position": [
+        860,
+        380
+      ],
+      "parameters": {
+        "options": {},
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "c20yHkSbKSVp5EFJ",
+          "cachedResultName": "\ud83d\udee0\ufe0fScrape Demo"
+        }
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "0bfcc7c0-6555-4dfa-9bbd-4ce3d148d634",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        1080,
+        380
+      ],
+      "webhookId": "df85adf6-6c79-495e-9a80-b13b0d4df2c8",
+      "parameters": {
+        "amount": 3
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "1c42d8f3-af15-47de-998e-ccb0ea4777ff",
+      "name": "When clicking \u2018Test workflow\u2019",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        420,
+        280
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "1f9bb8fa-c97c-46bf-add3-798e5bf9e59c",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1020,
+        180
+      ],
+      "parameters": {
+        "height": 355.2694215797759,
+        "content": "## I actually don't think the Wait node is necessary\n"
+      },
+      "typeVersion": 1
+    }
+  ],
+  "active": false,
+  "pinData": {
+    "When clicking \u2018Test workflow\u2019": [
+      {
+        "json": {
+          "query": "insert list of queries here for google map search"
+        }
+      }
+    ]
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "559db202-5542-48a5-9c34-5ee703f85d9d",
+  "connections": {
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Execute Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking \u2018Test workflow\u2019": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

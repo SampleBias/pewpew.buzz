@@ -1,0 +1,239 @@
+{
+  "id": "kolJmcSK4FfXpxF7",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Voice RAG Agent",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "cfebb671-f741-4c06-a107-744ee531712b",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1020,
+        540
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "PI7dqswJpx1Asynn",
+          "name": "OpenAi account 2"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "73470034-de06-4493-968e-c03f5856e0aa",
+      "name": "OpenAI Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1360,
+        720
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "PI7dqswJpx1Asynn",
+          "name": "OpenAi account 2"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "79319e57-0407-4cb4-9d9a-ef593711dd31",
+      "name": "Embeddings OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "position": [
+        1100,
+        840
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "PI7dqswJpx1Asynn",
+          "name": "OpenAi account 2"
+        }
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "bf8d8809-357a-40fb-a0c5-56e294c63fd5",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        1380,
+        360
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "8abb9ac6-ea20-448b-9ffe-5c14879173d4",
+      "name": "projects",
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "position": [
+        1140,
+        540
+      ],
+      "parameters": {
+        "name": "projects",
+        "description": "Retrieves information about our projects"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "a0299115-4a70-4ab4-8307-27558c60feec",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1040,
+        360
+      ],
+      "parameters": {
+        "text": "={{ $json.body.question }}",
+        "options": {},
+        "promptType": "define"
+      },
+      "typeVersion": 1.7
+    },
+    {
+      "id": "fe252d73-9058-4bb0-9788-fd9dd88e18ec",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        860,
+        360
+      ],
+      "webhookId": "49722672-55e9-4d87-895f-ba9b1d540315",
+      "parameters": {
+        "path": "49722672-55e9-4d87-895f-ba9b1d540315",
+        "options": {},
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "45e2994c-9515-45e6-ac19-dafed7e47cd6",
+      "name": "Pinecone Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "position": [
+        1080,
+        720
+      ],
+      "parameters": {
+        "options": {
+          "pineconeNamespace": "projects"
+        },
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "sample",
+          "cachedResultName": "sample"
+        }
+      },
+      "credentials": {
+        "pineconeApi": {
+          "id": "kRQGVexSgzWhzJz2",
+          "name": "PineconeApi account 4"
+        }
+      },
+      "typeVersion": 1
+    }
+  ],
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dc0e8cfd-c364-435f-88ae-b747300b20ed",
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "projects": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "projects",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "projects",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "id": "KRrDp9YLb0IkVKpD",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39"
+  },
+  "name": "Apify",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "b9659e82-6069-459b-80f1-ae415f566832",
+      "name": "Get Results",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        800,
+        -100
+      ],
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/compass~google-maps-extractor/runs/last/dataset/items?token=YOUR API KEY",
+        "options": {}
+      },
+      "typeVersion": 4.2,
+      "alwaysOutputData": true
+    },
+    {
+      "id": "bf8242e0-ba89-427a-b4ef-aa37fa515c6d",
+      "name": "Google Maps Actor",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        240,
+        -100
+      ],
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/compass~google-maps-extractor/runs?token=YOUR API KEY",
+        "method": "POST",
+        "options": {},
+        "jsonBody": "{\n    \"language\": \"en\",\n    \"locationQuery\": \"New York, USA\",\n    \"maxCrawledPlacesPerSearch\": 50,\n    \"searchStringsArray\": [\n        \"plumbers\"\n    ],\n    \"skipClosedPlaces\": false\n}",
+        "sendBody": true,
+        "specifyBody": "json"
+      },
+      "typeVersion": 4.2,
+      "alwaysOutputData": true
+    },
+    {
+      "id": "08a3faab-c458-4dc1-9b3d-abfdff60902f",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        160,
+        -180
+      ],
+      "parameters": {
+        "color": 4,
+        "width": 260,
+        "height": 260,
+        "content": "# Start Actor"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "7eda578e-b578-47af-a964-7f2affebf16f",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        720,
+        -180
+      ],
+      "parameters": {
+        "color": 5,
+        "width": 260,
+        "height": 260,
+        "content": "# Grab Results"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "8d1194b3-c7e6-4ca6-920c-2d02077e95f3",
+      "name": "Sync Run",
+      "type": "n8n-nodes-base.httpRequest",
+      "disabled": true,
+      "position": [
+        240,
+        180
+      ],
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/compass~google-maps-extractor/run-sync?token=apify_api_8tZJaGxvs9ZkkfFXV5eaqEOCDHpGln2TnJno",
+        "method": "POST",
+        "options": {},
+        "jsonBody": "{\n    \"language\": \"en\",\n    \"locationQuery\": \"New York, USA\",\n    \"maxCrawledPlacesPerSearch\": 50,\n    \"searchStringsArray\": [\n        \"plumbers\"\n    ],\n    \"skipClosedPlaces\": false\n}",
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "5e2dde0d-4ccf-4489-bd74-4c83b0d94a23",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        520,
+        -60
+      ],
+      "webhookId": "426f22d5-31db-4344-ae7a-13dedfc46bf4",
+      "parameters": {
+        "amount": 25
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "19e5426c-af7f-4024-b75e-e05e114ef139",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        440,
+        -180
+      ],
+      "parameters": {
+        "color": 3,
+        "width": 260,
+        "height": 260,
+        "content": "# Wait\nSet this to an appropriate wait time"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "e17d1c77-123a-4399-bc96-6588d4cb5575",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        160,
+        100
+      ],
+      "parameters": {
+        "color": 4,
+        "width": 260,
+        "height": 260,
+        "content": "# Sync Run\n"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "9cf579fa-e2a3-4c5b-9061-4ac83c2fb870",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -380,
+        -180
+      ],
+      "parameters": {
+        "width": 520,
+        "height": 540,
+        "content": "# \ud83d\udee0\ufe0f Setup Guide  \n**Author:** [Nate Herk](https://www.youtube.com/@nateherk)\n---\n\n### Steps to Get Started with Apify\n\n1. **Sign Up for Apify**  \n   Go to [Apify](https://www.apify.com/?fpr=nate) and create an account.\n\n2. **Claim Your Discount**  \n   Use the code `30NATEHERK` to get **30% off Apify credits**.\n\n3. **Find the Actor You Need**  \n   Browse Apify's actor library and select the actor that fits your use case.\n\n4. **Integrate in n8n**  \n   Copy the appropriate actor endpoints into the designated HTTP Request nodes, as demonstrated in the YouTube tutorial.\n\n---\n\ud83d\udcfa Watch the full guide here: [YouTube - Nate Herk](https://www.youtube.com/@nateherk)\n"
+      },
+      "typeVersion": 1
+    }
+  ],
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0502ef82-bbb1-4a51-95bf-d1605012ec8e",
+  "connections": {
+    "Get Results": {
+      "main": [
+        []
+      ]
+    },
+    "Google Maps Actor": {
+      "main": [
+        []
+      ]
+    }
+  }
+}

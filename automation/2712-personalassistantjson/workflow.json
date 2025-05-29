@@ -1,0 +1,451 @@
+{
+  "id": "H4NvDLrXuAzHyDXK",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "\ud83e\udd16Personal Assistant",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "56d3b60c-c6da-4127-8a60-228fadd1b2bb",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        860,
+        500
+      ],
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "bEw2RFKI3MP4M94t",
+          "name": "OpenAi account 3"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "93d8037b-315b-486a-8bca-5448f376cc04",
+      "name": "Vector Store Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "position": [
+        960,
+        500
+      ],
+      "parameters": {
+        "name": "Contacts_Data",
+        "description": "Call this to retrieve information about contacts like email address."
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "c406f632-70f1-43a1-9b23-a89a0d55ba01",
+      "name": "OpenAI Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1120,
+        640
+      ],
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "bEw2RFKI3MP4M94t",
+          "name": "OpenAi account 3"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "f15a702e-d268-4c59-b74c-d9a73b91de66",
+      "name": "Embeddings OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "position": [
+        1000,
+        740
+      ],
+      "parameters": {
+        "model": "text-embedding-3-small",
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "bEw2RFKI3MP4M94t",
+          "name": "OpenAi account 3"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "026fdccd-47e7-4125-824d-566f18e38c44",
+      "name": "Pinecone Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "position": [
+        860,
+        640
+      ],
+      "parameters": {
+        "options": {
+          "pineconeNamespace": "Contacts"
+        },
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "sample",
+          "cachedResultName": "sample"
+        }
+      },
+      "credentials": {
+        "pineconeApi": {
+          "id": "AdcDNbDtciPwZiZC",
+          "name": "PineconeApi account"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "7156039c-342b-4a86-bde3-47e18fc5f238",
+      "name": "\u2699\ufe0fGet Emails",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "position": [
+        1260,
+        500
+      ],
+      "parameters": {
+        "name": "get_emails",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "90jRfZTdDWxvbkws",
+          "cachedResultName": "Nate Testing \u2014 \u2699\ufe0fGetEmails"
+        },
+        "description": "Call this tool when asked to retrieve or get emails."
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "5425eeb7-55f7-47f0-b9e4-1165037d09d7",
+      "name": "\u2699\ufe0fSend Email",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "position": [
+        1380,
+        500
+      ],
+      "parameters": {
+        "name": "send_email",
+        "schemaType": "manual",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "UMBzPLICUxFY2x6l",
+          "cachedResultName": "Nate Testing \u2014 \u2699\ufe0fSendEmail"
+        },
+        "description": "Call this tool to send an email.",
+        "inputSchema": "[\n  {\n    \"query\": \"sendTo=&subject=&emailType=text&message=&appendAttribution=false&bccList=&ccList=&senderName=\"\n  }\n]",
+        "specifyInputSchema": true
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "a53a0948-86f2-4a86-9c82-ce78346105b6",
+      "name": "\u2699\ufe0fGet Calendar",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "position": [
+        1500,
+        500
+      ],
+      "parameters": {
+        "name": "get_calendar",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "A2k0Um6Add16DqRz",
+          "cachedResultName": "Nate Testing \u2014 \u2699\ufe0fGet Calendar"
+        },
+        "description": "Call this tool to view calendar events and information."
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "75789cf9-08de-4854-8ef0-52bf2c0e692f",
+      "name": "\u2699\ufe0fSet Calendar Event",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "position": [
+        1520,
+        640
+      ],
+      "parameters": {
+        "name": "set_event",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vqt4dudohtbPZ3Wo",
+          "cachedResultName": "Nate Testing \u2014 \u2699\ufe0fSet Calendar"
+        },
+        "description": "Call this tool to set a calendar event, AKA make an appointment."
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "c36d35b2-d08f-4430-8b82-41b3a8e7c8d2",
+      "name": "\u2699\ufe0fUpdate Database",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "position": [
+        1260,
+        640
+      ],
+      "parameters": {
+        "name": "update_database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Yk0RHxepd0CbI67y",
+          "cachedResultName": "Nate Testing \u2014 \u2699\ufe0fUpdate Database"
+        },
+        "description": "Call this tool to update the database. This will look like changing notes and statuses of a project."
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "595c7aea-61a0-44d5-b3b8-1717860cafe0",
+      "name": "\u2699\ufe0fSummarize Database",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "position": [
+        1380,
+        640
+      ],
+      "parameters": {
+        "name": "Summarize_Database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "4BfamBqximmZ86qM",
+          "cachedResultName": "Nate Testing \u2014 \u2699\ufe0fSummarize Database"
+        },
+        "description": "Call this tool when asked to summarize the database."
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "aba14906-0fb8-40ac-bbbb-a254f3c15b3a",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        940,
+        300
+      ],
+      "webhookId": "f48d9294-5402-455c-880e-62ca81564aa5",
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "JsYM6FHO8j4diMhE",
+          "name": "Telegram account"
+        }
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "92066b9c-82b0-4d6c-95ae-7a05170dcf37",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        1400,
+        300
+      ],
+      "parameters": {
+        "text": "={{ $json.output }}",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "JsYM6FHO8j4diMhE",
+          "name": "Telegram account"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "047f5b26-372a-4218-b267-ac26726671ac",
+      "name": "AI Personal Assistant",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1080,
+        300
+      ],
+      "parameters": {
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "=You are a personal assistant. Today's date is {{ $now }}\nYou have access to multiple tools and you must decide which tool to use based on what you are asked. Use the pinecone vector store to retrieve personal information like contact information like email address.\n",
+          "returnIntermediateSteps": true
+        },
+        "promptType": "define",
+        "hasOutputParser": true
+      },
+      "typeVersion": 1.6
+    }
+  ],
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6a5c70ba-d4ec-4649-b46f-e60faf5aa21c",
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u2699\ufe0fGet Emails": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u2699\ufe0fSend Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Vector Store Tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u2699\ufe0fGet Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Personal Assistant": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Store Tool",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u2699\ufe0fUpdate Database": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u2699\ufe0fSet Calendar Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u2699\ufe0fSummarize Database": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Personal Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

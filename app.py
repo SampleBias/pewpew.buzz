@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, redirect, url_for, session, request, send_file, jsonify
+from flask import Flask, render_template, redirect, url_for, session, request, send_file, jsonify, flash
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from supabase import create_client, Client
@@ -22,8 +22,65 @@ from workflow_sync import get_workflow_from_filesystem, sync_workflow_to_databas
 from functools import wraps
 import traceback
 import html
+import threading
+import time
+import concurrent.futures
 
 load_dotenv()
+
+# Add this helper function to safely run async operations
+def run_async_safely(coro):
+    """
+    Safely run an async coroutine in a synchronous context.
+    This handles the event loop properly to avoid 'Event loop is closed' errors.
+    """
+    try:
+        # Try to get the current event loop
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError as e:
+            if "There is no current event loop" in str(e):
+                # No event loop exists, create a new one
+                return asyncio.run(coro)
+            else:
+                raise e
+        
+        # Check if the loop is closed
+        if loop.is_closed():
+            # Loop is closed, create a new one
+            return asyncio.run(coro)
+        
+        if loop.is_running():
+            # If there's already a running loop, we need to run in a thread
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, coro)
+                return future.result()
+        else:
+            # If no loop is running, we can use the existing loop
+            return loop.run_until_complete(coro)
+            
+    except RuntimeError as e:
+        if "Event loop is closed" in str(e) or "cannot be called from a running event loop" in str(e):
+            # Handle the specific event loop closed error
+            try:
+                # Try to create a new event loop in a thread
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(asyncio.run, coro)
+                    return future.result()
+            except Exception as thread_e:
+                print(f"Error running in thread: {thread_e}")
+                # As a last resort, try asyncio.run
+                return asyncio.run(coro)
+        else:
+            # For other RuntimeErrors, try asyncio.run as fallback
+            return asyncio.run(coro)
+    except Exception as e:
+        # If all else fails, try asyncio.run as a last resort
+        try:
+            return asyncio.run(coro)
+        except Exception as final_e:
+            print(f"Error running async operation: {final_e}")
+            raise final_e
 
 # Get API keys from environment
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
@@ -629,7 +686,7 @@ def generate_workflow():
             # Heroku has a 30-second timeout, so we set ours to 25 seconds to ensure we respond before that
             try:
                 # Set a timeout to prevent Heroku H12 errors (30 second limit)
-                result = asyncio.run(asyncio.wait_for(
+                result = run_async_safely(asyncio.wait_for(
                     workflow_builder.generate_workflow(goal), 
                     timeout=25.0
                 ))
@@ -829,7 +886,7 @@ def test_gemini_api():
     """Test endpoint to verify Gemini API connection"""
     try:
         # Run the async function in a synchronous context
-        result = asyncio.run(workflow_builder.test_api_connection())
+        result = run_async_safely(workflow_builder.test_api_connection())
         return jsonify(result)
     except Exception as e:
         return jsonify({
@@ -2122,3 +2179,6 @@ def delete_automation():
 def get_sync_status():
     """API endpoint to get the current sync status"""
     return jsonify(sync_status)
+
+if __name__ == '__main__':
+    app.run(debug=True)

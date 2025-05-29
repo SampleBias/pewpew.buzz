@@ -1,0 +1,296 @@
+{
+  "id": "iIFl4XZm2Z5aiV2b",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "LinkedIn Content Creator",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "dc955db3-632f-4c73-8fbb-cc43574852c2",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1500,
+        -1220
+      ],
+      "parameters": {
+        "color": 5,
+        "width": 660,
+        "height": 80,
+        "content": "# 3) LinkedIn Content Creator Workflow\n"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "bd3bda27-806b-4b57-9c4d-10c887b934cd",
+      "name": "When clicking \u2018Test workflow\u2019",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        -1680,
+        -1000
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "0cb70938-fea1-4991-8d41-68475ce4632e",
+      "name": "Get Topic",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -1460,
+        -1000
+      ],
+      "parameters": {
+        "options": {
+          "returnFirstMatch": true
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupValue": "To Do",
+              "lookupColumn": "Status"
+            }
+          ]
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KUUOD7FkDhY1oytGZJA7K-huagWAD6gfV30SfaZ6fJE/edit#gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1KUUOD7FkDhY1oytGZJA7K-huagWAD6gfV30SfaZ6fJE",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KUUOD7FkDhY1oytGZJA7K-huagWAD6gfV30SfaZ6fJE/edit?usp=drivesdk",
+          "cachedResultName": "LinkedIn Posts"
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "s7PIUa59FFmDLn1e",
+          "name": "Demo 4/2"
+        }
+      },
+      "typeVersion": 4.5
+    },
+    {
+      "id": "aa8aa8ea-773b-4dd8-be58-804f39e8de15",
+      "name": "Tavily",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -1240,
+        -1000
+      ],
+      "parameters": {
+        "url": "https://api.tavily.com/search",
+        "method": "POST",
+        "options": {},
+        "jsonBody": "={\n  \"query\": \"Search the web for {{ $json.Topic }}\",\n  \"topic\": \"general\",\n  \"search_depth\": \"basic\",\n  \"chunks_per_source\": 3,\n  \"max_results\": 3,\n  \"time_range\": null,\n  \"days\": 7,\n  \"include_answer\": true,\n  \"include_raw_content\": false,\n  \"include_images\": false,\n  \"include_image_descriptions\": false,\n  \"include_domains\": [],\n  \"exclude_domains\": []\n}",
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        }
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "045ca23a-6255-4b04-aca2-5cf478c8992d",
+      "name": "OpenRouter Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        -1080,
+        -720
+      ],
+      "parameters": {
+        "model": "anthropic/claude-3.5-sonnet",
+        "options": {}
+      },
+      "credentials": {
+        "openRouterApi": {
+          "id": "OKbg2dxiNxleXQic",
+          "name": "Demo 4/2"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "cad0d6a1-dee9-4a8c-b731-f23023cd8654",
+      "name": "Send Content",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -660,
+        -1000
+      ],
+      "parameters": {
+        "columns": {
+          "value": {
+            "Topic": "={{ $('Get Topic').item.json.Topic }}",
+            "Status": "Created",
+            "Content": "={{ $json.output }}"
+          },
+          "schema": [
+            {
+              "id": "Topic",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "Topic",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "Status",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Content",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "Content",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "type": "string",
+              "display": true,
+              "removed": true,
+              "readOnly": true,
+              "required": false,
+              "displayName": "row_number",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "Topic"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {},
+        "operation": "update",
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KUUOD7FkDhY1oytGZJA7K-huagWAD6gfV30SfaZ6fJE/edit#gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1KUUOD7FkDhY1oytGZJA7K-huagWAD6gfV30SfaZ6fJE",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KUUOD7FkDhY1oytGZJA7K-huagWAD6gfV30SfaZ6fJE/edit?usp=drivesdk",
+          "cachedResultName": "LinkedIn Posts"
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wwE70mh6N2QEfZRL",
+          "name": "Google Sheets account 3"
+        }
+      },
+      "typeVersion": 4.5
+    },
+    {
+      "id": "7a36c1e1-8f76-461b-8c85-e7f318dd3a7a",
+      "name": "Content Creator",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -1020,
+        -1000
+      ],
+      "parameters": {
+        "text": "=Article 1: {{ $json.results[0].content }}\nArticle 2: {{ $json.results[1].content }}\nArticle 3: {{ $json.results[2].content }}",
+        "options": {
+          "systemMessage": "=# Overview  \nYou are an AI agent responsible for generating a concise, inspiring LinkedIn post targeted at entrepreneurs, based on the content of three given articles.  \n\n## Context  \n- The agent receives 3 articles on a related topic.  \n- The goal is to synthesize the key ideas into a short, professional LinkedIn post.  \n- The tone should be motivational, forward-thinking, and relevant to the entrepreneurial mindset.  \n- Posts should be optimized for engagement using relevant hashtags and light use of emojis.  \n\n## Instructions  \n1. Read and extract the core themes, trends, or insights from all three articles.  \n2. Identify any common threads or overarching message.  \n3. Write a LinkedIn post (max 700 characters) that blends the main insights into a unified, inspiring message.  \n4. Use 2\u20134 relevant hashtags that align with the post topic and entrepreneur interests.  \n5. Add 1\u20133 tasteful emojis to increase engagement without reducing professionalism.  \n6. Do not quote or directly reference article sources. Focus on synthesizing ideas.  \n\n\n## Examples  \n- Input: 3 articles on AI in startups, bootstrapping, and the rise of solopreneurs.  \n- Output:  \n  \"From AI copilots to lean bootstrapping, the age of the solopreneur is now. \ud83d\ude80  \n  Entrepreneurs are rewriting the rules\u2014scaling smarter, faster, and with less.  \n  Embrace the shift. The tools are here. The future is solo-powered.  \n  #Entrepreneurship #AI #Bootstrapping #FutureOfWork\"\n\n## SOP (Standard Operating Procedure)  \n1. Receive the 3 articles and briefly scan each to extract top insights.  \n2. Group overlapping ideas into 1\u20132 core messages.  \n3. Draft a LinkedIn post with a motivating tone, keeping under the character limit.  \n4. Add emojis and hashtags appropriately.  \n5. Review for clarity, grammar, and impact.  \n\n## Final Notes  \n- Posts must always be original and never copy from the source articles.  \n- Avoid technical jargon or overly niche terms\u2014keep it accessible.  \n- Prioritize clarity, brevity, and emotional resonance.  \n---\n"
+        },
+        "promptType": "define"
+      },
+      "typeVersion": 1.8
+    }
+  ],
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e8b12d6e-21b1-4305-bb79-7d7b087f36b9",
+  "connections": {
+    "Tavily": {
+      "main": [
+        [
+          {
+            "node": "Content Creator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Topic": {
+      "main": [
+        [
+          {
+            "node": "Tavily",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Creator": {
+      "main": [
+        [
+          {
+            "node": "Send Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content Creator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking \u2018Test workflow\u2019": {
+      "main": [
+        [
+          {
+            "node": "Get Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

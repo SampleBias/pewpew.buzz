@@ -1,0 +1,354 @@
+{
+  "id": "xJAfJtLTjPUuZcJi",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Customer Support Workflow",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "7bb88475-d8de-476e-803b-30921a97f60e",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -120,
+        -340
+      ],
+      "parameters": {
+        "color": 5,
+        "width": 580,
+        "height": 80,
+        "content": "# 2) Customer Support Workflow\n"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "1517509f-455d-44f8-ab03-5a220450c33b",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "position": [
+        -360,
+        -20
+      ],
+      "parameters": {
+        "simple": false,
+        "filters": {},
+        "options": {},
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "KY7391f1ZHRL52Nu",
+          "name": "Demo 4/2"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "181c9b3c-c2f3-4a5b-b5ab-435bdc47d26f",
+      "name": "Text Classifier",
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "position": [
+        -100,
+        -20
+      ],
+      "parameters": {
+        "options": {},
+        "inputText": "={{ $json.text }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "Customer Support",
+              "description": "An email that is related to helping out a customer. They may be asking questions about our policies or questions about our products or services."
+            },
+            {
+              "category": "Other",
+              "description": "Any email that is not customer support related."
+            }
+          ]
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "c9a0f456-2dfe-4fdc-b40b-4ae9254a3ece",
+      "name": "OpenRouter Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        -160,
+        160
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openRouterApi": {
+          "id": "OKbg2dxiNxleXQic",
+          "name": "Demo 4/2"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "e750b21f-1fa4-4ada-b428-ba4f146c2a84",
+      "name": "No Operation, do nothing",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        340,
+        200
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "a20c4dcc-8ed5-4698-99e3-74577549072d",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        380,
+        -140
+      ],
+      "parameters": {
+        "text": "={{ $('Gmail Trigger').item.json.text }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are a customer support agent from Tech Haven. Your job is to write responses to incoming emails using your knowledgeBase tool.\n\n## Output\nOnly output the email body\n\n## Instructions\n- Write friendly emails with emojis\n- Sign off as Mr. Helpful from Tech Haven Solutions"
+        },
+        "promptType": "define"
+      },
+      "typeVersion": 1.8
+    },
+    {
+      "id": "a946a825-8fe7-4905-83e2-f9c2c826eaae",
+      "name": "Pinecone Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "position": [
+        520,
+        40
+      ],
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "options": {
+          "pineconeNamespace": "FAQ"
+        },
+        "toolName": "knowledgeBase",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "sample",
+          "cachedResultName": "sample"
+        },
+        "toolDescription": "Call this tool to access information about Policies and FAQ"
+      },
+      "credentials": {
+        "pineconeApi": {
+          "id": "87xHLzLON9BYVGHw",
+          "name": "Demo 4/2"
+        }
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "e4124204-b90a-49f2-b448-eeae828207a3",
+      "name": "Embeddings OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "position": [
+        560,
+        220
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "WnxUhaEPMn5hIsEp",
+          "name": "Demo 4/2"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "a6b5a555-b8a6-4b4f-be65-6a0b0f8b3128",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        360,
+        20
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "WnxUhaEPMn5hIsEp",
+          "name": "Demo 4/2"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "5ff212e0-7f6b-4ba2-80ab-fabdb6287c58",
+      "name": "Label",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        740,
+        -140
+      ],
+      "webhookId": "c0c7c2b3-31f9-4cd1-8216-b5862601ddc7",
+      "parameters": {
+        "labelIds": [
+          "Label_1594706753190197855"
+        ],
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "operation": "addLabels"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "KY7391f1ZHRL52Nu",
+          "name": "Demo 4/2"
+        }
+      },
+      "typeVersion": 2.1
+    },
+    {
+      "id": "7d1f41f3-97c9-4127-8eef-551b2688451a",
+      "name": "Send",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        940,
+        -140
+      ],
+      "webhookId": "63fe17a2-3eca-4444-9cea-34b80b57ee49",
+      "parameters": {
+        "message": "={{ $json.output }}",
+        "options": {
+          "appendAttribution": false
+        },
+        "emailType": "text",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "operation": "reply"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "KY7391f1ZHRL52Nu",
+          "name": "Demo 4/2"
+        }
+      },
+      "typeVersion": 2.1
+    }
+  ],
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "86388fd5-b1c1-49b5-b047-419ad75fa5aa",
+  "connections": {
+    "Label": {
+      "main": [
+        [
+          {
+            "node": "Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

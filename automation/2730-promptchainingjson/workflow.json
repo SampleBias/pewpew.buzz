@@ -1,0 +1,298 @@
+{
+  "id": "9RT7chR2ilnTQwBV",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Prompt Chaining",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "53275b40-1b62-48b5-9b6b-60fe952630ab",
+      "name": "4o mini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        440,
+        200
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "BP9v81AwJlpYGStD",
+          "name": "OpenAi account"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "bfcdca67-e28f-41f6-9f3c-71f7271d8537",
+      "name": "Outline Writer",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        120,
+        -60
+      ],
+      "parameters": {
+        "text": "=Here is the topic to write a blog about: {{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "# Overview\nYou are an expert outline writer. Your job is to generate a structured outline for a blog post with section titles and key points."
+        },
+        "promptType": "define"
+      },
+      "typeVersion": 1.7
+    },
+    {
+      "id": "e8297f5e-4ab5-4311-b5d8-0ab50c74d39b",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -100,
+        -440
+      ],
+      "parameters": {
+        "color": 5,
+        "width": 940,
+        "height": 260,
+        "content": "# Prompt Chaining\n \u2705 Improved Accuracy and Quality \u2013 Each step focuses on a specific task, reducing errors and hallucinations.\n\n \u2705 Greater Control Over Each Step \u2013 You can refine or tweak individual steps without affecting the entire process.\n\n \u2705 Specialization Leads to More Effective AI Agents \u2013 Each AI agent becomes a specialist rather than a generalist, improving reliability.\n\n \u2705 Easier Debugging and Optimization \u2013 If an output isn\u2019t ideal, you only need to fix the weak link rather than redoing everything.\n\n \u2705 More Scalable and Reusable Workflows \u2013 A structured, step-by-step workflow can be repurposed for different use cases.\n"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "d15e23e2-ac3e-46d4-a262-e5b652585d80",
+      "name": "Outline Evaluation",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        440,
+        -60
+      ],
+      "parameters": {
+        "text": "=Here is the outline: \n\n{{ $json.output }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are an expert blog evaluator. Revise this outline and ensure it covers the following key criteria: \n(1) Engaging Introduction \n(2) Clear Section Breakdown\n(3) Logical Flow\n(4) Conclusion with Key Takeaways\n\n## Output\nOnly output the revised outline."
+        },
+        "promptType": "define"
+      },
+      "typeVersion": 1.7
+    },
+    {
+      "id": "20caaf7c-47b9-4633-a18d-43dd3dfa093b",
+      "name": "Blog Writer",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        780,
+        -60
+      ],
+      "parameters": {
+        "text": "=Here if the revised outline: {{ $json.output }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are an expert blog writer. Generate a detailed blog post using the outline with well-structured paragraphs and engaging content."
+        },
+        "promptType": "define"
+      },
+      "typeVersion": 1.7
+    },
+    {
+      "id": "69464fe3-f380-4350-bd71-87eaeefed4f4",
+      "name": "Post to Docs",
+      "type": "n8n-nodes-base.googleDocs",
+      "position": [
+        1120,
+        -60
+      ],
+      "parameters": {
+        "simple": false,
+        "actionsUi": {
+          "actionFields": [
+            {
+              "text": "={{ $json.output }}",
+              "action": "insert"
+            }
+          ]
+        },
+        "operation": "update"
+      },
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "pEX7GDr771yL1CT3",
+          "name": "Google Docs account 2"
+        }
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "54957470-a5da-4959-8af8-bc929cd544ff",
+      "name": "DeepSeek R1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "position": [
+        960,
+        200
+      ],
+      "parameters": {
+        "model": "deepseek-reasoner",
+        "options": {}
+      },
+      "credentials": {
+        "deepSeekApi": {
+          "id": "UtrKBz6qKLtigWOT",
+          "name": "DeepSeek account"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "4e97b98c-5a13-4158-b17a-24a3aa85775b",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        -80,
+        -60
+      ],
+      "webhookId": "8b5d17e6-9356-437e-a97a-4f4027e6451d",
+      "parameters": {
+        "options": {}
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "d0d3309f-4cb7-4969-a0e1-3988e268df45",
+      "name": "2.0 Flash",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        120,
+        200
+      ],
+      "parameters": {
+        "options": {},
+        "modelName": "models/gemini-2.0-flash"
+      },
+      "credentials": {
+        "googlePalmApi": {
+          "id": "DW8owDXDeMHnr1rA",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "ef063d4a-2d81-46d6-b449-5e82f3677725",
+      "name": "Claude 3.5",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "position": [
+        820,
+        200
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "anthropicApi": {
+          "id": "iEsH2oywXIJiWHnM",
+          "name": "Anthropic account"
+        }
+      },
+      "typeVersion": 1.2
+    }
+  ],
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6974ff76-01f9-4c56-b05b-97b675621039",
+  "connections": {
+    "4o mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Outline Evaluation",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2.0 Flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Outline Writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude 3.5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Blog Writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Blog Writer": {
+      "main": [
+        [
+          {
+            "node": "Post to Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek R1": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Post to Docs": {
+      "main": [
+        []
+      ]
+    },
+    "Outline Writer": {
+      "main": [
+        [
+          {
+            "node": "Outline Evaluation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outline Evaluation": {
+      "main": [
+        [
+          {
+            "node": "Blog Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Outline Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

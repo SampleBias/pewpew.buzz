@@ -1,0 +1,551 @@
+{
+  "id": "fB6l6ZMk0zfAaIqB",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Outlook Inbox Manager",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "b2d39e20-53a6-478d-b64f-61867594aa99",
+      "name": "Microsoft Outlook Trigger",
+      "type": "n8n-nodes-base.microsoftOutlookTrigger",
+      "position": [
+        -60,
+        -100
+      ],
+      "parameters": {
+        "output": "raw",
+        "filters": {},
+        "options": {},
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "aXpMBAN4VwmHiX9B",
+          "name": "Nate Outlook"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "1cd1a5ea-ec93-4da0-a4a1-ffee379410cd",
+      "name": "Clean Email",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        120,
+        -100
+      ],
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "options": {},
+        "messages": {
+          "values": [
+            {
+              "content": "=Here is an incoming email:  {{ $json.body.content }}"
+            },
+            {
+              "role": "system",
+              "content": "Take the incoming email and clean it up so it is more readable. Get rid of the HTML tagging, but don't get rid of any of the email content. Don't include a subject.\n"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "BP9v81AwJlpYGStD",
+          "name": "OpenAi account"
+        }
+      },
+      "typeVersion": 1.8
+    },
+    {
+      "id": "9ab40f44-fc29-4197-9ba4-ba95ee96ba23",
+      "name": "Text Classifier",
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "position": [
+        480,
+        -100
+      ],
+      "parameters": {
+        "options": {},
+        "inputText": "={{ $json.message.content }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "High Priority",
+              "description": "Emails that require immediate attention, often involving urgent issues, escalations, system failures, or critical business matters.\n\nCommon Words/Phrases:\nUrgent, ASAP, Immediate action required, Critical issue, Escalation, Emergency, System outage, High priority, Downtime, Affected customers, Please respond quickly, Need resolution, Time-sensitive."
+            },
+            {
+              "category": "Billing",
+              "description": "Emails related to payments, invoices, subscriptions, financial transactions, or account balances. These emails often contain due dates, payment instructions, or financial statements.\n\nCommon Words/Phrases:\nInvoice, Billing statement, Payment due, Past due, Outstanding balance, Subscription renewal, Payment confirmation, Charge notice, Overdue notice, Auto-renewal, Finance department, ACH transfer, Bank details."
+            },
+            {
+              "category": "Promotion",
+              "description": "Emails related to marketing campaigns, sales offers, discounts, partnership opportunities, or advertisements. These emails are often sent in bulk and contain promotional language.\n\nCommon Words/Phrases:\nSpecial offer, Limited-time deal, Exclusive discount, Save big, Flash sale, Promo code, Get 20% off, Earn rewards, Best deals, New product launch, Marketing campaign, Subscription offer, Early access, Upgrade now, Act fast."
+            }
+          ]
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "d0f7bb37-f281-40de-9303-bd18fd72fe10",
+      "name": "Flash 2.0",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        500,
+        120
+      ],
+      "parameters": {
+        "options": {},
+        "modelName": "models/gemini-2.0-flash"
+      },
+      "credentials": {
+        "googlePalmApi": {
+          "id": "DW8owDXDeMHnr1rA",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "d965ab17-0e21-4fc3-800b-40e57dedf134",
+      "name": "High Priority Folder",
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "position": [
+        960,
+        -320
+      ],
+      "webhookId": "d7869f88-45cf-4d4e-98f9-4b3ac0100851",
+      "parameters": {
+        "messageId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Microsoft Outlook Trigger').item.json.id }}"
+        },
+        "operation": "move"
+      },
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "aXpMBAN4VwmHiX9B",
+          "name": "Nate Outlook"
+        }
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "623d5d24-f827-4c2f-8ac4-ad713efe1a04",
+      "name": "Billing Folder",
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "position": [
+        960,
+        -100
+      ],
+      "webhookId": "d7869f88-45cf-4d4e-98f9-4b3ac0100851",
+      "parameters": {
+        "messageId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Microsoft Outlook Trigger').item.json.id }}"
+        },
+        "operation": "move"
+      },
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "aXpMBAN4VwmHiX9B",
+          "name": "Nate Outlook"
+        }
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "69f5aa13-3861-46b4-9951-79a5a3bfc0a6",
+      "name": "Billing Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1160,
+        -100
+      ],
+      "parameters": {
+        "text": "=Here is the email: {{ $('Clean Email').item.json.message.content }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are a billing assistant. Your job is to respond to the incoming emails in a professional manner.\n\n## Tools \nCreate Draft - Use this tool to send an email in response to the one you receive"
+        },
+        "promptType": "define"
+      },
+      "typeVersion": 1.7
+    },
+    {
+      "id": "97f3fac2-8d68-4999-9adc-d0984ccc283b",
+      "name": "Create Draft",
+      "type": "n8n-nodes-base.microsoftOutlookTool",
+      "position": [
+        1360,
+        100
+      ],
+      "webhookId": "445ca80a-e3b5-4c65-8555-7c5d6d3cfe54",
+      "parameters": {
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "resource": "draft",
+        "bodyContent": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', `sign off as Bob from ABS Corp`, 'string') }}",
+        "additionalFields": {
+          "toRecipients": "={{ $('Microsoft Outlook Trigger').item.json.sender.emailAddress.address }}"
+        }
+      },
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "aXpMBAN4VwmHiX9B",
+          "name": "Nate Outlook"
+        }
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "03e47516-e5e8-43c9-934b-cd77b84ae7e1",
+      "name": "Promotion Folder",
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "position": [
+        960,
+        120
+      ],
+      "webhookId": "d7869f88-45cf-4d4e-98f9-4b3ac0100851",
+      "parameters": {
+        "messageId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Microsoft Outlook Trigger').item.json.id }}"
+        },
+        "operation": "move"
+      },
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "aXpMBAN4VwmHiX9B",
+          "name": "Nate Outlook"
+        }
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "8f49896e-2e13-431f-ae1a-76f0698b1922",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.microsoftOutlookTool",
+      "position": [
+        1340,
+        500
+      ],
+      "webhookId": "47f1e1c3-dcdf-4656-b914-0eeb16cc6bb9",
+      "parameters": {
+        "subject": "Not Interested",
+        "bodyContent": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', `Sign off all emails as Frank`, 'string') }}",
+        "toRecipients": "={{ $('Microsoft Outlook Trigger').item.json.from.emailAddress.address }}",
+        "additionalFields": {}
+      },
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "aXpMBAN4VwmHiX9B",
+          "name": "Nate Outlook"
+        }
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "cc653a00-ad8e-4d12-a771-be1b000d0d38",
+      "name": "Promotion Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1180,
+        280
+      ],
+      "parameters": {
+        "text": "=Here is the incoming email: {{ $('Clean Email').item.json.message.content }}",
+        "options": {
+          "systemMessage": "You will receive promotional emails. Your job is to politely decline all offers. Use the 'Send Email' Tool to do so."
+        },
+        "promptType": "define"
+      },
+      "typeVersion": 1.7
+    },
+    {
+      "id": "5910e130-869f-4cf5-b7b2-92896111da2f",
+      "name": "High Priority Notification",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        1160,
+        -320
+      ],
+      "webhookId": "816efd19-6ee7-4e4f-ac86-e0778853b21f",
+      "parameters": {
+        "text": "=New High Priority Email\n\nFrom: {{ $('Microsoft Outlook Trigger').item.json.sender.emailAddress.name }}\n\nSubject: {{ $('Microsoft Outlook Trigger').item.json.subject }}\n\nDate: {{ $now.format('yyyy-MM-dd') }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "9jQWan3cOz3tE62s",
+          "name": "Telegram account 2"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "39f0ec5d-01ef-47a5-bb6e-9fd245dd82a9",
+      "name": "Billing Notification",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        1520,
+        -100
+      ],
+      "webhookId": "816efd19-6ee7-4e4f-ac86-e0778853b21f",
+      "parameters": {
+        "text": "=New billing inquiry received at {{ $now.format('hh:mm a') }} from {{ $('Microsoft Outlook Trigger').item.json.sender.emailAddress.name }}.\n\nA draft has been created and is sitting in your Outlook.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "9jQWan3cOz3tE62s",
+          "name": "Telegram account 2"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "b5e6c113-72f3-469e-947d-6e259b902070",
+      "name": "4o mini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1180,
+        120
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "BP9v81AwJlpYGStD",
+          "name": "OpenAi account"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "99d46a3e-3431-4f38-b189-07a7198de5f1",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -180,
+        -420
+      ],
+      "parameters": {
+        "color": 4,
+        "width": 1920,
+        "height": 1080,
+        "content": "# Outlook Inbox Manager\n"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "d5c2d301-c9c1-4efa-be77-a84bd2ac8a2f",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        500,
+        -560
+      ],
+      "parameters": {
+        "color": 5,
+        "width": 500,
+        "height": 80,
+        "content": "# Nate Herk | AI Automation"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "61291a63-c01f-4a29-be03-63f1d3b27405",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -560,
+        -240
+      ],
+      "parameters": {
+        "width": 300,
+        "content": "## Set Up\n- Plug in your credentials/chat models.\n- The 'Clean Email' node is NOT necessary. If you remove it, you will need to remap some inputs."
+      },
+      "typeVersion": 1
+    }
+  ],
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "580f5817-6390-4d5a-b0ab-e76867887e6a",
+  "connections": {
+    "4o mini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Billing Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Promotion Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flash 2.0": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "Promotion Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Email": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Draft": {
+      "ai_tool": [
+        [
+          {
+            "node": "Billing Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Billing Agent": {
+      "main": [
+        [
+          {
+            "node": "Billing Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Billing Folder": {
+      "main": [
+        [
+          {
+            "node": "Billing Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "High Priority Folder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Billing Folder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Promotion Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Promotion Folder": {
+      "main": [
+        [
+          {
+            "node": "Promotion Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High Priority Folder": {
+      "main": [
+        [
+          {
+            "node": "High Priority Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Microsoft Outlook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Clean Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High Priority Notification": {
+      "main": [
+        []
+      ]
+    }
+  }
+}

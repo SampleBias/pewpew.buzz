@@ -1,0 +1,394 @@
+{
+  "id": "3bTosc7wtFVzUfJb",
+  "meta": {
+    "instanceId": "226f66567cddc490900f448f9cd7b37aac23a17c68b1fff2cd4fa964b4d44321",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "MCP Agent",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "dd74a61d-b48b-42ab-9081-bf12d0d0ded9",
+      "name": "4o",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        -600,
+        80
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "h1SwgwJv3wDBEtfo",
+          "name": "OpenAI"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "537515c0-c6f6-4a13-83cc-54ce6401e2a4",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        -260,
+        -220
+      ],
+      "webhookId": "51caa0e0-620f-4d1a-804d-c5420c8f30b4",
+      "parameters": {
+        "options": {}
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "3762e3b3-6356-45e7-9436-fcc05365ea89",
+      "name": "Airbnb Actions",
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "position": [
+        680,
+        80
+      ],
+      "parameters": {},
+      "credentials": {
+        "mcpClientApi": {
+          "id": "WFfbrIZic0sFcayz",
+          "name": "Airbnb"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "a6ed0bdb-3c96-4ee9-a11a-1aab3ce31723",
+      "name": "Airbnb Execute",
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "position": [
+        840,
+        80
+      ],
+      "parameters": {
+        "toolName": "={{ $fromAI(\"tool\",\"the selected tool to use\") }}",
+        "operation": "executeTool",
+        "toolParameters": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Tool_Parameters', ``, 'json') }}"
+      },
+      "credentials": {
+        "mcpClientApi": {
+          "id": "WFfbrIZic0sFcayz",
+          "name": "Airbnb"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "1bd0f2b6-0652-4610-99bf-031e66b2f292",
+      "name": "Firecrawl Actions",
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "position": [
+        -460,
+        80
+      ],
+      "parameters": {},
+      "credentials": {
+        "mcpClientApi": {
+          "id": "MIF6a93AWPfISY2G",
+          "name": "Firecrawl"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "b7f07463-17b8-49c1-bef4-765d6262094b",
+      "name": "Firecrawl Execute",
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "position": [
+        -320,
+        80
+      ],
+      "parameters": {
+        "toolName": "={{ $fromAI(\"tool\",\"the selected tool to use\") }}",
+        "operation": "executeTool",
+        "toolParameters": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Tool_Parameters', ``, 'json') }}"
+      },
+      "credentials": {
+        "mcpClientApi": {
+          "id": "MIF6a93AWPfISY2G",
+          "name": "Firecrawl"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "d34ce273-8025-4ecc-ae14-6d272a4d879d",
+      "name": "Github Actions",
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "position": [
+        -180,
+        80
+      ],
+      "parameters": {},
+      "credentials": {
+        "mcpClientApi": {
+          "id": "s0splTTdt9Ajn5V3",
+          "name": "Github"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "3b288df0-2357-4edf-92b7-bbd306e179fb",
+      "name": "Github Execute",
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "position": [
+        -40,
+        80
+      ],
+      "parameters": {
+        "toolName": "={{ $fromAI(\"tool\") }}",
+        "operation": "executeTool"
+      },
+      "credentials": {
+        "mcpClientApi": {
+          "id": "s0splTTdt9Ajn5V3",
+          "name": "Github"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "a4c504eb-e1f7-43f9-9379-9560f90478d4",
+      "name": "Airtable Actions",
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "position": [
+        100,
+        80
+      ],
+      "parameters": {},
+      "credentials": {
+        "mcpClientApi": {
+          "id": "PQWCpozDmMFPjW3P",
+          "name": "Airtable"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "036c238c-5893-43ab-9e33-f927a66b4f39",
+      "name": "Airtable Execute",
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "position": [
+        240,
+        80
+      ],
+      "parameters": {
+        "toolName": "={{ $fromAI(\"tool\",\"the selected tool to use\") }}",
+        "operation": "executeTool",
+        "toolParameters": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Tool_Parameters', ``, 'json') }}"
+      },
+      "credentials": {
+        "mcpClientApi": {
+          "id": "PQWCpozDmMFPjW3P",
+          "name": "Airtable"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "efeb969d-84d9-40d4-8770-af300b2e494a",
+      "name": "Brave Actions",
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "position": [
+        380,
+        80
+      ],
+      "parameters": {},
+      "credentials": {
+        "mcpClientApi": {
+          "id": "qD5eLX0UJtn252Se",
+          "name": "Brave"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "339ab8cc-3a9d-4fe7-962b-fad987a381c9",
+      "name": "Brave Execute",
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "position": [
+        520,
+        80
+      ],
+      "parameters": {
+        "toolName": "={{ $fromAI(\"tool\",\"the selected tool to use\") }}",
+        "operation": "executeTool",
+        "toolParameters": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Tool_Parameters', ``, 'json') }}"
+      },
+      "credentials": {
+        "mcpClientApi": {
+          "id": "qD5eLX0UJtn252Se",
+          "name": "Brave"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "1709761f-9ddc-4ca5-b8c0-edee81bba852",
+      "name": "MCP Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        20,
+        -220
+      ],
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant"
+        }
+      },
+      "typeVersion": 1.8
+    }
+  ],
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4b3cad82-cae6-42af-983d-255961953fbf",
+  "connections": {
+    "4o": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "MCP Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brave Actions": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brave Execute": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airbnb Actions": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airbnb Execute": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Github Actions": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Github Execute": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Actions": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Execute": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl Actions": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl Execute": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "MCP Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

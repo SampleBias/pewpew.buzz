@@ -1,0 +1,701 @@
+{
+  "id": "epiRR2ok8YJp5aF6",
+  "meta": {
+    "instanceId": "95e5a8c2e51c83e33b232ea792bbe3f063c094c33d9806a5565cb31759e1ad39",
+    "templateCredsSetupCompleted": true
+  },
+  "name": "RAG Workflow vs. RAG Agent",
+  "tags": [],
+  "nodes": [
+    {
+      "id": "eb690ce9-e043-472c-8ba1-d54d365d6d17",
+      "name": "When clicking \u2018Test workflow\u2019",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "16120c14-207c-46eb-b03a-5d891695f4c4",
+      "name": "Download File",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "options": {},
+        "operation": "download"
+      },
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "60zdCK3Sx2Shlbb4",
+          "name": "Google Drive account"
+        }
+      },
+      "typeVersion": 3
+    },
+    {
+      "id": "e57a79b3-42ad-436f-9127-7bbde8bf680d",
+      "name": "Pinecone Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "mode": "insert",
+        "options": {
+          "pineconeNamespace": ""
+        },
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "sample",
+          "cachedResultName": "sample"
+        }
+      },
+      "credentials": {
+        "pineconeApi": {
+          "id": "kRQGVexSgzWhzJz2",
+          "name": "PineconeApi account 4"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "e65c6e98-3839-4624-98df-686d0b4a34c8",
+      "name": "Embeddings OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "position": [
+        360,
+        220
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "BP9v81AwJlpYGStD",
+          "name": "OpenAi account"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "7752d12d-acc0-405d-8624-27f1329a7de8",
+      "name": "Default Data Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "position": [
+        520,
+        220
+      ],
+      "parameters": {
+        "options": {},
+        "dataType": "binary"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "ec510b1b-9e0d-48a7-87bf-f69b27cd0a4c",
+      "name": "Recursive Character Text Splitter",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "position": [
+        520,
+        400
+      ],
+      "parameters": {
+        "options": {},
+        "chunkSize": 500,
+        "chunkOverlap": 50
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "cd6f58ec-9716-4d6c-b1c1-70021fcca4b7",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -80,
+        -120
+      ],
+      "parameters": {
+        "width": 980,
+        "height": 680,
+        "content": "# Vectorize Document (binary)"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "1213b83a-6127-4c7d-aee7-c954655ef589",
+      "name": "2.0 Flash",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        1060,
+        240
+      ],
+      "parameters": {
+        "options": {},
+        "modelName": "models/gemini-2.0-flash"
+      },
+      "credentials": {
+        "googlePalmApi": {
+          "id": "DW8owDXDeMHnr1rA",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "fc290f91-b199-44c0-9c49-4f1d2da027c1",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "position": [
+        1020,
+        20
+      ],
+      "parameters": {
+        "simple": false,
+        "filters": {
+          "sender": "uppitdigital@gmail.com"
+        },
+        "options": {},
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MHutgNQIvAz7qMgP",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "7119b1e7-6049-4f1c-8d5a-c8cf9674789e",
+      "name": "Pinecone",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "position": [
+        1220,
+        240
+      ],
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "options": {
+          "pineconeNamespace": ""
+        },
+        "toolName": "knowledge_base",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "sample",
+          "cachedResultName": "sample"
+        },
+        "toolDescription": "Use this tool to search the knowledge base to answer the user's query."
+      },
+      "credentials": {
+        "pineconeApi": {
+          "id": "kRQGVexSgzWhzJz2",
+          "name": "PineconeApi account 4"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "5f27b73a-9951-453d-a536-020b30915308",
+      "name": "Embeddings OpenAI1",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "position": [
+        1220,
+        400
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "BP9v81AwJlpYGStD",
+          "name": "OpenAi account"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "c66f3c2a-d5e5-42e5-81df-95e523af616b",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        920,
+        -120
+      ],
+      "parameters": {
+        "color": 5,
+        "width": 820,
+        "height": 680,
+        "content": "# Customer Support Agent\n"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "3f5ca5c8-0098-451d-99ed-dde6e1fe9487",
+      "name": "Customer Support Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1240,
+        20
+      ],
+      "parameters": {
+        "text": "=Message ID: {{ $json.id }}\n\nIncomgin Email: {{ $json.text }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are Mister Helpful, a customer support representative for Tech Haven. Your job is to respond to incoming customer emails with accurate information from the knowledge base.\n\n## Tools\nknowledge_base: Use this tool to search the knowledge base to get information to answer the customer's question\nReply Email: Use this tool to respond to the incoming email.\n\n## Tone\n- You are friendly and helpful. \n- You like to use emojis when applicable.\n- Sign off as \"Mister Helpful | Tech Haven\""
+        },
+        "promptType": "define"
+      },
+      "typeVersion": 1.8
+    },
+    {
+      "id": "b14e20bb-b6cf-431c-9628-06baf9a401a5",
+      "name": "Gmail Trigger1",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "disabled": true,
+      "position": [
+        20,
+        760
+      ],
+      "parameters": {
+        "simple": false,
+        "filters": {
+          "sender": "uppitdigital@gmail.com"
+        },
+        "options": {},
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MHutgNQIvAz7qMgP",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "4028fc83-eea8-489f-a49f-5892bc52135c",
+      "name": "Search Knowledge Base",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "position": [
+        280,
+        700
+      ],
+      "parameters": {
+        "mode": "load",
+        "prompt": "={{ $json.text }}",
+        "options": {
+          "pineconeNamespace": ""
+        },
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "list",
+          "value": "sample",
+          "cachedResultName": "sample"
+        }
+      },
+      "credentials": {
+        "pineconeApi": {
+          "id": "kRQGVexSgzWhzJz2",
+          "name": "PineconeApi account 4"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "f0f92f25-3b45-455f-bb02-eed4865d631c",
+      "name": "Embeddings OpenAI2",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "position": [
+        260,
+        860
+      ],
+      "parameters": {
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "BP9v81AwJlpYGStD",
+          "name": "OpenAi account"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "92322ecb-34ca-4cd3-ba65-b2a3c154c193",
+      "name": "Write Email",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        1080,
+        700
+      ],
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o",
+          "cachedResultName": "GPT-4O"
+        },
+        "options": {},
+        "messages": {
+          "values": [
+            {
+              "content": "=Customer Inquiry: {{ $('Gmail Trigger1').item.json.text }}\n\nRelevant Knowledge: {{ $json.pageContent.join() }}"
+            },
+            {
+              "role": "system",
+              "content": "=# Overview\nYou are Mister Helpful, a customer support representative for Tech Haven. Your job is to respond to incoming customer emails with accurate information from the knowledge base.\n\n## Rules\nYou must only answer using the relevant knowledge provided to you. Do not make up any information.\n\n## Tone\n- You are friendly and helpful. \n- You like to use emojis when applicable.\n- Sign off as \"Mister Helpful | Tech Haven\"\n\n## Output\nOutput only the email body in a clean format"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "BP9v81AwJlpYGStD",
+          "name": "OpenAi account"
+        }
+      },
+      "typeVersion": 1.8
+    },
+    {
+      "id": "9a7ccf48-c6a3-43a9-8479-7e4593f58472",
+      "name": "Filter",
+      "type": "n8n-nodes-base.filter",
+      "position": [
+        660,
+        760
+      ],
+      "parameters": {
+        "options": {},
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "7c1eb62e-1913-44c3-891b-4b9258fcff1d",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              },
+              "leftValue": "={{ $json.score }}",
+              "rightValue": 0.4
+            }
+          ]
+        }
+      },
+      "typeVersion": 2.2
+    },
+    {
+      "id": "fc9cffa0-d2e5-4a8f-8177-9d2fda937042",
+      "name": "Aggregate",
+      "type": "n8n-nodes-base.aggregate",
+      "position": [
+        840,
+        760
+      ],
+      "parameters": {
+        "options": {},
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "document.pageContent"
+            }
+          ]
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "45d41f13-a93c-4457-a306-d5cb2b625998",
+      "name": "Reply to Customer",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        1500,
+        760
+      ],
+      "webhookId": "5d4f41e8-1f64-41af-948e-ff8ca75b74f9",
+      "parameters": {
+        "message": "={{ $json.message.content }}",
+        "options": {
+          "appendAttribution": false
+        },
+        "emailType": "text",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id }}",
+        "operation": "reply"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MHutgNQIvAz7qMgP",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 2.1
+    },
+    {
+      "id": "0bbdc300-9a64-48e9-ab89-030c7edcaae6",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -80,
+        580
+      ],
+      "parameters": {
+        "color": 4,
+        "width": 1820,
+        "height": 400,
+        "content": "# Customer Support AI Workflow"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "92039439-bd1a-4e99-a0bb-0c3d6c38cfcc",
+      "name": "Reply Email",
+      "type": "n8n-nodes-base.gmailTool",
+      "position": [
+        1540,
+        240
+      ],
+      "webhookId": "ebb784d8-5760-4a48-a64f-b20933ea689a",
+      "parameters": {
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        },
+        "emailType": "text",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', `The message ID to reply to`, 'string') }}",
+        "operation": "reply"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MHutgNQIvAz7qMgP",
+          "name": "Gmail account"
+        }
+      },
+      "typeVersion": 2.1
+    },
+    {
+      "id": "d589e6fa-edb6-4a0d-9d6e-7c2a24dee8a6",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        500,
+        -260
+      ],
+      "parameters": {
+        "color": 6,
+        "width": 520,
+        "height": 80,
+        "content": "# Nate Herk | AI Automations"
+      },
+      "typeVersion": 1
+    }
+  ],
+  "active": false,
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c8011c9c-10eb-46bf-95e3-47e9ddff8c15",
+  "connections": {
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone": {
+      "ai_tool": [
+        [
+          {
+            "node": "Customer Support Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2.0 Flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Customer Support Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Write Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "Customer Support Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Email": {
+      "main": [
+        [
+          {
+            "node": "Reply to Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download File": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Customer Support Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Search Knowledge Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Search Knowledge Base",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Knowledge Base": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking \u2018Test workflow\u2019": {
+      "main": [
+        [
+          {
+            "node": "Download File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
